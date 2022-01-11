@@ -51,14 +51,6 @@ impl fmt::Display for VectorCounter {
         }
 }
 
-///////////////////////////////
-
-pub struct SetContainer<Isize> {
-    pub components: Vec<HashSet<Isize>>,
-}
-
-///////////////////////////////
-
 pub fn vec_to_str<T>(s: Vec<T>) -> String
     where
     T : ToString {
@@ -82,24 +74,25 @@ pub fn vec_to_str<T>(s: Vec<T>) -> String
 pub fn str_to_vec(s:String) -> Vec<String> {
     let mut j: i32 = 0;
     let mut v: Vec<String> = Vec::new();
+    let mut c = 0;
     while true {
         // get substring starting at j
         let sx = s.to_string().substring(j as usize, s.len()).to_owned();
-
-        let i = next_str(sx);//(*s4).to_string());
-
+        let i = next_str(sx.clone());//(*s4).to_string());
         if i == -1 {
             v.push(s.to_string().substring(j as usize, s.len()).to_owned());
             break;
         }
-
-        v.push(s.to_string().substring(j as usize,(j + i) as usize).to_owned());
-        j = i + 1;
+        let ss = s.to_string().substring(j as usize,(j + i) as usize).to_owned();
+        v.push(ss.clone());
+        j += i + 1;
+        c += 1;
+        if c >= 5 {
+            break;
+        }
     }
     v
 }
-
-
 
 pub fn next_str(s:String) -> i32 {
 
@@ -143,6 +136,11 @@ mod tests {
             assert_eq!(v.to_string(),sol2[i]);
         }
 
+        // case 3
+        let mut s = "arbitrox-bartinuell-radinox".to_string();
+        let mut s2 = str_to_vec(s);
+        assert_eq!(s2,vec!["arbitrox".to_string(), "bartinuell".to_string(),"radinox".to_string()]);
+
     }
 
     #[test]
@@ -157,4 +155,27 @@ mod tests {
         v1 = vec_to_str(s2);
         assert_eq!(v1,"one-two-2-three".to_string());
     }
+
+    #[test]
+    fn test_VectorCounter_countv() {
+
+        let mut y1 = vec![1,2,3];
+        let mut y2 = vec![2,3,7];
+        let mut x = VectorCounter{data:HashMap::new()};
+        x.countv(y1);
+        x.countv(y2);
+
+        let mut ans = (x.data.get_mut("1").unwrap()).clone();
+        assert_eq!(ans,1);
+
+        let mut ans = (x.data.get_mut("2").unwrap()).clone();
+        assert_eq!(ans,2);
+
+        let mut ans = (x.data.get_mut("3").unwrap()).clone();
+        assert_eq!(ans,2);
+
+        let mut ans = (x.data.get_mut("7").unwrap()).clone();
+        assert_eq!(ans,1);
+    }
+
 }

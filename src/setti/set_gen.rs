@@ -16,9 +16,10 @@ pub struct SGen {
 impl SGen {
 
     pub fn fcollect_all(&mut self,k : usize) {
-        let mut x :i32 = 0;
-        while true {
-            self.next = fcollect(self.value.clone(), x as usize,k as usize);
+        let mut x :usize = 0;
+        let mut l = self.value.len();
+        while x < l {
+            self.next = fcollect(self.value.clone(), x,k as usize);
             self.add_next();
 
             if self.next.len() == 0 {
@@ -27,7 +28,7 @@ impl SGen {
 
             x += 1;
         }
-
+        self.next = Vec::new();
     }
 
     pub fn add_next(&mut self) {
@@ -40,6 +41,14 @@ impl SGen {
 
 pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     let mut result: Vec<HashSet<String>> = Vec::new();
+
+    // case: k == 1
+    if k == 1 {
+        let mut q2 = HashSet::new();
+        q2.insert(s[r].clone());
+        result.push(q2);
+        return result;
+    }
 
     // make a queue and a dictionary
     // value == <index of last element, valid index for next>
@@ -57,13 +66,13 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
         // fetch next base
         let x = q[0].clone();
         q = q[1..].to_vec();
-
         //println!("next base: {}", x);
 
         // get info for add-on
         let mut ni = (d.get_mut(&x).unwrap()).clone();
+        //println!("converting");
         let mut x3 = setf::str_to_vec(x.clone());
-
+        //println!("[2] next base: {}", x);
         //println!("check0 {}|{}",ni[0],ni[1]);
         //println!("check {}|{}|{}|{}",ni[1],x3.len(),k,s.len());
 
@@ -79,9 +88,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     	}
 
         while x3.len() < k {
-
     		let x32 = x3.clone();
-
             //println!("_: {},{}",ni[0],ni[1]);
 
     		// UPDATE ELEMENT
@@ -101,8 +108,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     		// UPDATE NEW KEY
     		let nk = setf::vec_to_str(x3.clone());
             //println!("updating new key {}", nk);
-
-            //let mut nk2 = nk.clone();
+            let mut nk2 = nk.clone();
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
     			let ans = vec![ni[1],ni[1] + 1];
@@ -117,7 +123,6 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     			ans[1] = ans[1] + 1;
                 //println!("\tkey contained, updating {},{}|{}",ans[0],ans[1] - 1, ans[1]);
                 //println!("\tkey contained");
-
                 if ni[1] +1 >= s.len() {
                     continue;
                 }
@@ -131,12 +136,11 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
             if x3.len() >= k {
                 continue;
             }
-
             //println!("\n\tupdate key after: {}|{}",ni[0],ni[1]);
     		q.push(nk.to_string());
         }
-        let nk = setf::vec_to_str(x3.clone());
 
+        let nk = setf::vec_to_str(x3.clone());
         //println!("^ key is {}",nk);
         let h: HashSet<String> = x3.into_iter().collect();
         result.push(h);
@@ -169,6 +173,11 @@ pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
 pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
     strng_srt::sort_string_vector(v);
     setf::vec_to_str(v.to_vec())
+}
+
+pub fn stringized_srted_hash(h: HashSet<String>) -> String {
+    let mut c: Vec<String> = (h).into_iter().collect();
+    stringized_srted_vec(&mut c)
 }
 
 pub fn string_hashset_to_vector(h: HashSet<String>) -> Vec<String> {
