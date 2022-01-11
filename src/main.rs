@@ -9,5 +9,7 @@ mod setti;
 use setti::setf::Count;
 use substring::Substring;
 
+use factorial::Factorial;
+
 fn main() {
 }

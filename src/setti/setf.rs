@@ -5,20 +5,10 @@ set functions
 */
 pub use std::collections::HashSet;
 pub use std::collections::HashMap;
-
-//use core::fmt::Display;
 use std::string::ToString;
-//use std::string::Substring;
-//use std::
 use std::string::String;
 use substring::Substring;
-
-//use std::ops::Sub;
 use std::fmt;
-//use std::hash::Hash;
-
-//use itertools::join;
-//use std::marker::Copy;
 
 pub struct VectorCounter {
     pub data: HashMap<String,i32>,
@@ -125,4 +115,46 @@ pub fn next_str(s:String) -> i32 {
 
 pub fn count_hash<T,S>(s: HashSet<T,S>) -> usize {
     s.len()
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test__str_to_vec() {
+        // case 1
+        let mut s = "lasjdflsadjfsal;fjsald;fjsadl;-flsakdjflas;dfjls;adkjf";
+        let sol: Vec<String> = vec!["lasjdflsadjfsal;fjsald;fjsadl;".to_string(),"flsakdjflas;dfjls;adkjf".to_string()];
+
+        let v1 = str_to_vec(s.to_string());
+
+        for (i,v) in v1.iter().enumerate() {
+            assert_eq!(v.to_string(),sol[i]);
+        }
+
+        // case 2
+        let mut s2 = "lasjdflsadjfsal;fjsald;fjsadl;";
+        let sol2: Vec<String> = vec!["lasjdflsadjfsal;fjsald;fjsadl;".to_string()];
+        let v2 = str_to_vec(s2.to_string());
+
+        for (i,v) in v2.iter().enumerate() {
+            assert_eq!(v.to_string(),sol2[i]);
+        }
+
+    }
+
+    #[test]
+    fn test__vec_to_str() {
+        // case 1
+        let mut s = vec!["lasjdflsadjfsal;fjsald;fjsadl;"];
+        let mut v1 = vec_to_str(s);
+        assert_eq!(v1,"lasjdflsadjfsal;fjsald;fjsadl;".to_string());
+
+        // case 2
+        let mut s2 = vec!["one","two","2","three"];
+        v1 = vec_to_str(s2);
+        assert_eq!(v1,"one-two-2-three".to_string());
+    }
 }

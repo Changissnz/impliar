@@ -168,7 +168,6 @@ pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
 
 pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
     strng_srt::sort_string_vector(v);
-    //"sdfasdf".to_string()
     setf::vec_to_str(v.to_vec())
 }
 
@@ -232,6 +231,7 @@ mod tests {
         for x in sg.data.iter() {
             let mut v: Vec<String> = Vec::from_iter((*x).clone());
             let mut v2 = stringized_srted_vec(&mut v);
+            println!("");
         }
         assert_eq!(20,sg.data.len());
     }

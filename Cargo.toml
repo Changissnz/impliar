@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 itertools="0.10.3"
 substring="1.4.5"
+factorial = "0.2.1"
