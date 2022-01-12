@@ -5,6 +5,26 @@ use asciis::asc::Asciis;
 use substring::Substring;
 use std::str::FromStr;
 
+
+pub struct Incr<T> {
+    pub x: T,
+}
+
+impl<T> Incr<T>
+where
+    T:Inc
+{
+
+    pub fn increment(&mut self) {
+        self.x.inc();
+    }
+}
+
+pub trait Inc {
+    fn inc(&mut self) {
+    }
+}
+
 pub struct Inc1 {
     pub value: i32
 }
@@ -12,32 +32,36 @@ pub struct Inc1 {
 /*
 i32 incrementor
 */
+impl Inc for Inc1 {
+
+    fn inc(&mut self){
+        self.value += 1;
+    }
+}
+
 impl Inc1 {
 
-    pub fn next(&mut self) -> i32 {
-        let v = self.value;
-        self.value += 1;
+    fn inc_(&mut self) -> i32 {
+        let v = self.value.clone();
+        self.inc();
         v
     }
+
 }
 
 pub struct Inc1String {
     pub value: String,
-
 }
 
-/*
-alphabetical incrementor
-*/
-impl Inc1String {
+impl Inc for Inc1String {
 
-    pub fn next(&mut self) -> String {
+
+    fn inc(&mut self) {
         let asc = Asciis{};
 
         // case: empty
         if self.value.len() == 0 {
             self.value = "a".to_string();
-            return self.value.clone();
         }
 
         let mut x = self.value.clone();
@@ -64,10 +88,22 @@ impl Inc1String {
             self.value = (self.value.substring(0,self.value.len() -1)).to_owned();
             self.value.push(char::from_str(x.as_str()).unwrap());
         }
-
-        x
     }
 }
+
+/*
+alphabetical incrementor
+*/
+impl Inc1String {
+
+    pub fn inc_(&mut self) -> String {
+        let v = self.value.clone();
+        self.inc();
+        v
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
@@ -75,21 +111,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_Incr() {
+        // work on incrementors
+        let mut q = Inc1{value:3};
+        let mut e = Incr{x:q};
+
+        let mut q = 3;
+        for i in 0..5 {
+            assert_eq!(e.x.value,q);
+            e.increment();
+            q += 1;
+        }
+
+        let mut q = Inc1String{value:"a".to_string()};
+        let mut e = Incr{x:q};
+        let sol = vec!["a","b","c","d","e"];
+        for i in 0..5 {
+            println!("X: {}",e.x.value);
+            assert_eq!(e.x.value.as_str(),sol[i]);
+            e.increment();
+        }
+    }
+
+    #[test]
     fn test_Inc1String() {
         let mut x = Inc1String{value:"volfina".to_string()};
-        assert_eq!(x.next(), "volfina".to_string());
-        assert_eq!(x.next(), "volfinb".to_string());
-        assert_eq!(x.next(), "volfinc".to_string());
+        assert_eq!(x.inc_(), "volfina".to_string());
+        assert_eq!(x.inc_(), "volfinb".to_string());
+        assert_eq!(x.inc_(), "volfinc".to_string());
     }
 
     #[test]
     fn test_Inc1() {
-
         let mut x = Inc1{value:10};
-        assert_eq!(x.next(), 10);
-        assert_eq!(x.next(), 11);
-        assert_eq!(x.next(), 12);
-        assert_eq!(x.next(), 13);
+        assert_eq!(x.inc_(), 10);
+        assert_eq!(x.inc_(), 11);
+        assert_eq!(x.inc_(), 12);
+        assert_eq!(x.inc_(), 13);
     }
 
 }
