@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "asciis"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "760438bbdc5a6daf580b75c43a2b4e6c638104641fbd63c6af16821541ebe71a"
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -27,6 +33,7 @@ dependencies = [
 name = "impliar"
 version = "0.1.0"
 dependencies = [
+ "asciis",
  "factorial",
  "itertools",
  "substring",

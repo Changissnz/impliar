@@ -64,7 +64,6 @@ pub fn decompose_set(s:HashSet<String>, ns:usize) -> Vec<HashSet<String>> {
     sg.data
 }
 
-//pub fn implication_closing_number
 pub fn nCr(n: usize,r: usize) -> usize {
     assert!(n > 0 && r > 0);
     assert!(n >= r, "got {} {}",n,r);
@@ -76,7 +75,7 @@ pub fn number_of_m_intersections(n: usize,m:usize) -> usize {
     let mut s = 0 as usize;
     let mut maxxy = n - (m - 1);
     for i in 1..(maxxy + 1) {
-        println!("@ I={},(n,m)={},{}",i,n-i,m-1);
+        //println!("@ I={},(n,m)={},{}",i,n-i,m-1);
         let mut c = nCr(n - i,m - 1);
         s += c;
     }
