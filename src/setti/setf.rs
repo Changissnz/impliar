@@ -105,9 +105,17 @@ pub fn next_str(s:String) -> i32 {
 }
 
 
+pub fn generic_vec_to_stringvec<T>(v:Vec<T>) -> Vec<String>
+    where
+    T: ToString
+ {
 
-pub fn count_hash<T,S>(s: HashSet<T,S>) -> usize {
-    s.len()
+    let mut v2:Vec<String> = Vec::new();
+    for v_ in v.iter() {
+        let mut v3 = (*v_).to_string();
+        v2.push(v3);
+    }
+    v2
 }
 
 

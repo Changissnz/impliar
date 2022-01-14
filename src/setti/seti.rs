@@ -1,6 +1,8 @@
 use crate::setti::set_gen;
 use crate::setti::setf;
 use crate::setti::inc;
+use crate::setti::strng_srt;
+use crate::setti::inc::Inc;
 use crate::setti::setf::Count;
 
 use std::collections::HashSet;
@@ -10,48 +12,6 @@ use std::string::ToString;
 use std::string::String;
 use substring::Substring;
 use std::fmt;
-use asciis::asc::Asciis;
-use crate::setti::inc::Inc;
-
-pub fn generic_vec_to_stringvec<T>(v:Vec<T>) -> Vec<String>
-    where
-    T: ToString
- {
-
-    let mut v2:Vec<String> = Vec::new();
-    for v_ in v.iter() {
-        let mut v3 = (*v_).to_string();
-        v2.push(v3);
-    }
-    v2
-}
-
-
-pub fn is_proper_string(s:String) -> bool {
-    s.chars().all(char::is_alphabetic)//numeric)
-}
-
-pub fn inc1string_to_i32(s:String) -> u32 {
-    assert_eq!(is_proper_string(s.clone()),true);
-    let mut x:u32 = (122 * (s.len() - 1)) as u32;
-    let asc = Asciis{};
-    let mut t = (s.substring(s.len() -1,s.len())).to_owned();
-    let mut r:u32 = (u32::try_from(asc.ord(t.as_str()).unwrap())).unwrap();// as u32;
-    x + r
-}
-
-
-pub fn inc1string_vector_max(s:Vec<String>) -> String {
-    let s2:Vec<u32> = s.iter().map(|x| inc1string_to_i32((*x).clone() )).collect();
-    // get max
-    let s2m:u32 = *s2.iter().max().unwrap();
-
-    // get index of max
-    let im = s2.iter().position(|&r| r == s2m).unwrap();
-
-    s[im].clone()
-}
-
 
 /*
 SetImp is a struct that can generate sets of strings that satisfy implication rules.
@@ -64,22 +24,26 @@ pub struct SetImp<T> {
     pub operating_start:Vec<String>,
     // frequencies
     pub data_table: setf::VectorCounter,
+
+    // possible choices for next in set construction
     pub possible_next: HashMap<String,String>,
-    pub i: inc::Incr<inc::Inc1String>
+    pub i: inc::Incr<inc::Inc1String>,
+
+    //
 }
 
 pub fn build_set_imp<T>(v: &mut Vec<T>,countInitial:bool) ->SetImp<T>
     where
     T:ToString + Clone,
  {
-    let mut r = generic_vec_to_stringvec((*v).clone());
+    let mut r = setf::generic_vec_to_stringvec((*v).clone());
     let mut dt= setf::VectorCounter{data:HashMap::new()};
     if countInitial {
         dt.countv(r.clone());
     }
 
     // get the highest one
-    let vm = inc1string_vector_max(r.clone());
+    let vm = strng_srt::inc1string_vector_max(r.clone());
     let mut e :inc::Incr<inc::Inc1String> = inc::Incr{x:inc::Inc1String{value:vm}};
 
     SetImp{start_value:(*v).to_vec(),operating_start:r.clone(),
@@ -109,12 +73,6 @@ impl<T> SetImp<T> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_inc1string_vector_max() {
-        let mut v3 = vec!["ant".to_string(),"balkans".to_string(),"blacks".to_string()];
-        let mut s3 = inc1string_vector_max(v3);
-        assert_eq!(s3,"balkans".to_string());
-    }
 
     #[test]
     fn test_build_set_imp() {

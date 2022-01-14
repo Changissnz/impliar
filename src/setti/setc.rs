@@ -4,11 +4,8 @@ some close functions for sets
 use crate::setti::set_gen;
 use crate::setti::setf;
 use crate::setti::setf::Count;
-
-
 use std::collections::HashSet;
 use std::collections::HashMap;
-
 use factorial::Factorial;
 
 /*
