@@ -27,10 +27,22 @@ pub fn exist_any_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,isRow:b
 where
 T:Clone + Eq + Hash
  {
-    let fx = |x| {b.contains(x)};
     let c = if isRow {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
     let f2:Array1<_> = c.into_iter().filter(|x| b.contains(x)).collect();
     f2.raw_dim()[0] > 0
+}
+
+/*
+return:
+- vector of indices
+*/
+pub fn anyat_vec_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,isRow:bool) -> Array1<usize>
+where
+T:Clone + Eq + Hash
+ {
+    let c = if isRow {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
+    let f2:Array1<_> = c.into_iter().enumerate().map(|(i,x)| {if b.contains(x) {1} else {0}}).collect();
+    f2
 }
 
 /*
@@ -107,13 +119,13 @@ mod tests {
 
         replace_vec_in_arr2(&mut x1,&mut m1,0,true);
         replace_vec_in_arr2(&mut x1,&mut m2,2,false);
-        /*
+
         assert_eq!(x1,arr2(&[[1, 43, 100, 76],
          [0, 0, 4, 0],
          [0, 0, 516, 0],
          [0, 0, 176, 0],
          [0, 0, 3, 0]]));
-         */
+
          let mut b:HashSet<i32> = HashSet::new();
          b.insert(1);
          b.insert(4);
@@ -123,9 +135,35 @@ mod tests {
          assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),1,true));
          assert!(!exist_any_in_vec_of_arr2(&mut x1,b.clone(),1,false));
          assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),2,false));
+    }
 
 
+    #[test]
+    fn test_anyat_vec_in_vec_of_arr2() {
 
+        let mut x1:Array2<i32> = Array2::zeros((5,4));
+        let mut m1: Array1<i32> = arr1(&[1,43,56,76]);
+        let mut m2:Array1<i32> = arr1(&[100,4,516,176,3]);
+
+        replace_vec_in_arr2(&mut x1,&mut m1,0,true);
+        replace_vec_in_arr2(&mut x1,&mut m2,2,false);
+
+        let mut b:HashSet<i32> = HashSet::new();
+        b.insert(1);
+        b.insert(4);
+        let mut sol1 = anyat_vec_in_vec_of_arr2(&mut x1,b.clone(),0,false);
+        let mut sol2 = anyat_vec_in_vec_of_arr2(&mut x1,b.clone(),1,false);
+
+        let mut m3:Array1<i32> = arr1(&[1,4,516,1,4]);
+        replace_vec_in_arr2(&mut x1,&mut m3,3,false);
+        let mut sol3 = anyat_vec_in_vec_of_arr2(&mut x1,b.clone(),3,false);
+
+        let sol1_:Array1<usize> = array![1, 0, 0, 0, 0];
+        let sol2_:Array1<usize> = array![0, 0, 0, 0, 0];
+        let sol3_:Array1<usize> = array![1, 1, 0, 1, 1];
+        assert!(sol1 == sol1_);
+        assert!(sol2 == sol2_);
+        assert!(sol3 == sol3_);
     }
 
 }
