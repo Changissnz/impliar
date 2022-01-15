@@ -2,7 +2,7 @@
 some matrix functions
 */
 use ndarray::array;
-use ndarray::{Array,Array1,Array2, arr2,arr3, stack,s,Axis,Dim};
+use ndarray::{Array,Array1,Array2, arr1,arr2,arr3, stack,s,Axis,Dim};
 
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,isRow:bool)
 where
@@ -72,6 +72,15 @@ mod tests {
         let mut q = map_function_on_subvector(&mut axx,|x| x + 3 + 3 * x ,modI,true);
         let sol = vec![7,2,175,56,6111];
         assert_eq!(sol,axx);
+    }
+
+    #[test]
+    fn test_replace_vec_in_arr2() {
+        let mut ax1 : Array2<i32> = Array2::zeros((5, 4));
+        let mut ax2: Array1<i32> = arr1(&[0,0,1,1]);
+        replace_vec_in_arr2(&mut ax1,&mut ax2,0,true);
+        let mut aRow = ax1.slice_mut(s![0, ..]);
+        assert_eq!(aRow,ax2);
     }
 
 }
