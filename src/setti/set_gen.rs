@@ -14,7 +14,6 @@ pub struct SGen {
     pub value: Vec<String>,
     pub data: Vec<HashSet<String>>,
     pub next: Vec<HashSet<String>>,
-    //pub next2: Vec<Vec<String>>
 }
 
 impl SGen {
