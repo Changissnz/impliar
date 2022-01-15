@@ -52,7 +52,9 @@ pub fn sort_inc1string_vector(v1: &mut Vec<String>) {
 }
 
 pub fn is_proper_string(s:String) -> bool {
-    s.chars().all(char::is_alphabetic)//numeric)
+    //s.chars().all(char::is_alphabetic)//numeric)
+    s.chars().all(char::is_alphanumeric)
+
 }
 
 pub fn inc1string_to_u32(s:String) -> u32 {

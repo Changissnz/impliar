@@ -3,6 +3,9 @@
 // set-generating functions
 pub use std::collections::HashSet;
 pub use std::collections::HashMap;
+pub use std::cmp::Eq;
+pub use std::hash::Hash;
+pub use std::borrow::Borrow;
 
 use crate::setti::setf;
 use crate::setti::strng_srt;
@@ -245,42 +248,49 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     result
 }
 
-
-
-/*
-non-unique elements in vector are allowed.
-*/
-pub fn order_vec_by_reference<T>(v2:Vec<T>,reference:Vec<T>) -> Vec<String>
-    where
-    T:ToString
- {
+pub fn ordered_vec_by_reference<T>(v2:Vec<T>,reference:Vec<T>) -> Vec<String>
+where
+T:ToString + Clone,
+{
+    let mut href: HashSet<String> = reference.iter().map(|r| (*r).to_string()).collect();
+    assert_eq!(reference.len(),href.len());
 
     // make a hash set for v2
-    let mut href = setf::generic_vec_to_stringvec(reference);
-    let mut sol: Vec<String> = Vec::new();
     let mut cache: Vec<String> = Vec::new();
-    let mut ri: usize = 0;
+    let mut hm: HashMap<String,usize> = HashMap::new();
 
+    // reference first
     for v2_ in v2.iter() {
-        let q = (*v2_).to_string();
-        if ri >= href.len() {
-            cache.push(q);
-            continue;
-        }
-
-        // check that q equals reference[ri]
-        if q != href[ri] {
+        let mut q = (*v2_).to_string();
+        if !href.contains(&q) {
             cache.push(q);
         } else {
-            sol.push(q);
-            ri += 1;
+            if !hm.contains_key(&q) {
+                hm.insert(q.clone(),1);
+            } else {
+                let mut xy = *(hm.get_mut(&q).unwrap()) + 1;
+                hm.insert(q.clone(),xy);
+            }
         }
     }
 
-    // sort the cache
+    let mut sol: Vec<String> = Vec::new();
+    for l in reference.iter() {
+        let mut l_ = (*l).to_string();
+
+        if hm.contains_key(&l_) {
+            let mut x = hm.get(&l_).unwrap();
+            for x_ in 0..*x {
+                sol.push((l_).to_string())
+            }
+        }
+    }
+
     strng_srt::sort_inc1string_vector(&mut cache);
     sol.extend_from_slice(&cache);
+
     sol
+
 }
 
 /////////////
@@ -389,13 +399,24 @@ mod tests {
     }
 
 
+
     #[test]
     fn test_order_vec_by_reference() {
         let mut x1: Vec<i32> = vec![120,140,3000,34,54,61,1,31,-2];
         let mut x2: Vec<i32> = vec![-2,1,31,54,34];
-        let mut s1 = order_vec_by_reference(x1,x2);
-        //let mut s2 = stringized_srted_vec(&mut s1);
-        //assert_eq!(s2,"-2-1-31-34-54".to_string());
+        let mut s1 = ordered_vec_by_reference(x1,x2.clone());
+
+
+        let mut qsw = vec![-2,1,31,54,34,61,140,120,3000];
+        let mut sol = setf::vec_to_str(qsw);
+        let mut s1s = setf::vec_to_str(s1);
+        assert_eq!(sol,s1s);
+
+        let mut x1_: Vec<i32> = vec![120,140,31,3000,34,-2,54,61,1,31,-2];
+        let mut s2 = ordered_vec_by_reference(x1_,x2);
+        let mut s2s = setf::vec_to_str(s2);
+        let mut sol2 = "-2--2-1-31-31-54-34-61-140-120-3000".to_string();
+        assert_eq!(sol2,s2s);
     }
 
 }
