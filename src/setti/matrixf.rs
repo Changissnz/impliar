@@ -1,7 +1,11 @@
 /*
 some matrix functions
 */
+use std::collections::HashSet;
 use ndarray::array;
+use std::hash::Hash;
+use std::cmp::Eq;
+
 use ndarray::{Array,Array1,Array2, arr1,arr2,arr3, stack,s,Axis,Dim};
 
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,isRow:bool)
@@ -9,14 +13,24 @@ where
 T:Clone
  {
     if isRow {
-        assert!(i < a.raw_dim()[0] && i >= 0);
+        assert!(i < a.raw_dim()[0]);
         let mut b = a.slice_mut(s![i, ..]);
         b.assign(&q);
     } else {
-        assert!(i < a.raw_dim()[1] && i >= 0);
+        assert!(i < a.raw_dim()[1]);
         let mut b = a.slice_mut(s![.., i]);
         b.assign(&q);
     }
+}
+
+pub fn exist_any_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,isRow:bool) -> bool
+where
+T:Clone + Eq + Hash
+ {
+    let fx = |x| {b.contains(x)};
+    let c = if isRow {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
+    let f2:Array1<_> = c.into_iter().filter(|x| b.contains(x)).collect();
+    f2.raw_dim()[0] > 0
 }
 
 /*
@@ -81,6 +95,37 @@ mod tests {
         replace_vec_in_arr2(&mut ax1,&mut ax2,0,true);
         let mut aRow = ax1.slice_mut(s![0, ..]);
         assert_eq!(aRow,ax2);
+    }
+
+    #[test]
+    fn test_exist_any_in_vec_of_arr2() {
+
+
+        let mut x1:Array2<i32> = Array2::zeros((5,4));
+        let mut m1: Array1<i32> = arr1(&[1,43,56,76]);
+        let mut m2:Array1<i32> = arr1(&[100,4,516,176,3]);
+
+        replace_vec_in_arr2(&mut x1,&mut m1,0,true);
+        replace_vec_in_arr2(&mut x1,&mut m2,2,false);
+        /*
+        assert_eq!(x1,arr2(&[[1, 43, 100, 76],
+         [0, 0, 4, 0],
+         [0, 0, 516, 0],
+         [0, 0, 176, 0],
+         [0, 0, 3, 0]]));
+         */
+         let mut b:HashSet<i32> = HashSet::new();
+         b.insert(1);
+         b.insert(4);
+
+         assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),0,false));
+         assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),0,true));
+         assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),1,true));
+         assert!(!exist_any_in_vec_of_arr2(&mut x1,b.clone(),1,false));
+         assert!(exist_any_in_vec_of_arr2(&mut x1,b.clone(),2,false));
+
+
+
     }
 
 }

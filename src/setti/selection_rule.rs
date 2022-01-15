@@ -2,8 +2,10 @@
 struct that is a restriction or requirement
 that implements
 */
-use ndarray::{Dim,Array1,Array2};
+pub use ndarray::{Dim,Array1,Array2};
 use ndarray::array;
+use std::collections::HashSet;
+
 use crate::setti::matrixf;
 
 pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
@@ -11,7 +13,7 @@ pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) -
     assert!(rs > 0 && k > 0);
     assert!(rs >= k);
 
-    // empty array array
+    // empty array
     let mut sol:Array2<i32>  = Array2::zeros((rs, k));
 
     // case: empty rule
@@ -28,9 +30,7 @@ pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) -
         }
         matrixf::replace_vec_in_arr2(&mut sol,&mut nu,s,false);
     }
-
     sol
-
 }
 
 ////////////////////////////////////// methods for RuleCheck
@@ -71,8 +71,7 @@ pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usi
     build_rmatrix(rs,-1,required,k)
 }
 
-// RULE: mult restriction by req should not have any -1.
-
+////////////////////////////////////////////
 
 #[cfg(test)]
 mod tests {
