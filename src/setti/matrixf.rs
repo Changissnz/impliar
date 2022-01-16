@@ -2,17 +2,15 @@
 some matrix functions
 */
 use std::collections::HashSet;
-use ndarray::array;
 use std::hash::Hash;
 use std::cmp::Eq;
+use ndarray::{Array1,Array2, arr1,s};
 
-use ndarray::{Array,Array1,Array2, arr1,arr2,arr3, stack,s,Axis,Dim};
-
-pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,isRow:bool)
+pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,is_row:bool)
 where
 T:Clone
  {
-    if isRow {
+    if is_row {
         assert!(i < a.raw_dim()[0]);
         let mut b = a.slice_mut(s![i, ..]);
         b.assign(&q);
@@ -23,11 +21,11 @@ T:Clone
     }
 }
 
-pub fn exist_any_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,isRow:bool) -> bool
+pub fn exist_any_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,is_row:bool) -> bool
 where
 T:Clone + Eq + Hash
  {
-    let c = if isRow {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
+    let c = if is_row {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
     let f2:Array1<_> = c.into_iter().filter(|x| b.contains(x)).collect();
     f2.raw_dim()[0] > 0
 }
@@ -36,12 +34,14 @@ T:Clone + Eq + Hash
 return:
 - vector of indices
 */
-pub fn anyat_vec_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,isRow:bool) -> Array1<usize>
+pub fn anyat_vec_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,is_row:bool) -> Array1<usize>
 where
 T:Clone + Eq + Hash
  {
-    let c = if isRow {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
-    let f2:Array1<_> = c.into_iter().enumerate().map(|(i,x)| {if b.contains(x) {1} else {0}}).collect();
+    let c = if is_row {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
+    //let f2:Array1<_> = c.into_iter().enumerate().map(|(i,x)| {if b.contains(x) {1} else {0}}).collect();
+    let f2:Array1<_> = c.into_iter().map(|x| {if b.contains(x) {1} else {0}}).collect();
+
     f2
 }
 
@@ -63,24 +63,25 @@ T:Clone + Eq + Hash
 
 /*
 */
-pub fn replace_subarr2<T>(a:&mut Array2<T>,b:&mut Array2<T>,startDim:(usize,usize))
+pub fn replace_subarr2<T>(a:&mut Array2<T>,b:&mut Array2<T>,start_dim:(usize,usize))
 where
     T:Clone
 {
-    let mut i = startDim.0;
-    let mut ei = startDim.0 + b.raw_dim()[0];
-    let mut j = startDim.1;
-    let mut ej = startDim.1 + b.raw_dim()[1];
+    let  i = start_dim.0;
+    let  ei = start_dim.0 + b.raw_dim()[0];
+    let  j = start_dim.1;
+    let  ej = start_dim.1 + b.raw_dim()[1];
 
-    assert!(a.raw_dim()[0] > startDim.0 && a.raw_dim()[1] > startDim.1);
+    assert!(a.raw_dim()[0] > start_dim.0 && a.raw_dim()[1] > start_dim.1);
     assert!(ei <= a.raw_dim()[0]);
     assert!(ej <= a.raw_dim()[1]);
 
     let mut x = 0;
     for i_ in i..ei {
         let mut c = a.slice_mut(s![i_,j..ej]);
-        let mut c2 = b.slice_mut(s![x,..]);
+        let c2 = b.slice_mut(s![x,..]);
         c.assign(&c2);
+        x += 1;
     }
 }
 
@@ -91,7 +92,7 @@ pub fn map_function_on_subvector<T>(v: &mut Vec<T>,f: fn(T) -> T ,indices:Vec<us
 where
     T:Clone
  {
-    let mut sol: Vec<T> = indices.iter().map(|i| f(v[*i].clone())).collect();
+    let sol: Vec<T> = indices.iter().map(|i| f(v[*i].clone())).collect();
     if replace {
         for i in 0..indices.len() {
             v[indices[i]] = sol[i].clone();

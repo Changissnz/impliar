@@ -20,7 +20,7 @@ impl SGen {
 
     pub fn fcollect_all(&mut self,k : usize) {
         let mut x :usize = 0;
-        let mut l = self.value.len();
+        let l = self.value.len();
         while x < l {
             self.next = fcollect(self.value.clone(), x,k as usize);
             self.add_next();
@@ -51,7 +51,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
 
     // case: k == 1
     if k == 1 {
-        let mut q2 = vec![s[r].clone()];
+        let q2 = vec![s[r].clone()];
         result.push(q2);
         return result;
     }
@@ -100,7 +100,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
 
     		// UPDATE NEW KEY
     		let nk = setf::vec_to_str(x3.clone());
-            let mut nk2 = nk.clone();
+            let nk2 = nk.clone();
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
     			let ans = vec![ni[1],ni[1] + 1];
@@ -205,7 +205,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     		// UPDATE NEW KEY
     		let nk = setf::vec_to_str(x3.clone());
             //println!("updating new key {}", nk);
-            let mut nk2 = nk.clone();
+            let nk2 = nk.clone();
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
     			let ans = vec![ni[1],ni[1] + 1];
@@ -251,7 +251,7 @@ pub fn ordered_vec_by_reference<T>(v2:Vec<T>,reference:Vec<T>) -> Vec<String>
 where
 T:ToString + Clone,
 {
-    let mut href: HashSet<String> = reference.iter().map(|r| (*r).to_string()).collect();
+    let href: HashSet<String> = reference.iter().map(|r| (*r).to_string()).collect();
     assert_eq!(reference.len(),href.len());
 
     // make a hash set for v2
@@ -260,14 +260,14 @@ T:ToString + Clone,
 
     // reference first
     for v2_ in v2.iter() {
-        let mut q = (*v2_).to_string();
+        let q = (*v2_).to_string();
         if !href.contains(&q) {
             cache.push(q);
         } else {
             if !hm.contains_key(&q) {
                 hm.insert(q.clone(),1);
             } else {
-                let mut xy = *(hm.get_mut(&q).unwrap()) + 1;
+                let xy = *(hm.get_mut(&q).unwrap()) + 1;
                 hm.insert(q.clone(),xy);
             }
         }
@@ -275,10 +275,10 @@ T:ToString + Clone,
 
     let mut sol: Vec<String> = Vec::new();
     for l in reference.iter() {
-        let mut l_ = (*l).to_string();
+        let l_ = (*l).to_string();
 
         if hm.contains_key(&l_) {
-            let mut x = hm.get(&l_).unwrap();
+            let x = hm.get(&l_).unwrap();
             for x_ in 0..*x {
                 sol.push((l_).to_string())
             }
@@ -339,7 +339,7 @@ pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
  {
     let mut h: HashSet<String> = HashSet::new();
     for v_ in v.iter() {
-        let mut s = (*v_).to_string();
+        let s = (*v_).to_string();
         h.insert(s);
     }
     h

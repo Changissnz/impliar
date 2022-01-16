@@ -59,10 +59,10 @@ pub fn is_proper_string(s:String) -> bool {
 
 pub fn inc1string_to_u32(s:String) -> u32 {
     assert_eq!(is_proper_string(s.clone()),true);
-    let mut x:u32 = (122 * (s.len() - 1)) as u32;
+    let x:u32 = (122 * (s.len() - 1)) as u32;
     let asc = Asciis{};
-    let mut t = (s.substring(s.len() -1,s.len())).to_owned();
-    let mut r:u32 = (u32::try_from(asc.ord(t.as_str()).unwrap())).unwrap();// as u32;
+    let t = (s.substring(s.len() -1,s.len())).to_owned();
+    let r:u32 = (u32::try_from(asc.ord(t.as_str()).unwrap())).unwrap();// as u32;
     x + r
 }
 

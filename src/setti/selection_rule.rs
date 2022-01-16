@@ -4,10 +4,9 @@ that implements
 */
 use crate::setti::matrixf;
 use ndarray::{Dim,Array1,Array2};
-use ndarray::array;
 use std::collections::HashSet;
 
-pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
+pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
 
     assert!(rs > 0 && k > 0);
     assert!(rs >= k);
@@ -16,13 +15,13 @@ pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) -
     let mut sol:Array2<i32>  = Array2::zeros((rs, k));
 
     // case: empty rule
-    if resreq.len() == 0 || rs == 0 {
+    if res_req.len() == 0 || rs == 0 {
         return sol;
     }
 
-    for r in resreq.iter() {
+    for r in res_req.iter() {
         // get index of restricted in reference
-        let mut s = (*r).0.clone();
+        let s = (*r).0.clone();
         let mut nu = Array1::zeros(rs);
         for rx in (*r).1.iter() {
             nu[Dim([*rx])] = idn;
@@ -31,8 +30,6 @@ pub fn build_rmatrix(rs:usize,idn:i32,resreq: Vec<(usize,Vec<usize>)>,k:usize) -
     }
     sol
 }
-
-////////////////////////////////////// methods for RuleCheck
 
 ////////////////////////////////////// methods for Restriction
 
@@ -45,7 +42,7 @@ pub struct Restriction {
 restricted := Vec<index in 0..k,indices not allowed>
 */
 pub fn build_restriction(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:usize) -> Restriction {
-    let mut rm = build_restriction_matrix(rs,restricted,k);
+    let rm = build_restriction_matrix(rs,restricted,k);
     Restriction{data:rm}
 }
 
@@ -57,17 +54,44 @@ pub fn build_restriction_matrix(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:u
 
 pub struct Requirement {
     pub data: ndarray::Array2<i32>,
-    pub allReq:bool,
+    pub all_req:bool,
 }
 
-pub fn build_requirement(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize,allReq:bool) -> Requirement {
-    let mut x = build_requirement_matrix(rs,required,k);
-    Requirement{data:x,allReq:allReq}
+pub fn build_requirement(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize,all_req:bool) -> Requirement {
+    let x = build_requirement_matrix(rs,required,k);
+    Requirement{data:x,all_req:all_req}
 }
 
 pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
     build_rmatrix(rs,-1,required,k)
 }
+
+////////////////////////////////////// methods for RuleCheck
+/*
+pub struct SelectionRule<'a> {
+    pub res: &'a mut Restriction,
+    pub req: &'a mut Requirement
+}
+
+pub fn build_selection_rule<'a>(restricted: &'a mut Restriction, required: &'a mut Requirement) -> &'a SelectionRule<'a>{//<'life> {
+    assert!(check_rule_contents(restricted,required));
+    //let q = SelectionRule{res:&'a mut restricted,req:&'a mut required};
+    //let mut q = SelectionRule{res:restricted,req:required};
+
+    //&mut q
+    &'a mut SelectionRule{res:restricted,req:required}
+}
+*/
+
+pub struct SelectionRule<'a> {
+    pub res: &'a mut Restriction,
+    pub req: &'a mut Requirement
+}
+
+
+
+
+
 
 pub fn check_rule_contents(restricted: &Restriction,
         required: &Requirement) -> bool {
@@ -87,9 +111,9 @@ pub fn std_collision_score(y1:&(usize,&i32)) -> bool {
     *((*y1).1) == -1
 }
 
-pub fn collision_score(resReq: Array2<i32>,f: fn(&(usize,&i32))->bool) ->i32 {
-    let mut x:Array1<_> = resReq.iter().enumerate().filter(f).collect();//.sum()
-    let mut x2:Array1<i32> = x.iter().map(|y| *(*y).1).collect();
+pub fn collision_score(res_req: Array2<i32>,f: fn(&(usize,&i32))->bool) ->i32 {
+    let x:Array1<_> = res_req.iter().enumerate().filter(f).collect();//.sum()
+    let x2:Array1<i32> = x.iter().map(|y| *(*y).1).collect();
     x2.len() as i32
 }
 
@@ -98,7 +122,7 @@ pub fn one_index_to_two_index(i:usize,x:usize,y:usize) -> (usize,usize) {
     assert!(i < x * y);
 
     let oi = i / y;
-    let mut oi2 = i % y;
+    let oi2 = i % y;
     (oi,oi2)
 }
 
@@ -111,9 +135,9 @@ or `required` based on `preference`
 */
 pub fn fix_rule_contents_1(restricted: &mut Restriction,
         required: &mut Requirement,preference:Array1<i32>) -> bool {
-    let mut resReq = (*restricted).data.clone() * (*required).data.clone();
-    let mut x:Array1<_> = resReq.iter().enumerate().filter(std_collision_score).collect();
-    let mut x2:Array1<usize> = x.iter().map(|y| (*y).0).collect();
+    let res_req = (*restricted).data.clone() * (*required).data.clone();
+    let x:Array1<_> = res_req.iter().enumerate().filter(std_collision_score).collect();
+    let x2:Array1<usize> = x.iter().map(|y| (*y).0).collect();
 
     if x2.len() == 0 {
         return false;
@@ -146,8 +170,8 @@ pub fn test_rule_contents() -> (Restriction,Requirement){
     let requirement:Vec<(usize,Vec<usize>)> = vec![
                             (0,vec![0,4,5,6]),(2,vec![5,8])];
 
-    let mut res = build_restriction(rs,restriction,k);
-    let mut req = build_requirement(rs,requirement,k,true);
+    let res = build_restriction(rs,restriction,k);
+    let req = build_requirement(rs,requirement,k,true);
     (res,req)
 
 }
@@ -216,7 +240,7 @@ mod tests {
     fn test_fix_rule_contents_1() {
         let (mut res, mut req): (Restriction,Requirement) = test_rule_contents();
 
-        let mut resreq = res.data.clone() * req.data.clone();
+        let mut res_req = res.data.clone() * req.data.clone();
         let mut preference:Array1<i32> = array![0,0,0,0,
                                             0,0,0,0,
                                             0,0,0,0,
@@ -252,11 +276,31 @@ mod tests {
          assert_eq!(resSol,res.data);
          assert_eq!(reqSol,req.data);
 
-        resreq = res.data.clone() * req.data.clone();
-        let score = collision_score(resreq,std_collision_score);
+        res_req = res.data.clone() * req.data.clone();
+        let score = collision_score(res_req,std_collision_score);
         assert_eq!(score,0);
         let b2 = check_rule_contents(&mut res,&mut req);
         assert!(b2);
+    }
+
+    #[test]
+    fn test_initialize_SelectionRule() {
+        let rs:usize = 10;
+        let k:usize = 6;
+        let mut rest: Vec<(usize,Vec<usize>)> = Vec::new();
+        rest.push((0,vec![2,3]));
+        rest.push((2,vec![0,3]));
+        rest.push((3,vec![0,2]));
+        let mut rst = build_restriction(rs,rest,k);
+
+        let mut req: Vec<(usize,Vec<usize>)> = Vec::new();
+        req.push((0,vec![0,5,7]));
+        req.push((2,vec![5,7,9,2]));
+        req.push((3,vec![2,5,7]));
+        let mut rq = build_requirement(rs,req,k,true);
+
+        // calculate number of possibilities
+        let mut sr = SelectionRule{res:&mut rst,req:&mut rq};
     }
 
 }

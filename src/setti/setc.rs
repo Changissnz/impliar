@@ -26,8 +26,8 @@ pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
 
         // check if s_ unique
             // hash set to string
-        let mut c: Vec<String> = Vec::from_iter((s_.clone()));
-        let mut cv = set_gen::stringized_srted_vec(&mut c);
+        let mut c: Vec<String> = Vec::from_iter(s_.clone());
+        let cv = set_gen::stringized_srted_vec(&mut c);
         if !unique.contains(&cv) {
             unique.insert(cv);
         } else {
@@ -42,7 +42,7 @@ pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
     }
     let ans = unique_object_frequency_requirement(k,r);
 
-    for (k,v) in vc.data.into_iter() {
+    for (_,v) in vc.data.into_iter() {
         if (v as usize) != ans {
             return false
         }
@@ -54,7 +54,7 @@ pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
 pub fn decompose_set(s:HashSet<String>, ns:usize) -> Vec<HashSet<String>> {
 
     // hash set to vec
-    let mut v: Vec<String> = Vec::from_iter(s.clone());
+    let v: Vec<String> = Vec::from_iter(s.clone());
     let mut sg: set_gen::SGen = set_gen::SGen{value:v,data:Vec::new(),
                                 next:Vec::new()};
     sg.fcollect_all(ns);
@@ -70,10 +70,10 @@ pub fn nCr(n: usize,r: usize) -> usize {
 
 pub fn number_of_m_intersections(n: usize,m:usize) -> usize {
     let mut s = 0 as usize;
-    let mut maxxy = n - (m - 1);
+    let maxxy = n - (m - 1);
     for i in 1..(maxxy + 1) {
         //println!("@ I={},(n,m)={},{}",i,n-i,m-1);
-        let mut c = nCr(n - i,m - 1);
+        let c = nCr(n - i,m - 1);
         s += c;
     }
     s

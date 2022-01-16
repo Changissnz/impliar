@@ -64,27 +64,23 @@ impl Inc for Inc1String {
             self.value = "a".to_string();
         }
 
-        let mut x = self.value.clone();
-
         // get the last
-        let si = self.value.len() -1;
-        let ei = self.value.len();
-        let mut t = (self.value.substring(self.value.len() -1,self.value.len())).to_owned();
+        let  t = (self.value.substring(self.value.len() -1,self.value.len())).to_owned();
 
-        let mut r:i32 = asc.ord(t.as_str()).unwrap();
+        let  r:i32 = asc.ord(t.as_str()).unwrap();
 
                 // a-z: 97|122
                 // A-Z: 65|90
         if r + 1 > 122 {
-            let mut x = asc.chr(65).unwrap();
+            let x = asc.chr(65).unwrap();
             self.value.push(char::from_str(x.as_str()).unwrap());
         } else if r + 1 > 90 && r >= 65 && r <=90{
             // move to range 97,122
-            let mut x = asc.chr(97).unwrap();
+            let x = asc.chr(97).unwrap();
             self.value = (self.value.substring(0,self.value.len() -1)).to_owned();
             self.value.push(char::from_str(x.as_str()).unwrap());
         } else {
-            let mut x = asc.chr(r + 1).unwrap();
+            let x = asc.chr(r + 1).unwrap();
             self.value = (self.value.substring(0,self.value.len() -1)).to_owned();
             self.value.push(char::from_str(x.as_str()).unwrap());
         }

@@ -112,7 +112,7 @@ pub fn generic_vec_to_stringvec<T>(v:Vec<T>) -> Vec<String>
 
     let mut v2:Vec<String> = Vec::new();
     for v_ in v.iter() {
-        let mut v3 = (*v_).to_string();
+        let v3 = (*v_).to_string();
         v2.push(v3);
     }
     v2
