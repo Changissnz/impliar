@@ -55,7 +55,6 @@ pub fn build_restriction_matrix(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:u
 
 ////////////////////////////////////// methods for Requirement
 
-
 pub struct Requirement {
     pub data: ndarray::Array2<i32>,
     pub allReq:bool,

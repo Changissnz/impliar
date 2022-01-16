@@ -339,7 +339,7 @@ pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
  {
     let mut h: HashSet<String> = HashSet::new();
     for v_ in v.iter() {
-        let mut s = (*v_).to_string();//.to_string();
+        let mut s = (*v_).to_string();
         h.insert(s);
     }
     h
