@@ -83,7 +83,35 @@ pub fn check_rule_contents(restricted: &Restriction,
     true
 }
 
+pub fn std_collision_score(y1:&(usize,&i32)) -> bool {
+    *((*y1).1) == -1
+}
+
+pub fn collision_score(resReq: Array2<i32>,f: fn(&(usize,&i32))->bool) ->i32 {
+    let mut x:Array1<_> = resReq.iter().enumerate().filter(f).collect();//.sum()
+    let mut x2:Array1<i32> = x.iter().map(|y| *(*y).1).collect();
+    x2.len() as i32
+}
+
+
+
 ////////////////////////////////////////////
+
+pub fn test_rule_contents() -> (Restriction,Requirement){
+
+    let rs = 9;
+    let k = 4;
+    let restriction:Vec<(usize,Vec<usize>)> = vec![
+                            (0,vec![0,1,3,4]),(2,vec![0,1,2,5,7])];
+
+    let requirement:Vec<(usize,Vec<usize>)> = vec![
+                            (0,vec![0,4,5,6]),(2,vec![5,8])];
+
+    let mut res = build_restriction(rs,restriction,k);
+    let mut req = build_requirement(rs,requirement,k,true);
+    (res,req)
+
+}
 
 #[cfg(test)]
 mod tests {
@@ -132,19 +160,17 @@ mod tests {
 
     #[test]
     fn test_check_rule_contents() {
-
-        let rs = 9;
-        let k = 4;
-        let restriction:Vec<(usize,Vec<usize>)> = vec![
-                                (0,vec![0,1,3,4]),(2,vec![0,1,2,5,7])];
-
-        let requirement:Vec<(usize,Vec<usize>)> = vec![
-                                (0,vec![0,4,5,6]),(2,vec![5,8])];
-
-        let mut res = build_restriction(rs,restriction,k);
-        let mut req = build_requirement(rs,requirement,k,true);
-
-        let c = check_rule_contents(&res,&req);
+        let mut x = test_rule_contents();
+        let c = check_rule_contents(&x.0,&x.1);
         assert!(!c);
     }
+
+    #[test]
+    fn test_collision_score() {
+        let mut x = test_rule_contents();
+        let mut x3 = x.0.data * x.1.data;
+        let mut nx = collision_score(x3.clone(),std_collision_score);
+        assert_eq!(nx,3);
+    }
+
 }

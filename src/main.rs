@@ -13,7 +13,5 @@ use asciis::asc::Asciis;
 use ndarray::array;
 use ndarray::{Array2, Array1,arr1,arr2,arr3, stack,s,Axis,Dim};
 
-//use setti::selection_rule;
-
 fn main() {
 }
