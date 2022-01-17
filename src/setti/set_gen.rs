@@ -9,6 +9,7 @@ pub use std::borrow::Borrow;
 
 use crate::setti::setf;
 use crate::setti::strng_srt;
+use crate::setti::selection_rule;
 
 pub struct SGen {
     pub value: Vec<String>,
@@ -313,50 +314,10 @@ pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
     false
 }
 
-pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
-    strng_srt::sort_string_vector(v);
-    setf::vec_to_str(v.to_vec())
-}
-
-pub fn stringized_srted_hash(h: HashSet<String>) -> String {
-    let mut c: Vec<String> = (h).into_iter().collect();
-    stringized_srted_vec(&mut c)
-}
-
-pub fn string_hashset_to_vector(h: HashSet<String>) -> Vec<String> {
-    let mut v:Vec<String> = Vec::new();
-
-    for h_ in h.iter() {
-        v.push((*h_).clone());
-    }
-    v
-}
-
-
-pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
-    where
-    T:ToString
- {
-    let mut h: HashSet<String> = HashSet::new();
-    for v_ in v.iter() {
-        let s = (*v_).to_string();
-        h.insert(s);
-    }
-    h
-}
-
 #[cfg(test)]
 mod tests {
 
     use super::*;
-
-    #[test]
-    fn test_stringized_srted_vec() {
-        let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string()];
-        let mut y = stringized_srted_vec(&mut x);
-        assert_eq!(y,"a-ar-bxx".to_string());
-    }
-
 
     #[test]
     fn test_fcollect() {
@@ -364,7 +325,7 @@ mod tests {
             let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string(),
                 "d".to_string(), "dr".to_string(), "dxx".to_string()];
 
-            let mut y = stringized_srted_vec(&mut x);
+            let mut y = strng_srt::stringized_srted_vec(&mut x);
             let mut s = fcollect(x,0,3);
             /*
             for s_ in s.iter() {
@@ -391,20 +352,17 @@ mod tests {
 
         for x in sg.data.iter() {
             let mut v: Vec<String> = Vec::from_iter((*x).clone());
-            let mut v2 = stringized_srted_vec(&mut v);
+            let mut v2 = strng_srt::stringized_srted_vec(&mut v);
             println!("");
         }
         assert_eq!(20,sg.data.len());
     }
-
-
 
     #[test]
     fn test_order_vec_by_reference() {
         let mut x1: Vec<i32> = vec![120,140,3000,34,54,61,1,31,-2];
         let mut x2: Vec<i32> = vec![-2,1,31,54,34];
         let mut s1 = ordered_vec_by_reference(x1,x2.clone());
-
 
         let mut qsw = vec![-2,1,31,54,34,61,140,120,3000];
         let mut sol = setf::vec_to_str(qsw);

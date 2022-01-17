@@ -1,8 +1,12 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+use crate::setti::setf;
 use std::cmp::Ordering;
 use substring::Substring;
 use asciis::asc::Asciis;
+use std::collections::HashSet;
+
+////////////////////////////////////////////// methods on standard sort of string
 
 pub fn str_cmp3(s1: &String, s2: &String) -> std::cmp::Ordering {
 
@@ -46,7 +50,7 @@ pub fn sort_string_vector(v1: &mut Vec<String>) {
 }
 
 
-////////////////////////////////////////////// methods on inc1string below
+////////////////////////////////////////////// methods on inc1string
 pub fn sort_inc1string_vector(v1: &mut Vec<String>) {
     (*v1).sort_by(str_cmp2);
 }
@@ -85,6 +89,43 @@ pub fn str_cmp2(s1: &String, s2: &String) -> std::cmp::Ordering {
 
     Ordering::Greater
 }
+
+//////////////////////////////////////////////// methods on iterable conversion to string
+
+
+pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
+    sort_string_vector(v);
+    setf::vec_to_str(v.to_vec())
+}
+
+pub fn stringized_srted_hash(h: HashSet<String>) -> String {
+    let mut c: Vec<String> = (h).into_iter().collect();
+    stringized_srted_vec(&mut c)
+}
+
+pub fn string_hashset_to_vector(h: HashSet<String>) -> Vec<String> {
+    let mut v:Vec<String> = Vec::new();
+
+    for h_ in h.iter() {
+        v.push((*h_).clone());
+    }
+    v
+}
+
+
+pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
+    where
+    T:ToString
+ {
+    let mut h: HashSet<String> = HashSet::new();
+    for v_ in v.iter() {
+        let s = (*v_).to_string();
+        h.insert(s);
+    }
+    h
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -137,6 +178,13 @@ mod tests {
         let mut sol = vec!["a".to_string(),"c".to_string(),"za".to_string(),
             "ba".to_string(),"aa".to_string()];
         assert_eq!(sol,sv2);
+    }
+
+    #[test]
+    fn test_stringized_srted_vec() {
+        let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string()];
+        let mut y = stringized_srted_vec(&mut x);
+        assert_eq!(y,"a-ar-bxx".to_string());
     }
 
 }

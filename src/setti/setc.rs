@@ -1,6 +1,7 @@
 /*
 some close functions for sets
 */
+use crate::setti::strng_srt;
 use crate::setti::set_gen;
 use crate::setti::setf;
 use crate::setti::setf::Count;
@@ -27,7 +28,7 @@ pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
         // check if s_ unique
             // hash set to string
         let mut c: Vec<String> = Vec::from_iter(s_.clone());
-        let cv = set_gen::stringized_srted_vec(&mut c);
+        let cv = strng_srt::stringized_srted_vec(&mut c);
         if !unique.contains(&cv) {
             unique.insert(cv);
         } else {

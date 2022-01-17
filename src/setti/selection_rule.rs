@@ -3,8 +3,10 @@ struct that is a restriction or requirement
 that implements
 */
 use crate::setti::matrixf;
-use ndarray::{Dim,Array1,Array2};
+use crate::setti::strng_srt;
+use ndarray::{Dim,Array,Array1,Array2,array,s};
 use std::collections::HashSet;
+
 
 pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
 
@@ -32,7 +34,7 @@ pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) 
 }
 
 ////////////////////////////////////// methods for Restriction
-
+#[derive(Clone)]
 pub struct Restriction {
     // rows are reference elements, columns are indices
     pub data: ndarray::Array2<i32>
@@ -51,7 +53,7 @@ pub fn build_restriction_matrix(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:u
 }
 
 ////////////////////////////////////// methods for Requirement
-
+#[derive(Clone)]
 pub struct Requirement {
     pub data: ndarray::Array2<i32>,
     pub all_req:bool,
@@ -67,31 +69,69 @@ pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usi
 }
 
 ////////////////////////////////////// methods for RuleCheck
+pub struct SelectionRule<'a> {
+    pub res: &'a mut Restriction,
+    pub req: &'a mut Requirement,
+    pub elimination: HashSet<usize>
+}
+
 /*
-pub struct SelectionRule<'a> {
-    pub res: &'a mut Restriction,
-    pub req: &'a mut Requirement
-}
+SelectionRule will be able to update for every "batch"
+of equally-sized sequences
 
-pub fn build_selection_rule<'a>(restricted: &'a mut Restriction, required: &'a mut Requirement) -> &'a SelectionRule<'a>{//<'life> {
-    assert!(check_rule_contents(restricted,required));
-    //let q = SelectionRule{res:&'a mut restricted,req:&'a mut required};
-    //let mut q = SelectionRule{res:restricted,req:required};
-
-    //&mut q
-    &'a mut SelectionRule{res:restricted,req:required}
-}
+Selection is a process that takes place along the y column,
+and be one of elimination|non-elimination.
+Elimination is when the existence of an element at index i in a vector
+results in the element not able to be selected again at a later time
+t >= i + 1.
 */
+impl<'a> SelectionRule<'a>{
 
-pub struct SelectionRule<'a> {
-    pub res: &'a mut Restriction,
-    pub req: &'a mut Requirement
+    pub fn content_check(&mut self) ->bool {
+        check_rule_contents(&mut self.res,&mut self.req)
+    }
+
+    pub fn vec_at_col_index(&mut self,i:usize,is_res:bool,is_pos:bool) -> Array1<usize> {
+        let c = if is_res {self.res.data.slice_mut(s![..,i])} else
+                {self.req.data.slice_mut(s![..,i])};
+
+        let mut y:i32 = -1;
+        if is_pos {
+            y = if is_res {1} else {-1};
+        } else {
+            y = 0;
+        }
+
+        let fx  = |x:&(usize,&i32)| *((*x).1) == y;
+
+        let rq:Array1<_> = c.iter().enumerate().filter(fx).collect();
+        let rqi:Array1<usize> = rq.iter().map(|j:&(usize,&i32)| (*j).0).collect();
+        rqi
+    }
+
+    /*
+    Calculates available choice at column.
+    */
+    pub fn choices_at_col_index(&mut self,i:usize) -> HashSet<usize> {
+        let vq = self.vec_at_col_index(i,false,true);
+        let vs:HashSet<usize> = self.vec_at_col_index(i,true,true).into_iter().collect();
+
+        // case: required elements at index
+        if vq.len() > 0 {
+            // minus restricted from required
+            let mut vqi_: HashSet<usize> = vq.into_iter().collect();
+            vqi_.difference(&vs);
+            return vqi_;
+        } else {
+            // minus restricted from non-required
+            let mut vq0: HashSet<usize> = self.vec_at_col_index(i,false,false).into_iter().collect();
+            vq0.difference(&vs);
+            return vq0;
+        }
+
+    }
+
 }
-
-
-
-
-
 
 pub fn check_rule_contents(restricted: &Restriction,
         required: &Requirement) -> bool {
@@ -125,8 +165,6 @@ pub fn one_index_to_two_index(i:usize,x:usize,y:usize) -> (usize,usize) {
     let oi2 = i % y;
     (oi,oi2)
 }
-
-
 
 /*
 fixes collisions between restricted and required by
@@ -173,7 +211,24 @@ pub fn test_rule_contents() -> (Restriction,Requirement){
     let res = build_restriction(rs,restriction,k);
     let req = build_requirement(rs,requirement,k,true);
     (res,req)
+}
 
+pub fn test_rule_contents_2() -> (Restriction,Requirement){
+
+        let rs:usize = 10;
+        let k:usize = 6;
+        let mut rest: Vec<(usize,Vec<usize>)> = Vec::new();
+        rest.push((0,vec![2,3]));
+        rest.push((2,vec![0,3]));
+        rest.push((3,vec![0,2]));
+        let rst = build_restriction(rs,rest,k);
+
+        let mut req: Vec<(usize,Vec<usize>)> = Vec::new();
+        req.push((0,vec![0,5,7]));
+        req.push((2,vec![5,7,9,2]));
+        req.push((3,vec![2,5,7]));
+        let rq = build_requirement(rs,req,k,true);
+        (rst,rq)
 }
 
 #[cfg(test)]
@@ -208,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    fn test_initialize_mod_structs() {
+    fn test_initialize_restriction() {
 
         let rs:usize = 10;
         let k:usize = 6;
@@ -285,22 +340,44 @@ mod tests {
 
     #[test]
     fn test_initialize_SelectionRule() {
-        let rs:usize = 10;
-        let k:usize = 6;
-        let mut rest: Vec<(usize,Vec<usize>)> = Vec::new();
-        rest.push((0,vec![2,3]));
-        rest.push((2,vec![0,3]));
-        rest.push((3,vec![0,2]));
-        let mut rst = build_restriction(rs,rest,k);
-
-        let mut req: Vec<(usize,Vec<usize>)> = Vec::new();
-        req.push((0,vec![0,5,7]));
-        req.push((2,vec![5,7,9,2]));
-        req.push((3,vec![2,5,7]));
-        let mut rq = build_requirement(rs,req,k,true);
-
+        let (mut res,mut req) = test_rule_contents_2();
         // calculate number of possibilities
-        let mut sr = SelectionRule{res:&mut rst,req:&mut rq};
+        let mut sr = SelectionRule{res:&mut res,req:&mut req,elimination:HashSet::new()};
+    }
+
+    #[test]
+    fn test_SelectionRule_vec_at_col_index() {
+        let (mut res,mut req) = test_rule_contents_2();
+        let mut sr = SelectionRule{res:&mut res,req:&mut req,
+            elimination:HashSet::new()};
+
+        let r3 = sr.vec_at_col_index(3,true,true);
+        let r4 = sr.vec_at_col_index(3,false,true);
+        assert_eq!(r3,array![0,2]);
+        assert_eq!(r4,array![2,5,7]);
+
+        let r5 = sr.vec_at_col_index(0,true,true);
+        let r6 = sr.vec_at_col_index(0,false,true);
+        assert_eq!(r5,array![2,3]);
+        assert_eq!(r6,array![0,5,7]);
+    }
+
+
+    #[test]
+    fn test_SelectionRule_choices_at_col_index() {
+        let (mut res,mut req) = test_rule_contents_2();
+        let mut sr = SelectionRule{res:&mut res,req:&mut req,
+            elimination:HashSet::new()};
+        let mut sol :Vec<String> = vec!["0-5-7".to_string(),"0-1-2-3-4-5-6-7-8-9".to_string(),
+                                "2-5-7-9".to_string(), "2-5-7".to_string(),
+                                "0-1-2-3-4-5-6-7-8-9".to_string(), "0-1-2-3-4-5-6-7-8-9".to_string()];
+
+        for i in 0..6 {
+            let mut c = sr.choices_at_col_index(i);
+            let mut ch: HashSet<String>  = c.iter().map(|x| (*x).to_string()).collect();
+            let csh = strng_srt::stringized_srted_hash(ch);
+            assert_eq!(csh,sol[i]);
+        }
     }
 
 }

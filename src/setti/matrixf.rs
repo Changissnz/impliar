@@ -4,7 +4,7 @@ some matrix functions
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::cmp::Eq;
-use ndarray::{Array1,Array2, arr1,s};
+use ndarray::{Array1,Array2, array,arr1,arr2,s};
 
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,is_row:bool)
 where
