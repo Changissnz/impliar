@@ -10,11 +10,74 @@ pub use std::borrow::Borrow;
 use crate::setti::setf;
 use crate::setti::strng_srt;
 use crate::setti::selection_rule;
+use selection_rule::SelectionRule;
 
 pub struct SGen {
     pub value: Vec<String>,
     pub data: Vec<HashSet<String>>,
     pub next: Vec<HashSet<String>>,
+}
+
+/*
+*/
+
+pub fn sr_op(sr: &mut SelectionRule,i:usize,eliminate :bool) -> (usize,bool) {
+    let mut sr2 = SelectionRule{res:sr.res.clone(),
+                req: sr.req.clone(),choice:sr.choice.clone()};
+    let mut ch:Vec<usize> = sr2.choices_at_col_index(i).iter().map(|x| *x).collect();// -> HashSet<usize> {
+    //println!("CHOICES: {}",setf::vec_to_str(ch.clone()));
+    if ch.len() > 0 {
+        return (ch[0],true);
+    }
+    (0,false)
+}
+
+/*
+calculates all possible choices of possible length 0 < x <= k for
+a SelectionRule of an n x k dimension.
+*/
+pub fn sr_collect<'a>(sr: &'a SelectionRule,eliminate :bool) -> Vec<Vec<usize>> {
+    let mut srs: Vec<SelectionRule> = Vec::new();
+    let mut srsol: Vec<Vec<usize>> = Vec::new();
+
+    let sr2 = SelectionRule{res: sr.res.clone(),
+            req:sr.req.clone(),choice:sr.choice.clone()};
+    srs.push(sr2);
+
+    while true {
+
+        let j = srs.len();
+        if j == 0 {
+            break;
+        }
+
+        // pop element 0
+        let mut sr2 = srs.remove(0);
+        let i = sr2.choice.len();
+        let (mut x1,mut x2) = sr_op(&mut sr2,i,eliminate);
+
+        // case: no more choices
+        let mut srs2 = sr2.clone();
+        if !x2 {
+            srsol.push(sr2.choice.clone());
+            continue;
+        }
+
+        let mut sr3 = sr2.clone();
+
+        // case: choose next
+            // select a choice
+        let mut ch = sr2.select_choice_at_col_index(x1,i,true);
+            // make a clone and extend its choice
+        sr2.choice.push(ch);
+
+        let mut sr4 = sr2.clone();
+
+        srs.push(sr3);
+        srs.push(sr4);
+
+    }
+    srsol
 }
 
 impl SGen {
@@ -374,6 +437,34 @@ mod tests {
         let mut s2s = setf::vec_to_str(s2);
         let mut sol2 = "-2--2-1-31-31-54-34-61-140-120-3000".to_string();
         assert_eq!(sol2,s2s);
+    }
+
+    #[test]
+    fn test_sr_op() {
+        let (mut rs,mut rq) = selection_rule::test_rule_contents_2();
+        //println!("RS\n{}\n",rs.data.clone());
+        //println!("RQ\n{}",rq.data.clone());
+        let mut sr = selection_rule::SelectionRule{res:rs,req:rq,choice:Vec::new()};
+        let mut c = 0;
+        while true {
+            let (mut x1,mut x2) = sr_op(&mut sr,c,true);
+            //println!("i {} choice {} stat: {}", c, x1, x2);
+            if !x2 {
+                break;
+            }
+
+            let ch = sr.select_choice_at_col_index(x1,c,true);
+
+            c += 1;
+            if c >= 6 {
+                break;
+            }
+
+            //println!("----------------------------------------------");
+        }
+
+        //assert_eq!(c,6);
+        assert!(c >=3);
     }
 
 }
