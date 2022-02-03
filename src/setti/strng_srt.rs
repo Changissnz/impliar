@@ -5,6 +5,8 @@ use std::cmp::Ordering;
 use substring::Substring;
 use asciis::asc::Asciis;
 use std::collections::HashSet;
+use std::str::FromStr;
+use std::collections::HashMap;
 
 ////////////////////////////////////////////// methods on standard sort of string
 
@@ -125,7 +127,38 @@ pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
     h
 }
 
+////////////////////////////////////////////////////////////////////////////
+// TODO: test
 
+pub fn vecd2_to_hashmap<T,T2>(vd: Vec<(T,T2)>) -> HashMap<String,String>
+where T:ToString + Eq,//Eq + Hashable,
+      T2: ToString//Eq
+{
+    let mut res: HashMap<String,String> = HashMap::new();
+    for v in vd.iter() {
+        res.insert((*v).0.to_string(),(*v).1.to_string());
+    }
+    res
+}
+
+pub fn str_cmp4(s1: &(String,f32),s2: &(String,f32)) -> std::cmp::Ordering {
+    if (*s1).1 <= (*s2).1 {
+    	return Ordering::Less;
+    }
+    Ordering::Greater
+}
+
+// TODO: test
+pub fn sort_elements_by_probability_weights(reference: Vec<(String,f32)>, elements: &mut Vec<String>) -> Vec<String> {
+    let mut r2:HashMap<String,String> = vecd2_to_hashmap(reference);
+    let mut sol_: Vec<(String,f32)> = Vec::new();
+    for e in elements.iter() {
+        let mut v_:f32 = f32::from_str(&*(r2.get_mut(e).unwrap()).as_str()).unwrap();
+        sol_.push(((*e).to_owned(),v_));
+    }
+    sol_.sort_by(str_cmp4);
+    sol_.iter().map(|x| (*x).0.clone()).collect()
+}
 
 ////////////////////////////////////////////////////////////////////////////
 

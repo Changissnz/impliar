@@ -8,8 +8,13 @@ use crate::setti::strng_srt;
 use ndarray::{Dim,Array,Array1,Array2,array,s};
 use std::collections::HashSet;
 
-pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
+/*
+*/
+pub fn default_rmatrix(n: usize,k: usize, idn: i32) -> Array2<i32> {
+    Array2::ones((n, k)) * idn
+}
 
+pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
     assert!(rs > 0 && k > 0);
     assert!(rs >= k);
 
@@ -32,16 +37,7 @@ pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) 
     }
     sol
 }
-/*
-impl<T> fmt::Display for SetImp<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut s = String::new();
-        let s2 = setf::vec_to_str(self.operating_start.clone());
-        s.push_str(s2.as_str());
-        write!(f, "({})", s)
-    }
-}
-*/
+
 ////////////////////////////////////// methods for Restriction
 #[derive(Clone)]
 pub struct Restriction {
@@ -92,11 +88,9 @@ pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usi
 impl Requirement {
 
     pub fn restrict_row(&mut self, i: usize) {
-        println!("require {}",i);
         let k = self.data.raw_dim()[1];
         let mut res:Array1<i32> = Array1::zeros(k);
-        res = res;// * -1;
-        //let mut b = self.slice_mut(s![i, ..]);
+        res = res;
         matrixf::replace_vec_in_arr2(&mut self.data,&mut res,i,true)
     }
 }
@@ -110,11 +104,13 @@ pub struct SelectionRule {
     pub choice: Vec<usize>
 }
 
+pub fn empty_selection_rule() {
 
+}
 
 /*
 SelectionRule will be able to update for every "batch"
-of equally-sized sequences
+of equally-sized sequences.
 
 Selection is a process that takes place along the y column,
 and be one of elimination|non-elimination.
@@ -123,6 +119,7 @@ results in the element not able to be selected again at a later time
 t >= i + 1.
 */
 impl SelectionRule{
+
 
     pub fn content_check(&mut self) ->bool {
         check_rule_contents(&mut self.res,&mut self.req)
@@ -436,7 +433,4 @@ mod tests {
             assert_eq!(csh,sol[i]);
         }
     }
-
-
-
 }

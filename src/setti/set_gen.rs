@@ -18,14 +18,13 @@ pub struct SGen {
     pub next: Vec<HashSet<String>>,
 }
 
+// TODO: test
 /*
 */
-
 pub fn sr_op(sr: &mut SelectionRule,i:usize,eliminate :bool) -> (usize,bool) {
     let mut sr2 = SelectionRule{res:sr.res.clone(),
                 req: sr.req.clone(),choice:sr.choice.clone()};
     let mut ch:Vec<usize> = sr2.choices_at_col_index(i).iter().map(|x| *x).collect();// -> HashSet<usize> {
-    //println!("CHOICES: {}",setf::vec_to_str(ch.clone()));
     if ch.len() > 0 {
         return (ch[0],true);
     }
@@ -356,7 +355,6 @@ T:ToString + Clone,
 
 }
 
-/////////////
 
 /*
 i := index at
