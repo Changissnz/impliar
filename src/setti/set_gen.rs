@@ -12,71 +12,46 @@ use crate::setti::strng_srt;
 use crate::setti::selection_rule;
 use selection_rule::SelectionRule;
 
-pub struct SGen {
-    pub value: Vec<String>,
-    pub data: Vec<HashSet<String>>,
-    pub next: Vec<HashSet<String>>,
-}
+use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 
-// TODO: test
 /*
+determines the first available choice in selection rule at column index
 */
-pub fn sr_op(sr: &mut SelectionRule,i:usize,eliminate :bool) -> (usize,bool) {
+pub fn sr_op(sr: &mut SelectionRule,i:usize) -> (usize,bool) {
+    //pub fn sr_op(sr: &mut SelectionRule,i:usize,eliminate :bool) -> (usize,bool) {
     let mut sr2 = SelectionRule{res:sr.res.clone(),
                 req: sr.req.clone(),choice:sr.choice.clone()};
-    let mut ch:Vec<usize> = sr2.choices_at_col_index(i).iter().map(|x| *x).collect();// -> HashSet<usize> {
+    let ch:Vec<usize> = sr2.choices_at_col_index(i).iter().map(|x| *x).collect();// -> HashSet<usize> {
+    println!("index {} len {}",i,ch.len());
     if ch.len() > 0 {
         return (ch[0],true);
     }
     (0,false)
 }
 
-/*
-calculates all possible choices of possible length 0 < x <= k for
-a SelectionRule of an n x k dimension.
-*/
-pub fn sr_collect<'a>(sr: &'a SelectionRule,eliminate :bool) -> Vec<Vec<usize>> {
-    let mut srs: Vec<SelectionRule> = Vec::new();
-    let mut srsol: Vec<Vec<usize>> = Vec::new();
+pub fn greedy_decision(sr :&mut SelectionRule) -> Vec<usize> {
+    let mut x: Vec<usize> = Vec::new();
+    let q = sr.dimso().1;
+    let mut sr2:SelectionRule = sr.clone();
 
-    let sr2 = SelectionRule{res: sr.res.clone(),
-            req:sr.req.clone(),choice:sr.choice.clone()};
-    srs.push(sr2);
+    for i in 0..q {
+        let (us, bo): (usize,bool) = sr_op(&mut sr2,i);
 
-    while true {
-
-        let j = srs.len();
-        if j == 0 {
+        if !bo {
             break;
         }
 
-        // pop element 0
-        let mut sr2 = srs.remove(0);
-        let i = sr2.choice.len();
-        let (mut x1,mut x2) = sr_op(&mut sr2,i,eliminate);
-
-        // case: no more choices
-        let mut srs2 = sr2.clone();
-        if !x2 {
-            srsol.push(sr2.choice.clone());
-            continue;
-        }
-
-        let mut sr3 = sr2.clone();
-
-        // case: choose next
-            // select a choice
-        let mut ch = sr2.select_choice_at_col_index(x1,i,true);
-            // make a clone and extend its choice
-        sr2.choice.push(ch);
-
-        let mut sr4 = sr2.clone();
-
-        srs.push(sr3);
-        srs.push(sr4);
-
+        // select choice and mark off the remainder
+        let ch = sr2.select_choice_at_col_index(us,i,true);
+        x.push(us);
     }
-    srsol
+    x
+}
+
+pub struct SGen {
+    pub value: Vec<String>,
+    pub data: Vec<HashSet<String>>,
+    pub next: Vec<HashSet<String>>,
 }
 
 impl SGen {
@@ -375,6 +350,81 @@ pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
     false
 }
 
+
+///////////////////////////////////////////////////
+
+pub fn identity_vector(k: usize,v:usize) ->Vec<usize> {
+
+    let mut x: Vec<usize> = Vec::new();
+    for r2 in 0..k {
+        x.push(v);
+    }
+    x
+}
+
+/*
+outputs the vector map for restriction|requirement
+*/
+pub fn identity_k_vector_map(k:usize, rs: usize) -> Vec<(usize,Vec<usize>)> {
+    let mut vm: Vec<(usize,Vec<usize>)> = Vec::new();
+    let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect(); //identity_vector(rs,1);
+    for r in 0..k {
+        vm.push((r,idv.clone()));
+    }
+    vm
+}
+
+/*
+restriction and requirement is all
+*/
+pub fn selection_rule_sample_1() -> SelectionRule {
+    let rs:usize = 10;
+    let k:usize = 6;
+
+    let rest:Vec<(usize,Vec<usize>)> = identity_k_vector_map(k,rs);
+    let rst = selection_rule::build_restriction(rs,rest.clone(),k);
+    let req = selection_rule::build_requirement(rs,rest,k);
+    let sr = selection_rule::SelectionRule{res:rst,req:req,
+        choice:Vec::new()};
+    sr
+}
+
+/*
+requirement is all, restriction is none
+*/
+pub fn selection_rule_sample_2() -> SelectionRule {
+    let rs:usize = 3;
+    let k:usize = 3;
+
+    let rq:Vec<(usize,Vec<usize>)> = identity_k_vector_map(k,rs);
+    let rest: Vec<(usize,Vec<usize>)> = Vec::new();
+
+    let rst = selection_rule::build_restriction(rs,rest.clone(),k);
+    let req = selection_rule::build_requirement(rs,rq,k);
+
+    let sr = selection_rule::SelectionRule{res:rst,req:req,
+        choice:Vec::new()};
+    sr
+}
+
+pub fn selection_rule_sample_3() -> SelectionRule {
+    let rs:usize = 10;
+    let k:usize = 6;
+
+    let rq:Vec<(usize,Vec<usize>)> = identity_k_vector_map(k,rs);
+    let rest: Vec<(usize,Vec<usize>)> = Vec::new();
+
+    let rst = selection_rule::build_restriction(rs,rest.clone(),k);
+    let req = selection_rule::build_requirement(rs,rq,k);
+
+    let sr = selection_rule::SelectionRule{res:rst,req:req,
+        choice:Vec::new()};
+    sr
+}
+
+///////////////////////////////////////////////////
+
+
 #[cfg(test)]
 mod tests {
 
@@ -445,7 +495,7 @@ mod tests {
         let mut sr = selection_rule::SelectionRule{res:rs,req:rq,choice:Vec::new()};
         let mut c = 0;
         while true {
-            let (mut x1,mut x2) = sr_op(&mut sr,c,true);
+            let (mut x1,mut x2) = sr_op(&mut sr,c);
             //println!("i {} choice {} stat: {}", c, x1, x2);
             if !x2 {
                 break;

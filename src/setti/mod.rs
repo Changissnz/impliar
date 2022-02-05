@@ -6,4 +6,3 @@ pub mod inc;
 pub mod seti;
 pub mod selection_rule;
 pub mod matrixf;
-pub mod seq_encoder;

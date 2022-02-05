@@ -5,7 +5,7 @@ that implements
 use crate::setti::matrixf;
 use crate::setti::setf;
 use crate::setti::strng_srt;
-use ndarray::{Dim,Array,Array1,Array2,array,s};
+use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 use std::collections::HashSet;
 
 /*
@@ -55,6 +55,24 @@ impl Restriction {
         //let mut b = self.slice_mut(s![i, ..]);
         matrixf::replace_vec_in_arr2(&mut self.data,&mut res,i,true)
     }
+
+    // TODO: not tested.
+    pub fn restrict_subrow(&mut self, i:usize, start:usize,end:usize) {
+        // copy
+        let mut k:usize = self.data.raw_dim()[1];
+        let mut x: Array1<i32> = Array1::zeros(k);
+
+        for j in 0..k {
+            if j >= start && j <= end {
+                x[j] = 1;
+            } else {
+                x[j] = self.data[Dim((i,j))];
+            }
+        }
+
+        let mut b = self.data.slice_mut(s![i, ..]);
+        b.assign(&x);
+    }
 }
 
 /*
@@ -73,12 +91,12 @@ pub fn build_restriction_matrix(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:u
 #[derive(Clone)]
 pub struct Requirement {
     pub data: ndarray::Array2<i32>,
-    pub all_req:bool,
+    //pub all_req:bool,
 }
 
-pub fn build_requirement(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize,all_req:bool) -> Requirement {
+pub fn build_requirement(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize) -> Requirement {
     let x = build_requirement_matrix(rs,required,k);
-    Requirement{data:x,all_req:all_req}
+    Requirement{data:x}//,all_req:all_req}
 }
 
 pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
@@ -92,6 +110,25 @@ impl Requirement {
         let mut res:Array1<i32> = Array1::zeros(k);
         res = res;
         matrixf::replace_vec_in_arr2(&mut self.data,&mut res,i,true)
+    }
+
+    // TODO: not tested.
+    pub fn restrict_subrow(&mut self, i:usize, start:usize,end:usize) {
+        // copy
+        let mut k:usize = self.data.raw_dim()[1];
+        let mut x: Array1<i32> = Array1::zeros(k);
+
+        for j in 0..k {
+            if j >= start && j <= end {
+                x[j] = 0;
+                continue;
+            } else {
+                x[j] = self.data[Dim((i,j))];
+            }
+        }
+
+        let mut b = self.data.slice_mut(s![i, ..]);
+        b.assign(&x);
     }
 }
 
@@ -120,6 +157,15 @@ t >= i + 1.
 */
 impl SelectionRule{
 
+    pub fn clone(&mut self) -> SelectionRule {
+        let rest = Restriction{data:self.res.data.clone()};
+        let req = Requirement{data:self.req.data.clone()};
+        SelectionRule{res:rest,req:req,choice:Vec::new()}
+    }
+
+    pub fn dimso(&mut self) -> (usize,usize) {
+        (self.res.data.raw_dim()[0],self.res.data.raw_dim()[1])
+    }
 
     pub fn content_check(&mut self) ->bool {
         check_rule_contents(&mut self.res,&mut self.req)
@@ -170,19 +216,16 @@ impl SelectionRule{
         let vq = self.vec_at_col_index(i,false,true);
         let vs:HashSet<usize> = self.vec_at_col_index(i,true,true).into_iter().collect();
 
-        let mut vqx1:Vec<usize> = vs.iter().map(|x| *x).collect();
-
         // case: required elements at index
         if vq.len() > 0 {
             // minus restricted from required
-            let mut vqi_: HashSet<usize> = vq.into_iter().collect();
+            let vqi_: HashSet<usize> = vq.into_iter().collect();
             let sol1: HashSet<usize> = vqi_.difference(&vs).map(|x| *x).collect();
             return sol1;
         }
 
-        let mut vq0: HashSet<usize> = self.vec_at_col_index(i,false,false).into_iter().collect();
+        let vq0: HashSet<usize> = self.vec_at_col_index(i,false,false).into_iter().collect();
         let sol2: HashSet<usize> = vq0.difference(&vs).map(|x| *x).collect();
-        let mut vqx3:Vec<usize> = sol2.iter().map(|x| *x).collect();
         sol2
     }
 }
@@ -263,7 +306,7 @@ pub fn test_rule_contents() -> (Restriction,Requirement){
                             (0,vec![0,4,5,6]),(2,vec![5,8])];
 
     let res = build_restriction(rs,restriction,k);
-    let req = build_requirement(rs,requirement,k,true);
+    let req = build_requirement(rs,requirement,k);
     (res,req)
 }
 
@@ -281,7 +324,7 @@ pub fn test_rule_contents_2() -> (Restriction,Requirement){
         req.push((0,vec![0,5,7]));
         req.push((2,vec![5,7,9,2]));
         req.push((3,vec![2,5,7]));
-        let rq = build_requirement(rs,req,k,true);
+        let rq = build_requirement(rs,req,k);
         (rst,rq)
 }
 
@@ -433,4 +476,37 @@ mod tests {
             assert_eq!(csh,sol[i]);
         }
     }
+
+    #[test]
+    fn test_RequirementRestriction_restrict_subrow() {
+
+        let (mut s,mut q) = test_rule_contents_2();
+        q.restrict_subrow(0,2,5);
+        let mut tt = arr2(&[[-1, 0, -1, -1, -1, -1],
+                          [0, 0, 0, 0, 0, 0],
+                          [0, 0, -1, -1, 0, 0],
+                          [0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0],
+                          [-1, 0, -1, -1, 0, 0],
+                          [0, 0, 0, 0, 0, 0],
+                          [-1, 0, -1, -1, 0, 0],
+                          [0, 0, 0, 0, 0, 0],
+                          [0, 0, -1, 0, 0, 0]]);
+        assert_eq!(tt,q.data);
+
+        let mut tt2 = arr2(&[[0, 0, 1, 1, 1, 1],
+                         [0, 0, 0, 0, 0, 0],
+                         [1, 0, 0, 1, 0, 0],
+                         [1, 0, 1, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0],
+                         [0, 0, 0, 0, 0, 0]]);
+
+        s.restrict_subrow(0,2,5);
+        assert_eq!(tt2,s.data);
+    }
+
 }

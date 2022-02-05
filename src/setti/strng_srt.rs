@@ -153,7 +153,7 @@ pub fn sort_elements_by_probability_weights(reference: Vec<(String,f32)>, elemen
     let mut r2:HashMap<String,String> = vecd2_to_hashmap(reference);
     let mut sol_: Vec<(String,f32)> = Vec::new();
     for e in elements.iter() {
-        let mut v_:f32 = f32::from_str(&*(r2.get_mut(e).unwrap()).as_str()).unwrap();
+        let v_:f32 = f32::from_str(&*(r2.get_mut(e).unwrap()).as_str()).unwrap();
         sol_.push(((*e).to_owned(),v_));
     }
     sol_.sort_by(str_cmp4);
