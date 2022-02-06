@@ -15,6 +15,8 @@ pub struct FloorDiv {
 impl FloorDiv {
 
     /*
+    if t is not none, t/b * m
+    else, i/b * m 
     */
     pub fn value(&mut self, i: i32) ->i32 {
         if self.t.is_none() {

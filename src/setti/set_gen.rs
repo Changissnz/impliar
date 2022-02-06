@@ -18,11 +18,9 @@ use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 determines the first available choice in selection rule at column index
 */
 pub fn sr_op(sr: &mut SelectionRule,i:usize) -> (usize,bool) {
-    //pub fn sr_op(sr: &mut SelectionRule,i:usize,eliminate :bool) -> (usize,bool) {
     let mut sr2 = SelectionRule{res:sr.res.clone(),
                 req: sr.req.clone(),choice:sr.choice.clone()};
     let ch:Vec<usize> = sr2.choices_at_col_index(i).iter().map(|x| *x).collect();// -> HashSet<usize> {
-    println!("index {} len {}",i,ch.len());
     if ch.len() > 0 {
         return (ch[0],true);
     }
