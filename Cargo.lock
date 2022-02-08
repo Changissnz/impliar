@@ -36,6 +36,7 @@ dependencies = [
  "asciis",
  "factorial",
  "itertools",
+ "modulo",
  "ndarray",
  "substring",
 ]
@@ -57,6 +58,12 @@ checksum = "add85d4dd35074e6fedc608f8c8f513a3548619a9024b751949ef0e8e45a4d84"
 dependencies = [
  "rawpointer",
 ]
+
+[[package]]
+name = "modulo"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53db447cac1df8402bef9a2ccacb0ea0dd1061b935e9e9ab9e5082c516aaada8"
 
 [[package]]
 name = "ndarray"

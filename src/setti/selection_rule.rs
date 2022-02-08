@@ -145,6 +145,156 @@ pub fn empty_selection_rule() {
 
 }
 
+pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Option<Vec<usize>> {
+    let mut l:usize = choice.len();
+    let mut j:i32 = -1;
+    let mut m_:usize = 0;
+    for i in 1..l {
+        let mut ix: usize = l - i;
+        // subchoice
+        let mut c2: Vec<usize> = choice[0..choice.len() - i].to_vec().clone();
+
+        let mut w_:Vec<String> = c2.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w_);
+
+        // get first available index after
+        let m:usize = choice[choice.len() - 1] + 1;
+        if m + distance <= n {
+            j = ix as i32;
+            m_ = m;
+            break
+        }
+    }
+
+    if j == -1 {
+
+        // get max of previous chunk (size is distance)
+        // try iterating one forward from min
+        let x:usize = choice[0];
+        let x2:usize = x + l;
+        if x2 < n {
+            let mut c_:Vec<usize> = Vec::new();
+            for i in 1..l+1 {
+                c_.push(x + i);
+            }
+            return Some(c_);
+        }
+
+        return None;
+    } else {
+        let j_ :usize = j as usize;
+        // pre
+        let mut c_:Vec<usize> = choice[0..choice.len() - distance].to_vec().clone();
+        let mut cw_:Vec<String> = c_.iter().map(|x| x.to_string()).collect();
+
+        // post
+        let mut s:String = strng_srt::stringized_srted_vec(&mut cw_);
+
+        for d_ in m_..m_ + distance {
+            c_.push(d_);
+        }
+
+        return Some(c_);
+    }
+
+    ////////////////////////////////////////////
+    /*
+    let j_ :usize = j as usize;
+    // pre
+    let mut c_:Vec<usize> = choice[0..choice.len() - distance].to_vec().clone();
+    let mut cw_:Vec<String> = c_.iter().map(|x| x.to_string()).collect();
+
+    // post
+    println!("M: {} J: {}",m_,j);
+    let mut s:String = strng_srt::stringized_srted_vec(&mut cw_);
+    println!("sub: {}",s);
+
+    for d_ in m_..m_ + distance {
+        c_.push(d_);
+    }
+
+    if c_ == choice {
+        //println!("EQUALS");
+        return None;
+    }
+
+
+    //let mut c2_:Vec<usize> = choice[m_..m_ + distance].to_vec().clone();
+    //c_.extend(c2_.iter().copied());
+    return Some(c_);
+    */
+}
+
+
+/*
+calculates the next choice given choice (of len k) by greedy forward selection (first available).
+
+Forward selection selects the first available index i for the subvector "[i:i + distance]".
+
+both `choice` and `output` are ordered vectors.
+*/
+///////
+/*
+pub fn delta_at_index(choice:Vec<usize>,n:usize,distance : usize) -> (Vec<usize>,bool) {
+    let lc:usize = choice.len();
+    assert!(lc <= n);
+    assert!(lc >= distance);
+
+    // remove the last `distance` elements
+    let mut c2: Vec<usize> = choice[0..lc - distance].to_vec().clone();
+
+    // get next available
+    let mut i:usize = choice[lc -1] + 1;
+
+    // check if satisfaction
+    let sat: bool = (i + distance <= n);
+    if sat {
+        for x in 0..distance {
+            c2.push(i + x);
+        }
+    } else {
+    // increment next
+    }
+
+
+
+
+    // distance
+
+    // check distance for over
+}
+*/
+
+//pub fn mod_by_distance
+
+/*
+    pub fn mod_for_ordered_choice(&mut self,choice:Vec<usize>) {
+        let (d1,d2):(usize,usize) = self.dimso();
+        let mut rsd: Array2<usize> = Array2::zeros((d1,d2));
+        let mut rqd: Array2<usize> = Array2::zeros((d1,d2));
+
+        let rsv: Array1<usize> = Array1::ones(d2) * -1;
+        let rqv: Array1<usize> = Array1::zeros(d2);
+
+        let mut x: usize = choice[0];
+        let mut i: usize = 0;
+        let mut stat:bool = true;
+
+        while i < d1 {
+
+            // case: x == choice
+
+
+
+
+            matrixf::replace_vec_in_arr2(&mut rsd,&mut rsv.clone(),i:usize,is_row:bool)
+
+            rsd = rsd + rsv.clone();
+        }
+    }
+*/
+
+
 /*
 SelectionRule will be able to update for every "batch"
 of equally-sized sequences.
@@ -204,6 +354,7 @@ impl SelectionRule{
         self.req.restrict_row(ch);
         ch
     }
+
 
     /*
     Calculates available choice at column.
@@ -508,4 +659,47 @@ mod tests {
         assert_eq!(tt2,s.data);
     }
 
+    #[test]
+    fn test_next_available_forward() {
+        let c1:Vec<usize> = vec![0,1,2];
+        let c2:Vec<usize> = vec![0,1,3];
+        let c3:Vec<usize> = vec![5,6,7];
+        let c4:Vec<usize> = vec![0,1,7];
+        let c5:Vec<usize> = vec![2,5,6];
+        let c6:Vec<usize> = vec![2,5,7];
+
+        let mut w: Option<Vec<usize>> = next_available_forward(c1,8,1);
+        let mut w_: Vec<usize> = w.unwrap();
+        let mut w__:Vec<String> = w_.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w__);
+        assert_eq!(s,"0-1-3".to_string());
+
+        let mut w2: Option<Vec<usize>> = next_available_forward(c2,8,1);
+        let mut w2_: Vec<usize> = w2.unwrap();
+        let mut w2__:Vec<String> = w2_.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w2__);
+        assert_eq!(s,"0-1-4".to_string());
+
+        let mut w3: Option<Vec<usize>> = next_available_forward(c3,8,1);
+        assert!(w3.is_none());
+
+        let mut w4: Option<Vec<usize>> = next_available_forward(c4,8,1);
+        let mut w4_: Vec<usize> = w4.unwrap();
+        let mut w4__:Vec<String> = w4_.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w4__);
+        assert_eq!(s,"1-2-3".to_string());
+
+        let mut w5: Option<Vec<usize>> = next_available_forward(c5,8,1);
+        let mut w5_: Vec<usize> = w5.unwrap();
+        let mut w5__:Vec<String> = w5_.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w5__);
+        assert_eq!(s,"2-5-7".to_string());
+
+        let mut w6: Option<Vec<usize>> = next_available_forward(c6,8,1);
+        let mut w6_: Vec<usize> = w6.unwrap();
+        let mut w6__:Vec<String> = w6_.iter().map(|x| x.to_string()).collect();
+        let mut s:String = strng_srt::stringized_srted_vec(&mut w6__);
+        assert_eq!(s,"3-4-5".to_string());
+
+    }
 }
