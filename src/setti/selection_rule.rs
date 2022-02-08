@@ -145,6 +145,13 @@ pub fn empty_selection_rule() {
 
 }
 
+/*
+calculates the next choice given choice (of len k) by greedy forward selection (first available).
+
+Forward selection selects the first available index i for the subvector "[i:i + distance]".
+
+both `choice` and `output` are ordered vectors.
+*/
 pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Option<Vec<usize>> {
     let mut l:usize = choice.len();
     let mut j:i32 = -1;
@@ -196,104 +203,7 @@ pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Optio
 
         return Some(c_);
     }
-
-    ////////////////////////////////////////////
-    /*
-    let j_ :usize = j as usize;
-    // pre
-    let mut c_:Vec<usize> = choice[0..choice.len() - distance].to_vec().clone();
-    let mut cw_:Vec<String> = c_.iter().map(|x| x.to_string()).collect();
-
-    // post
-    println!("M: {} J: {}",m_,j);
-    let mut s:String = strng_srt::stringized_srted_vec(&mut cw_);
-    println!("sub: {}",s);
-
-    for d_ in m_..m_ + distance {
-        c_.push(d_);
-    }
-
-    if c_ == choice {
-        //println!("EQUALS");
-        return None;
-    }
-
-
-    //let mut c2_:Vec<usize> = choice[m_..m_ + distance].to_vec().clone();
-    //c_.extend(c2_.iter().copied());
-    return Some(c_);
-    */
 }
-
-
-/*
-calculates the next choice given choice (of len k) by greedy forward selection (first available).
-
-Forward selection selects the first available index i for the subvector "[i:i + distance]".
-
-both `choice` and `output` are ordered vectors.
-*/
-///////
-/*
-pub fn delta_at_index(choice:Vec<usize>,n:usize,distance : usize) -> (Vec<usize>,bool) {
-    let lc:usize = choice.len();
-    assert!(lc <= n);
-    assert!(lc >= distance);
-
-    // remove the last `distance` elements
-    let mut c2: Vec<usize> = choice[0..lc - distance].to_vec().clone();
-
-    // get next available
-    let mut i:usize = choice[lc -1] + 1;
-
-    // check if satisfaction
-    let sat: bool = (i + distance <= n);
-    if sat {
-        for x in 0..distance {
-            c2.push(i + x);
-        }
-    } else {
-    // increment next
-    }
-
-
-
-
-    // distance
-
-    // check distance for over
-}
-*/
-
-//pub fn mod_by_distance
-
-/*
-    pub fn mod_for_ordered_choice(&mut self,choice:Vec<usize>) {
-        let (d1,d2):(usize,usize) = self.dimso();
-        let mut rsd: Array2<usize> = Array2::zeros((d1,d2));
-        let mut rqd: Array2<usize> = Array2::zeros((d1,d2));
-
-        let rsv: Array1<usize> = Array1::ones(d2) * -1;
-        let rqv: Array1<usize> = Array1::zeros(d2);
-
-        let mut x: usize = choice[0];
-        let mut i: usize = 0;
-        let mut stat:bool = true;
-
-        while i < d1 {
-
-            // case: x == choice
-
-
-
-
-            matrixf::replace_vec_in_arr2(&mut rsd,&mut rsv.clone(),i:usize,is_row:bool)
-
-            rsd = rsd + rsv.clone();
-        }
-    }
-*/
-
 
 /*
 SelectionRule will be able to update for every "batch"
