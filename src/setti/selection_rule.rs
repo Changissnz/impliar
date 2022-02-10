@@ -48,11 +48,8 @@ pub struct Restriction {
 impl Restriction {
 
     pub fn restrict_row(&mut self, i: usize) {
-        println!("restricting {}",i);
         let k = self.data.raw_dim()[1];
         let mut res:Array1<i32> = Array1::ones(k);
-        //res = res;// * -1;
-        //let mut b = self.slice_mut(s![i, ..]);
         matrixf::replace_vec_in_arr2(&mut self.data,&mut res,i,true)
     }
 
@@ -178,6 +175,7 @@ pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Optio
         // get max of previous chunk (size is distance)
         // try iterating one forward from min
         let x:usize = choice[0];
+        //let x2:usize = x + l + distance - 1;
         let x2:usize = x + l;
         if x2 < n {
             let mut c_:Vec<usize> = Vec::new();
@@ -264,7 +262,6 @@ impl SelectionRule{
         self.req.restrict_row(ch);
         ch
     }
-
 
     /*
     Calculates available choice at column.
