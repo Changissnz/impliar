@@ -6,16 +6,7 @@ use ndarray::{Array,Array1,arr1};
 use std::collections::HashSet;
 use std::hash::Hash;
 
-pub fn median_of_iterable<T>(v:Vec<T>) -> (T,Option<T>)
-where
-T: Clone
- {
-    if v.len() % 2 == 1 {
-        return (v[v.len() / 2].clone(),None);
-    } else {
-        return (v[v.len() / 2 - 1].clone(), Some(v[v.len() / 2].clone()));
-    }
-}
+///////////////////////////////// start: factors
 
 pub fn factors_of_usize(v:usize) -> HashSet<usize> {
     let mut cap = v / 2;
@@ -54,20 +45,24 @@ pub fn factors_of_i32(v:i32) -> HashSet<i32> {
 }
 
 
-pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
-    let v1x:Array1<f32> = v1.into_iter().map(|x| x as f32).collect();
-    let v2x:Array1<f32> = v2.into_iter().map(|x| x as f32).collect();
-    let v3x:Array1<f32> = arr1_safe_divide(v2x,v1x,0.0);
-    let v3x:Array1<i32> = v3x.into_iter().map(|x| x.round() as i32).collect();
-    v3x
+/*
+*/
+pub fn factors_for_vec(v1:Vec<i32>) -> Vec<HashSet<i32>> {
+    let mut sol: Vec<HashSet<i32>> = Vec::new();
+    for v in v1.iter() {
+        sol.push(factors_of_i32(*v));
+    }
+    sol
+    //arr1(&sol)
 }
 
-
-pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
-    let mut cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
-    let mut f1:f32 = v1.sum() as f32;
-    let mut f2:f32 = v2.sum() as f32;
-    (f2 / f1).round() as i32
+pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
+    for v_ in v1.iter() {
+        if *v_ % f != 0 {
+            return false;
+        }
+    }
+    true
 }
 
 pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
@@ -92,26 +87,9 @@ pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     nearest
 }
 
+///////////////////////////////// end: factors
 
-/*
-*/
-pub fn factors_for_vec(v1:Vec<i32>) -> Vec<HashSet<i32>> {
-    let mut sol: Vec<HashSet<i32>> = Vec::new();
-    for v in v1.iter() {
-        sol.push(factors_of_i32(*v));
-    }
-    sol
-    //arr1(&sol)
-}
-
-pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
-    for v_ in v1.iter() {
-        if *v_ % f != 0 {
-            return false;
-        }
-    }
-    true
-}
+//////////////////////////////// start: gcf
 
 pub fn gcf_for_vec(v1:Vec<i32>) -> i32 {
     assert!(v1.len() > 0);
@@ -144,6 +122,36 @@ pub fn gcf_for_vec(v1:Vec<i32>) -> i32 {
 }
 
 /*
+*/
+pub fn gcf_add4mult_vec(v1:Array1<i32>,v2:Array1<i32>) -> Array1<i32> {
+    let mut v2_:Vec<i32> = v2.into_iter().collect();
+    let m = gcf_for_vec(v2_);
+    -1 * (v1 - m)
+}
+
+//////////////////////////////// end: gcf
+
+
+////////////////////////////////////// start: cheapest
+
+pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
+    let v1x:Array1<f32> = v1.into_iter().map(|x| x as f32).collect();
+    let v2x:Array1<f32> = v2.into_iter().map(|x| x as f32).collect();
+    let v3x:Array1<f32> = arr1_safe_divide(v2x,v1x,0.0);
+    let v3x:Array1<i32> = v3x.into_iter().map(|x| x.round() as i32).collect();
+    v3x
+}
+
+
+pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
+    let mut cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
+    let mut f1:f32 = v1.sum() as f32;
+    let mut f2:f32 = v2.sum() as f32;
+    (f2 / f1).round() as i32
+}
+
+
+/*
 is also the mean
 */
 pub fn cheapest_add(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
@@ -154,32 +162,25 @@ pub fn cheapest_add(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     (((v2.clone() - v1.clone()).sum() as f32) / (v2.len() as f32).round()) as i32
 }
 
-/*
-*/
-pub fn intersection_set_for_hashsetvec<T>(v:Vec<HashSet<T>>) ->HashSet<T>
-where
-T:  Hash + Clone + Eq {
-    assert!(v.len() > 0);
 
-    if v.len() == 1 {
-        return v[0].clone();
-    }
-
-    let mut sol:HashSet<T> = v[1].intersection(&v[0]).map(|x| (*x).clone()).collect();
-    let l = v.len();
-    for i in 2..l {
-        sol = sol.intersection(&v[i]).map(|x| (*x).clone()).collect();
-    }
-
-    sol
+pub fn cheapest_add_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
+    v2 - v1
 }
 
-/*
-*/
-pub fn gcf_add4mult_vec(v1:Array1<i32>,v2:Array1<i32>) -> Array1<i32> {
-    let mut v2_:Vec<i32> = v2.into_iter().collect();
-    let m = gcf_for_vec(v2_);
-    -1 * (v1 - m)
+
+////////////////////////////////////// end: cheapest
+
+///////////////////////////// start: closest to
+
+pub fn median_of_iterable<T>(v:Vec<T>) -> (T,Option<T>)
+where
+T: Clone
+ {
+    if v.len() % 2 == 1 {
+        return (v[v.len() / 2].clone(),None);
+    } else {
+        return (v[v.len() / 2 - 1].clone(), Some(v[v.len() / 2].clone()));
+    }
 }
 
 pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
@@ -202,9 +203,29 @@ pub fn closest_i32_to_median(v:Array1<i32>) -> i32 {
     v[index]
 }
 
-pub fn cheapest_add_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
-    v2 - v1
+///////////////////////////// end: closest to
+
+
+/*
+*/
+pub fn intersection_set_for_hashsetvec<T>(v:Vec<HashSet<T>>) ->HashSet<T>
+where
+T:  Hash + Clone + Eq {
+    assert!(v.len() > 0);
+
+    if v.len() == 1 {
+        return v[0].clone();
+    }
+
+    let mut sol:HashSet<T> = v[1].intersection(&v[0]).map(|x| (*x).clone()).collect();
+    let l = v.len();
+    for i in 2..l {
+        sol = sol.intersection(&v[i]).map(|x| (*x).clone()).collect();
+    }
+
+    sol
 }
+
 
 pub fn arr1_safe_divide(v1:Array1<f32>,v2:Array1<f32>,n:f32) -> Array1<f32> {
     assert_eq!(v1.len(),v2.len());
@@ -220,6 +241,15 @@ pub fn arr1_safe_divide(v1:Array1<f32>,v2:Array1<f32>,n:f32) -> Array1<f32> {
 }
 
 
+//////////////////////
+/*
+pub fn sort_by_distance_to_median() {
+
+}
+*/ 
+
+//////////////////////////// start: test samples
+
 pub fn sample_arr1_pair_1() -> (Array1<i32>,Array1<i32>) {
     let mut v1:Array1<i32> = arr1(&[2,4,15,19]);
     let mut v2:Array1<i32> = arr1(&[8,12,55,190]);
@@ -232,7 +262,7 @@ pub fn sample_arr1_pair_2() -> (Array1<i32>,Array1<i32>) {
     (v1,v2)
 }
 
-
+//////////////////////////// end: test samples
 
 
 #[cfg(test)]
