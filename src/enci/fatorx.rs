@@ -238,7 +238,6 @@ pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
 }
 
 /*
-
 */
 pub fn ranked_mult_additives_for_i32(v:i32,v2:i32) -> Vec<i32> {
     let mut fv: Vec<usize> = factors_of_usize(v as usize).into_iter().collect();
@@ -276,24 +275,11 @@ pub fn highest_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) ->
         vc.countv(b_);
     }
     let mut d2:Vec<(String,i32)> = strng_srt::hashmap_to_2vector(vc.data.clone());
-
-    //let mn = d2.iter().fold(0, |min, &val| if val.1 < min{ val.1 } else{ min });
-    //mn
-
     d2.sort_by(strng_srt::str_cmp5);
-    //d2[d2.len() - 1].1
-    //i32::from(d2[0].0)
     i32::from_str(d2[d2.len() - 1].0.as_str()).unwrap()
-    // reverse-iterate through d2 and get the first non-zero element;
 }
-
-/*
-pub fn ccf2mean_add4mult() -> i32 {
-}
-*/
 
 pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
-    //let mut m:i32 = v.mean();
     let mut m:i32 = v.clone().into_iter().map(|x| x as f32).collect::<Array1<f32>>().mean().unwrap().round() as i32;
     let mut diff:Array1<usize> = v.clone().into_iter().map(|x| (x - m).abs() as usize).collect();
     let mn = diff.iter().fold(0, |min, &val| if val < min{ val } else{ min });
