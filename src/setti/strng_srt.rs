@@ -148,6 +148,28 @@ pub fn str_cmp4(s1: &(String,f32),s2: &(String,f32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+pub fn str_cmp5(s1: &(String,i32),s2: &(String,i32)) -> std::cmp::Ordering {
+    if (*s1).1 <= (*s2).1 {
+    	return Ordering::Less;
+    }
+    Ordering::Greater
+}
+
+pub fn hashmap_to_2vector<T,T2>(hm: HashMap<T,T2>) -> Vec<(T,T2)>
+where
+T:Clone,
+T2: Clone
+{
+
+    let mut sol_: Vec<(T,T2)> = Vec::new();
+    for h in hm.iter() {
+        let (mut x1,mut x2):(T,T2) = (h.0.clone(),h.1.clone());
+        sol_.push((x1,x2));
+    }
+
+    sol_
+}
+
 // TODO: test
 pub fn sort_elements_by_probability_weights(reference: Vec<(String,f32)>, elements: &mut Vec<String>) -> Vec<String> {
     let mut r2:HashMap<String,String> = vecd2_to_hashmap(reference);

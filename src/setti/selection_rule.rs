@@ -187,7 +187,6 @@ pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Optio
 
         return None;
     } else {
-        let j_ :usize = j as usize;
         // pre
         let mut c_:Vec<usize> = choice[0..choice.len() - distance].to_vec().clone();
         let mut cw_:Vec<String> = c_.iter().map(|x| x.to_string()).collect();

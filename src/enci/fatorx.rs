@@ -2,9 +2,15 @@
 file contains functions for factors.
 */
 use crate::setti::strng_srt;
+use crate::setti::setf;
+use crate::setti::setf::Count;
+
 use ndarray::{Array,Array1,arr1};
 use std::collections::HashSet;
 use std::hash::Hash;
+use std::collections::HashMap;
+use std::str::FromStr;
+
 
 ///////////////////////////////// start: factors
 
@@ -53,7 +59,6 @@ pub fn factors_for_vec(v1:Vec<i32>) -> Vec<HashSet<i32>> {
         sol.push(factors_of_i32(*v));
     }
     sol
-    //arr1(&sol)
 }
 
 pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
@@ -144,7 +149,6 @@ pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
 
 
 pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
-    let mut cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
     let mut f1:f32 = v1.sum() as f32;
     let mut f2:f32 = v2.sum() as f32;
     (f2 / f1).round() as i32
@@ -182,6 +186,111 @@ T: Clone
         return (v[v.len() / 2 - 1].clone(), Some(v[v.len() / 2].clone()));
     }
 }
+
+/*
+pops them out
+*/
+pub fn median_of_iterable_<T>(v:Vec<T>) -> (usize,Option<usize>)
+where
+T: Clone
+{
+
+    if v.len() % 2 == 1 {
+        return (v.len() / 2, None);
+    } else {
+        return (v.len() / 2 - 1, Some(v.len() / 2));
+    }
+}
+
+pub fn sort_by_distance_to_median<T>(v:Vec<T>) -> Vec<T>
+where
+T: Clone
+{
+    let mut sol:Vec<T> = Vec::new();
+    let mut v2:Vec<T> = v.clone();
+    let mut stat: bool = v2.len() > 0;
+    while stat {
+        let (x1,x2):(usize,Option<usize>) = median_of_iterable_(v2.clone());
+        let mut v3:Vec<T> = v2[0..x1].to_vec();
+        sol.push(v2[x1].clone());
+        let l = v2.len();
+        if x2.is_none() {
+            v3.extend_from_slice(&mut v2[x1 + 1..l]);//collect());
+        } else {
+            v3.extend_from_slice(&mut v2[x2.unwrap() + 1..l]);
+            sol.push(v2[x2.unwrap()].clone());
+        }
+        v2 = v3;
+        stat = v2.len() > 0;
+    }
+
+    sol
+}
+
+pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
+    let mut v2: Vec<i32> = Vec::new();
+
+    for v_ in v.into_iter() {
+        v2.push(v_ as i32);
+        v2.push(v_ as i32 * -1);
+    }
+    v2
+}
+
+/*
+
+*/
+pub fn ranked_mult_additives_for_i32(v:i32,v2:i32) -> Vec<i32> {
+    let mut fv: Vec<usize> = factors_of_usize(v as usize).into_iter().collect();
+    let mut fv_ = neg_double_vec(fv);
+    let mut fv2 = sort_by_distance_to_median(fv_);
+    let fv3:Vec<i32> = fv2.into_iter().map(|x| x - v2).collect();
+    fv3
+}
+
+/*
+Outputs a vector v2 in which for each i'th element e in v2,
+e is the vector of additives for the factors M of the i'th element of v2,
+and its ordering of the additives correspond to that of the distance to
+the median of M.
+*/
+pub fn ranked_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> Vec<Vec<i32>> {
+    let mut sol: Vec<Vec<i32>> = Vec::new();
+    for (i,v_) in v.into_iter().enumerate() {
+        sol.push(ranked_mult_additives_for_i32(v_,v2[i]));
+    }
+    sol
+}
+
+/*
+locates the i32 add for v to satisfy l members of
+v as factors of v2's corresponding members, l the
+maximum possible number of members can be satisfied
+by adding an i32.
+*/
+pub fn highest_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32 {
+    let b: Vec<Vec<i32>> = ranked_mult_additive_for_vec(v,v2);
+    let mut vc: setf::VectorCounter = setf::VectorCounter{data: HashMap::new()};
+
+    for b_ in b.into_iter() {
+        vc.countv(b_);
+    }
+    let mut d2:Vec<(String,i32)> = strng_srt::hashmap_to_2vector(vc.data.clone());
+
+    //let mn = d2.iter().fold(0, |min, &val| if val.1 < min{ val.1 } else{ min });
+    //mn
+
+    d2.sort_by(strng_srt::str_cmp5);
+    //d2[d2.len() - 1].1
+    //i32::from(d2[0].0)
+    i32::from_str(d2[d2.len() - 1].0.as_str()).unwrap()
+    // reverse-iterate through d2 and get the first non-zero element;
+}
+
+/*
+pub fn ccf2mean_add4mult() -> i32 {
+}
+*/
 
 pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
     //let mut m:i32 = v.mean();
@@ -240,14 +349,6 @@ pub fn arr1_safe_divide(v1:Array1<f32>,v2:Array1<f32>,n:f32) -> Array1<f32> {
     arr1(&v)
 }
 
-
-//////////////////////
-/*
-pub fn sort_by_distance_to_median() {
-
-}
-*/ 
-
 //////////////////////////// start: test samples
 
 pub fn sample_arr1_pair_1() -> (Array1<i32>,Array1<i32>) {
@@ -259,6 +360,12 @@ pub fn sample_arr1_pair_1() -> (Array1<i32>,Array1<i32>) {
 pub fn sample_arr1_pair_2() -> (Array1<i32>,Array1<i32>) {
     let mut v1:Array1<i32> = arr1(&[2,4,2,4,20]);
     let mut v2:Array1<i32> = arr1(&[4,8,4,8,200]);
+    (v1,v2)
+}
+
+pub fn sample_arr1_pair_3() -> (Array1<i32>,Array1<i32>) {
+    let v1:Array1<i32> = arr1(&[4,2]);
+    let v2:Array1<i32> = arr1(&[8,10]);
     (v1,v2)
 }
 
@@ -369,6 +476,35 @@ mod tests {
         let a:Array1<i32> = arr1(&[-2,-2,1,1,1,4,4,4,4,5,5,6,6]);
         let x:i32 = closest_i32_to_median(a);
         assert_eq!(x,4);
+    }
+
+    #[test]
+    fn test_sort_by_distance_to_median() {
+        let mut v: Vec<usize> = vec![0,0,0,0,2,2,2,3,3,4,4,4,4,4,5,5,5,5,5,5,5];
+        let mut vm: Vec<usize> = sort_by_distance_to_median(v);
+        assert_eq!(vm,vec![4, 4, 4, 3, 4, 3, 4, 2, 5, 2, 5, 2, 5, 0, 5, 0, 5, 0, 5, 0, 5]);
+    }
+
+    #[test]
+    fn test_ranked_mult_additive_for_vec() {
+        let (a,a2):(Array1<i32>,Array1<i32>) = sample_arr1_pair_3();
+        let b:Vec<Vec<i32>> = ranked_mult_additive_for_vec(a.clone(),a2.clone());
+        let mut vc: setf::VectorCounter = setf::VectorCounter{data: HashMap::new()};
+        for b_ in b.into_iter() {
+            vc.countv(b_);
+        }
+
+        let m: HashMap<String, i32> = HashMap::from_iter([("-9".to_string(), 2), ("-6".to_string(), 1),
+            ("-11".to_string(), 1), ("-10".to_string(),1), ("-7".to_string(),1), ("-4".to_string(),1),
+            ("-8".to_string(),1), ("-12".to_string(),2)]);
+        assert_eq!(vc.data,m);
+    }
+
+    #[test]
+    fn test_highest_satisfying_mult_additive_for_vec() {
+        let (a,a2):(Array1<i32>,Array1<i32>) = sample_arr1_pair_3();
+        let i:i32 = highest_satisfying_mult_additive_for_vec(a.clone(),a2.clone());
+        assert!(i == -12 || i == -9);
     }
 
 }
