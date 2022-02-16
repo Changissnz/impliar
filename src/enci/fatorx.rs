@@ -267,7 +267,7 @@ v as factors of v2's corresponding members, l the
 maximum possible number of members can be satisfied
 by adding an i32.
 */
-pub fn highest_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32 {
+pub fn max_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32 {
     let b: Vec<Vec<i32>> = ranked_mult_additive_for_vec(v,v2);
     let mut vc: setf::VectorCounter = setf::VectorCounter{data: HashMap::new()};
 
@@ -299,7 +299,6 @@ pub fn closest_i32_to_median(v:Array1<i32>) -> i32 {
 }
 
 ///////////////////////////// end: closest to
-
 
 /*
 */
@@ -487,9 +486,9 @@ mod tests {
     }
 
     #[test]
-    fn test_highest_satisfying_mult_additive_for_vec() {
+    fn test_max_satisfying_mult_additive_for_vec() {
         let (a,a2):(Array1<i32>,Array1<i32>) = sample_arr1_pair_3();
-        let i:i32 = highest_satisfying_mult_additive_for_vec(a.clone(),a2.clone());
+        let i:i32 = max_satisfying_mult_additive_for_vec(a.clone(),a2.clone());
         assert!(i == -12 || i == -9);
     }
 

@@ -1,5 +1,6 @@
 use ndarray::{Array,Array1,arr1};
 
+#[derive(Clone)]
 pub struct Skew {
     pub adder: Option<i32>,
     pub multer: Option<i32>,
