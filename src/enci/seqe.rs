@@ -13,7 +13,8 @@ pub fn skew_search_ordering() -> Vec<Vec<usize>> {
 }
 
 /*
-calculates a skew that can transform v1 to v2
+calculates a skew that can transform v1 to v2 by one of the following
+orderings in `skew_search_ordering`
 */
 pub fn find_cheapest_skew(v1:Array1<i32>,v2:Array1<i32>) -> Skew {
     // collect all possible skews
@@ -23,12 +24,12 @@ pub fn find_cheapest_skew(v1:Array1<i32>,v2:Array1<i32>) -> Skew {
         let (mut s1,mut s2):(Option<Skew>,Option<Skew>) = skews_special_case(v1.clone(),v2.clone(),si.clone());
 
         // check if skew satisfies
-        if check_skew(s1.unwrap().clone(), v1.clone(),v2.clone()) {
-            skews.push(s1.unwrap());
+        if check_skew(s1.as_ref().unwrap().clone(), v1.clone(),v2.clone()) {
+            skews.push(s1.unwrap().clone());
         }
 
         if !s2.is_none() {
-            if check_skew(s2.unwrap().clone(), v1.clone(),v2.clone()) {
+            if check_skew(s2.as_ref().unwrap().clone(), v1.clone(),v2.clone()) {
                 skews.push(s2.unwrap());
             }
         }
@@ -93,8 +94,8 @@ pub fn skews_special_case(v1:Array1<i32>,v2:Array1<i32>,skewInst:Vec<usize>) -> 
         }
     }
 
-    let s1: Skew = skew::build_skew(a1,m1,a11,m11,skewInst.clone());
-    let s2: Option<Skew> = if skewInst[0] == 0 {Some(skew::build_skew(a2,m2,a22,m22,skewInst.clone()))} else {None};
+    let s1: Skew = skew::build_skew(a1,m1,a11,m11,skewInst.clone(),None);
+    let s2: Option<Skew> = if skewInst[0] == 0 {Some(skew::build_skew(a2,m2,a22,m22,skewInst.clone(),None))} else {None};
     return (Some(s1),s2)
 }
 
@@ -108,23 +109,25 @@ pub fn cheapest_skew_cost_function(s:Skew) -> f32 {
     let mut c: f32 = 0.0;
 
     if !s.adder.is_none() {
-        let mut sm: i32 = s.adder.unwrap();
-        c += sm as f32;
+        let mut sm: i32 = s.adder.unwrap().abs();
+        c += (sm + 1) as f32;
     }
 
     if !s.multer.is_none() {
-        let mut sm: i32 = s.multer.unwrap();
-        c += sm as f32;
+        let mut sm: i32 = s.multer.unwrap().abs();
+        c += (sm + 1) as f32;
     }
 
     if !s.addit.is_none() {
-        let mut sm2: Array1<i32> = s.addit.unwrap();
+        let mut sm2: Array1<i32> = s.addit.unwrap().into_iter().map(|x| x.abs()).collect();
         c += sm2.sum() as f32;
+        c += sm2.len() as f32;
     }
 
     if !s.multit.is_none() {
-        let mut sm2: Array1<i32> = s.multit.unwrap();
+        let mut sm2: Array1<i32> = s.multit.unwrap().into_iter().map(|x| x.abs()).collect();
         c += sm2.sum() as f32;
+        c += sm2.len() as f32;
     }
 
     c
@@ -134,7 +137,51 @@ pub struct SkewEncoder {
     pub skewChain: Vec<Skew>,
 }
 
+pub fn skew_vector_pair_case_1() -> (Array1<i32>,Array1<i32>) {
+    (arr1(&[5,7,9]),arr1(&[15,21,27]))
+}
+
+
+pub fn skew_vector_pair_case_2() -> (Array1<i32>,Array1<i32>) {
+    (arr1(&[5,7,9]),arr1(&[16,20,29]))
+}
+
+
+pub fn skew_test_case_1() -> (Option<Skew>,Option<Skew>) {
+    //let mut v1:Array1<i32> = arr1(&[5,7,9]);
+    //let mut v2:Array1<i32> = arr1(&[15,21,27]);
+    let (mut v1,mut v2) = skew_vector_pair_case_1();
+    skews_special_case(v1,v2,vec![1])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_skews_special_case() {
+        let (mut s1,mut s2) = skew_test_case_1();
+
+        let (mut v1,mut v2) = skew_vector_pair_case_1();
+
+        assert_eq!(s1.is_none(),false);
+        assert_eq!(s2.is_none(),true);
+
+        let mut v3 = s1.unwrap().skew_value(v1.clone());
+        assert_eq!(v3.clone(),v2.clone());
+    }
+
+    #[test]
+    fn test_find_cheapest_skew() {
+        let (mut s1,mut s2) = skew_test_case_1();
+        let (mut v1,mut v2) = skew_vector_pair_case_1();
+        let mut skew: Skew = find_cheapest_skew(v1.clone(),v2.clone());//,ordering.clone());
+        assert_eq!(skew.to_string(),"*3".to_string());
+        assert_eq!(4.0,cheapest_skew_cost_function(skew));
+
+        let (mut v11,mut v12) = skew_vector_pair_case_2();
+        let mut skew2: Skew = find_cheapest_skew(v11.clone(),v12.clone());//,ordering.clone());
+        assert_eq!("*3+[1, -1, 2]".to_string(),skew2.to_string());
+        assert_eq!(11.0,cheapest_skew_cost_function(skew2.clone()));
+    }
 }
