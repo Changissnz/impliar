@@ -481,7 +481,7 @@ mod tests {
         let mut x1_: Vec<i32> = vec![120,140,31,3000,34,-2,54,61,1,31,-2];
         let mut s2 = ordered_vec_by_reference(x1_,x2);
         let mut s2s = setf::vec_to_str(s2);
-        let mut sol2 = "-2--2-1-31-31-54-34-61-140-120-3000".to_string();
+        let mut sol2 = "-2_-2_1_31_31_54_34_61_140_120_3000".to_string();
         assert_eq!(sol2,s2s);
     }
 

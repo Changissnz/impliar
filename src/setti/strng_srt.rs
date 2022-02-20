@@ -239,7 +239,7 @@ mod tests {
     fn test_stringized_srted_vec() {
         let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string()];
         let mut y = stringized_srted_vec(&mut x);
-        assert_eq!(y,"a-ar-bxx".to_string());
+        assert_eq!(y,"a_ar_bxx".to_string());
     }
 
 }

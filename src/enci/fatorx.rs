@@ -386,11 +386,11 @@ mod tests {
     #[test]
     fn test_factors_for_vec() {
 
-        let sol:Vec<String> = vec!["1-10-2-20-4-5".to_string(),
-        "1-10-15-2-3-30-5-6".to_string(),
-        "1-10-2-20-4-40-5-8".to_string(),
-        "1-15-25-3-5-75".to_string(),
-        "1-11-2-22-4-44-8-88".to_string()];
+        let sol:Vec<String> = vec!["1_10_2_20_4_5".to_string(),
+        "1_10_15_2_3_30_5_6".to_string(),
+        "1_10_2_20_4_40_5_8".to_string(),
+        "1_15_25_3_5_75".to_string(),
+        "1_11_2_22_4_44_8_88".to_string()];
 
         let mut x:Vec<i32> = vec![20,30,40,75,88];
         let mut x2:Vec<HashSet<i32>> = factors_for_vec(x.clone());
@@ -425,13 +425,13 @@ mod tests {
         let mut q:HashSet<usize> = factors_of_usize(30);
         let mut q2:HashSet<String> = q.iter().map(|y| y.to_string()).collect();
         let s = strng_srt::stringized_srted_hash(q2);
-        let sol1 = "1-10-15-2-3-30-5-6".to_string();
+        let sol1 = "1_10_15_2_3_30_5_6".to_string();
         assert_eq!(sol1,s);
 
         q = factors_of_usize(60);
         q2 = q.iter().map(|y| y.to_string()).collect();
         let s2 = strng_srt::stringized_srted_hash(q2);
-        let sol2 = "1-10-12-15-2-20-3-30-4-5-6-60".to_string();
+        let sol2 = "1_10_12_15_2_20_3_30_4_5_6_60".to_string();
         assert_eq!(sol2,s2);
     }
 

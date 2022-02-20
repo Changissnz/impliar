@@ -522,9 +522,9 @@ mod tests {
         let (mut res,mut req) = test_rule_contents_2();
         let mut sr = SelectionRule{res:res,req:req,
             choice:Vec::new()};
-        let mut sol :Vec<String> = vec!["0-5-7".to_string(),"0-1-2-3-4-5-6-7-8-9".to_string(),
-                                "2-5-7-9".to_string(), "5-7".to_string(),
-                                "0-1-2-3-4-5-6-7-8-9".to_string(), "0-1-2-3-4-5-6-7-8-9".to_string()];
+        let mut sol :Vec<String> = vec!["0_5_7".to_string(),"0_1_2_3_4_5_6_7_8_9".to_string(),
+                                "2_5_7_9".to_string(), "5_7".to_string(),
+                                "0_1_2_3_4_5_6_7_8_9".to_string(), "0_1_2_3_4_5_6_7_8_9".to_string()];
 
         for i in 0..6 {
             let mut c = sr.choices_at_col_index(i);
@@ -578,13 +578,13 @@ mod tests {
         let mut w_: Vec<usize> = w.unwrap();
         let mut w__:Vec<String> = w_.iter().map(|x| x.to_string()).collect();
         let mut s:String = strng_srt::stringized_srted_vec(&mut w__);
-        assert_eq!(s,"0-1-3".to_string());
+        assert_eq!(s,"0_1_3".to_string());
 
         let mut w2: Option<Vec<usize>> = next_available_forward(c2,8,1);
         let mut w2_: Vec<usize> = w2.unwrap();
         let mut w2__:Vec<String> = w2_.iter().map(|x| x.to_string()).collect();
         let mut s:String = strng_srt::stringized_srted_vec(&mut w2__);
-        assert_eq!(s,"0-1-4".to_string());
+        assert_eq!(s,"0_1_4".to_string());
 
         let mut w3: Option<Vec<usize>> = next_available_forward(c3,8,1);
         assert!(w3.is_none());
@@ -593,19 +593,19 @@ mod tests {
         let mut w4_: Vec<usize> = w4.unwrap();
         let mut w4__:Vec<String> = w4_.iter().map(|x| x.to_string()).collect();
         let mut s:String = strng_srt::stringized_srted_vec(&mut w4__);
-        assert_eq!(s,"1-2-3".to_string());
+        assert_eq!(s,"1_2_3".to_string());
 
         let mut w5: Option<Vec<usize>> = next_available_forward(c5,8,1);
         let mut w5_: Vec<usize> = w5.unwrap();
         let mut w5__:Vec<String> = w5_.iter().map(|x| x.to_string()).collect();
         let mut s:String = strng_srt::stringized_srted_vec(&mut w5__);
-        assert_eq!(s,"2-5-7".to_string());
+        assert_eq!(s,"2_5_7".to_string());
 
         let mut w6: Option<Vec<usize>> = next_available_forward(c6,8,1);
         let mut w6_: Vec<usize> = w6.unwrap();
         let mut w6__:Vec<String> = w6_.iter().map(|x| x.to_string()).collect();
         let mut s:String = strng_srt::stringized_srted_vec(&mut w6__);
-        assert_eq!(s,"3-4-5".to_string());
+        assert_eq!(s,"3_4_5".to_string());
 
     }
 }

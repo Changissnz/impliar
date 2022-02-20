@@ -148,8 +148,6 @@ pub fn skew_vector_pair_case_2() -> (Array1<i32>,Array1<i32>) {
 
 
 pub fn skew_test_case_1() -> (Option<Skew>,Option<Skew>) {
-    //let mut v1:Array1<i32> = arr1(&[5,7,9]);
-    //let mut v2:Array1<i32> = arr1(&[15,21,27]);
     let (mut v1,mut v2) = skew_vector_pair_case_1();
     skews_special_case(v1,v2,vec![1])
 }

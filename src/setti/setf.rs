@@ -58,7 +58,7 @@ pub fn vec_to_str<T>(s: Vec<T>) -> String
     let mut h = String::from("");
     for s_ in s.iter() {
         h = h + &(s_.to_string());
-        h.push_str("-");
+        h.push_str("_");
     }
 
     if h.len() > 0 {
@@ -97,7 +97,7 @@ pub fn str_to_vec(s:String) -> Vec<String> {
 pub fn next_str(s:String) -> i32 {
 
     for (i,s_) in s.chars().enumerate() {
-        if s_ == '-' {
+        if s_ == '_' {
             return i as i32;
         }
     }
@@ -126,7 +126,7 @@ mod tests {
     #[test]
     fn test__str_to_vec() {
         // case 1
-        let mut s = "lasjdflsadjfsal;fjsald;fjsadl;-flsakdjflas;dfjls;adkjf";
+        let mut s = "lasjdflsadjfsal;fjsald;fjsadl;_flsakdjflas;dfjls;adkjf";
         let sol: Vec<String> = vec!["lasjdflsadjfsal;fjsald;fjsadl;".to_string(),"flsakdjflas;dfjls;adkjf".to_string()];
 
         let v1 = str_to_vec(s.to_string());
@@ -145,7 +145,7 @@ mod tests {
         }
 
         // case 3
-        let mut s = "arbitrox-bartinuell-radinox".to_string();
+        let mut s = "arbitrox_bartinuell_radinox".to_string();
         let mut s2 = str_to_vec(s);
         assert_eq!(s2,vec!["arbitrox".to_string(), "bartinuell".to_string(),"radinox".to_string()]);
 
@@ -161,7 +161,7 @@ mod tests {
         // case 2
         let mut s2 = vec!["one","two","2","three"];
         v1 = vec_to_str(s2);
-        assert_eq!(v1,"one-two-2-three".to_string());
+        assert_eq!(v1,"one_two_2_three".to_string());
     }
 
     #[test]

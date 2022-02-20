@@ -15,7 +15,7 @@ pub struct Skew {
 /*
 ordering
 0 adder,
-1 mult,
+1 multer,
 2 addit,
 3 multit
 */
@@ -82,6 +82,14 @@ impl Skew {
         v
     }
 
+    /*
+    pub fn subgroup_apply(&mut self, v:Array1<i32>, i: usize) -> Array1<i32> {
+        // get operation
+        let m =
+    }
+    */ 
+
+    // used for no subgroups
     pub fn apply_at(&mut self, v:Array1<i32>, i:usize) -> Array1<i32> {
         assert!(i <= 3);
 

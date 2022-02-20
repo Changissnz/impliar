@@ -49,6 +49,7 @@ impl Inc1 {
 
 }
 
+#[derive(Clone)]
 pub struct Inc1String {
     pub value: String,
 }
