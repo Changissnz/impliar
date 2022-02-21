@@ -2,6 +2,7 @@ use crate::setti::inc;
 use substring::Substring;
 use std::collections::HashMap;
 use std::mem;
+use crate::enci::parentnot;
 
 pub fn default_branch_identifier_seed() -> &'static str {
     "XX5A"
