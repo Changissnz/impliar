@@ -80,7 +80,7 @@ impl SGen {
 
 /*
 vector version of `fcollect`;
-collects all permutational sets of size k starting with s[r] in the subvector s[r+1:]
+collects all subvectors of size k starting with s[r] in the subvector s[r+1:]
 */
 pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     let mut result: Vec<Vec<String>> = Vec::new();

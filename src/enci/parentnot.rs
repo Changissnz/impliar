@@ -13,7 +13,6 @@ pub fn usize_to_choice_vector(v:usize) -> Vec<String> {
     sol
 }
 
-//// TODO:
 /*
 c the ordered vector of elements comprising the string,
 q the indices of open ( and close ).
@@ -130,10 +129,7 @@ T: Clone
         break;
     }
 
-
-
     (sol,j_ + 1)
-
 }
 
 
@@ -170,9 +166,5 @@ mod tests {
         let res2:String = rangevec_to_parenthetical_string(q.clone(),Vec::new());
         assert_eq!(res2,"0_1_2_4_7_8_15_16_17_19".to_string());
     }
-
-
-
-
 
 }
