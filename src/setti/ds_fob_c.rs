@@ -31,7 +31,7 @@ pub fn check_valid_vselect_vec(data: Vec<(usize,usize)>) -> bool {
 
 pub fn ranges_coincide(r1:(usize,usize),r2:(usize,usize)) -> bool {
     assert!(r1.0 < r1.1 && r2.0 < r2.1);
-    if r1.1 >= r2.0 && r2.1 >= r1.0 {true} else {false}
+    if r1.1 >= r2.0 || r2.1 >= r1.0 {true} else {false}
 }
 
 
