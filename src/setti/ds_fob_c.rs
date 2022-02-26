@@ -1,4 +1,12 @@
-// FUTURE: write comments
+/*
+implementation of ds(f|b)c:
+distance-size (forward|binary) collector; greedy solution.
+
+For the arguments
+`selection`:Vec<(usize,usize)>, the parameters
+>= `distance`
+== `size`
+*/
 
 #[derive(Clone)]
 pub struct VSelect {
@@ -110,12 +118,13 @@ pub fn options_for_dsf_element(n:usize,mut vs:VSelect, wanted_size:usize,distanc
     let l = vs.len();
 
     // case
-    if wanted_size > vs.size() {
+    if wanted_size > n {
         return Vec::new();
     }
 
     // get the first available forward including the distance
     let x2 = vs.available_forward(n);
+    ///println!("available forward {}",x2.unwrap());
     if x2.is_none() {
         return Vec::new();
     }
@@ -160,6 +169,77 @@ pub fn build_DSFGen(n: usize,k: usize,d: usize,s: usize) -> DSFGen {
     let mut cache: Vec<VSelect> = vec![vs];
     DSFGen{n:n,k: k,d:d,s: s,cache: cache,results: Vec::new(),stat: true}
 }
+
+
+impl DSFGen {
+
+    /*
+    */
+    pub fn next_element(&mut self) -> Option<VSelect> {
+        // case: finished
+        if self.results.len() == 0 && self.cache.len() == 0 {
+            //println!("finished!");
+            return None;
+        }
+
+        let lc = self.cache.len();
+        if lc == 0 {
+            return None;
+        }
+
+        let mut vs2 = self.cache[0].clone();
+        self.cache = self.cache[1..].to_vec();
+        self.process_cache_element(vs2);
+
+        // case: no more results, fetch from cache
+        if self.results.len() == 0 {
+            //println!("none 2");
+            return self.next_element();
+        }
+        let mut r = self.results[0].clone();
+        self.results = self.results[1..].to_vec();
+        Some(r)
+    }
+
+    /*
+    processes by bfs on each additional chunk of size [d,k];
+    */
+    pub fn process_cache_element(&mut self,vs:VSelect) {
+
+        for i in self.s..self.k {
+            self.collect_for_pre(vs.clone(),i);
+        }
+    }
+
+    /*
+    collects k_-sized possibilities for a pre VSelect into cache
+    */
+    pub fn collect_for_pre(&mut self,mut vs:VSelect, k_ : usize) -> bool {
+        let q:Vec<(usize,usize)> = options_for_dsf_element(self.n,vs.clone(),k_,self.d);
+
+        if q.len() == 0 {
+            return false;
+        }
+
+        for q_ in q.iter() {
+            let mut vs2 = vs.clone();
+            vs2.add_elemente(self.n,*q_);
+
+            // either add to cache or results
+            if vs2.size() == self.k {
+                self.results.push(vs2.clone());
+            } else {
+                self.cache.push(vs2);
+            }
+        }
+
+        return true;
+    }
+}
+
+
+
+///////////////////////////////////////////////////// start: test
 
 // to get all possible options, iterate min:(1|2) through n - k (preselect size)
 
