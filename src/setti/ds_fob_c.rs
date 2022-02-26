@@ -1,5 +1,11 @@
 /*
-finalized version of ds_fob_c
+implementation of ds(f|b)c:
+distance-size (forward|binary) collector; greedy solution.
+
+For the arguments
+`selection`:Vec<(usize,usize)>, the parameters
+>= `distance`
+== `size`
 */
 
 use crate::setti::vs;
