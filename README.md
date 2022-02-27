@@ -8,3 +8,7 @@ SCHEDULE
 
 - 2/15/22
   * continue work on `crate::enci`
+
+- 2/26/22
+  * did work on `crate::enci` and add `ds_fob_c.rs` to `crate::setti`
+  * proceed to `SetImp`
