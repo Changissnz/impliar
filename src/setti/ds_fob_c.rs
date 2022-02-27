@@ -64,6 +64,9 @@ pub fn options_for_dsf_element(mut vs:VSelect, n:usize, k:usize, d:usize,s:usize
 }
 
 // each element is VSelect of size k
+/*
+distance-size forward generator
+*/
 #[derive(Clone)]
 pub struct DSFGen {
     n: usize,

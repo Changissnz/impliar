@@ -14,7 +14,11 @@ pub fn skew_search_ordering() -> Vec<Vec<usize>> {
 
 /*
 calculates a skew that can transform v1 to v2 by one of the following
-orderings in `skew_search_ordering`
+orderings in `skew_search_ordering`.
+
+CAUTION: this is a make-shift function and does not guarantee the cheapest skew.
+         Parenthetical notation is missing.
+         For example, the ordering (0 1 2) < ((0 1) 2) < (0 (1 2)) could happen.
 */
 pub fn find_cheapest_skew(v1:Array1<i32>,v2:Array1<i32>) -> Skew {
     // collect all possible skews
