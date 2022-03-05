@@ -4,3 +4,4 @@ pub mod seqe;
 pub mod fatorx;
 pub mod ohop;
 pub mod parentnot;
+pub mod mat2sort;

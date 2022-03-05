@@ -30,6 +30,14 @@ T:Clone + Eq + Hash
     f2.raw_dim()[0] > 0
 }
 
+pub fn anyat_index_arr1<T>(a:&mut Array1<T>,b:HashSet<T>) -> Array1<usize>
+where
+T:Clone + Eq + Hash
+ {
+    a.into_iter().map(|x| {if b.contains(x) {1} else {0}}).collect()
+}
+
+
 /*
 return:
 - vector of indices
@@ -38,10 +46,9 @@ pub fn anyat_vec_in_vec_of_arr2<T>(a:&mut Array2<T>,b:HashSet<T>,i:usize,is_row:
 where
 T:Clone + Eq + Hash
  {
-    let c = if is_row {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
+    let mut c = if is_row {a.slice_mut(s![i,..])} else {a.slice_mut(s![..,i])};
     //let f2:Array1<_> = c.into_iter().enumerate().map(|(i,x)| {if b.contains(x) {1} else {0}}).collect();
-    let f2:Array1<_> = c.into_iter().map(|x| {if b.contains(x) {1} else {0}}).collect();
-
+    let f2:Array1<_> = anyat_index_arr1(&mut c.to_owned(),b).to_owned();//c.into_iter().map(|x| {if b.contains(x) {1} else {0}}).collect();
     f2
 }
 

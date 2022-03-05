@@ -67,7 +67,6 @@ pub fn decisionvec_to_rangevec(v:Vec<String>) -> Vec<(usize,usize)> {
     csv
 }
 
-// CAUTION: may throw error
 pub fn stringvec_to_usizevec(v:Vec<String>) -> Vec<usize> {
     let mut uv: Vec<usize> = Vec::new();
     for v_ in v.iter() {

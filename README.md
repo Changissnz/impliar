@@ -12,3 +12,9 @@ SCHEDULE
 - 2/26/22
   * did work on `crate::enci` and add `ds_fob_c.rs` to `crate::setti`
   * proceed to `SetImp`
+
+- 2/27/22
+  * Here are the project plans ahead.
+    * Impliar will be the flame that dies. Or the last    
+      flame that goes out, per se. Some will blame the
+      ice. 
