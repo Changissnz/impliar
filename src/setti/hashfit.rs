@@ -142,27 +142,12 @@ pub fn hashfit_score2(d:Vec<Array1<usize>>,r:Array1<usize>) -> f32 {
 
 }
 
-
-//pub best_rsoln_fit
-
-//// subcases: max proper fit w.r.t. a reference
-/*
-will have to design some referential functions
-
-EX 0 1   2 3 4
-
-    0 1 2 3 4 5
-*/
-
-
-/////////////// TODO: USE STRING INSTEAD
 /*
 f is the ordered (by d) sub-vector of d. Considers the subvector of d after the last
 element of f
 
 CAUTION: order-check for f not coded
 */
-//// TODO: add a start index argument, default is 0;
 pub fn next_possible_forward_string_hash_fit(d:Vec<HashSet<String>>,f:Vec<HashSet<String>>,si:usize) -> Option<usize> {
     let l = d.len();
     let mut j:usize = 0;
