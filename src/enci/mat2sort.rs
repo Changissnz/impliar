@@ -7,22 +7,6 @@ use ndarray::Dim;
 use std::collections::HashSet;
 
 /////////////////////////////// start: methods for ordering binary error interpolator elements.
-pub fn sample_arr2_sort1() -> Array2<f32> {
-    arr2(&[[0.,1.,1.,1.,1.],
-        [1.,0.,1.,0.,0.],
-        [1.,1.,1.,0.,0.],
-        [0.,0.,1.,0.,1.],
-        [0.,0.,0.,1.,0.],
-        [0.,1.,0.,0.,0.]])
-}
-
-pub fn sample_pr_sort11() -> Array1<f32> {
-    arr1(&[23.4,20.1,14.2,-10.1,100.7,23.3])
-}
-
-pub fn sample_pr_sort12() -> Array1<f32> {
-    arr1(&[23.4,-10.1,14.2,20.1,23.3,100.7])
-}
 
 /*
 basic sorting function for Array2<f32>; does not take into account tie-breakers based on output
@@ -51,7 +35,7 @@ weight results in higher priority.
 Implementation of insertion sort.
 */
 pub fn sort_arr2_tie_breakers(a:Array2<f32>,pr:Array1<f32>,
-        f: fn(Array1<f32>) -> usize) ->Array2<f32> {
+        f: fn(Array1<f32>) -> usize) -> (Array2<f32>,Array1<f32>) {
 
     let mut sol:Vec<Array1<f32>> = Vec::new();
     let l = a.dim().0;
@@ -65,7 +49,7 @@ pub fn sort_arr2_tie_breakers(a:Array2<f32>,pr:Array1<f32>,
         prx.insert(j,pr_);
     }
 
-    f32vec_to_arr2(sol).unwrap()
+    (f32vec_to_arr2(sol).unwrap(), Array1::from_vec(prx))
 
 }
 
@@ -189,6 +173,35 @@ pub fn arr1_intersection(v:Array1<f32>,v2:Array1<f32>) -> Vec<usize> {
     v4.into_iter().map(|(x,x2)| x).collect()
 }
 
+////////////////////////////////////////////////////
+
+pub fn sample_arr2_sort1() -> Array2<f32> {
+    arr2(&[[0.,1.,1.,1.,1.],
+        [1.,0.,1.,0.,0.],
+        [1.,1.,1.,0.,0.],
+        [0.,0.,1.,0.,1.],
+        [0.,0.,0.,1.,0.],
+        [0.,1.,0.,0.,0.]])
+}
+
+pub fn sample_arr2_sort2() -> Array2<f32> {
+    arr2(&[[1.,0.,0.,0.,0.],
+        [0.,1.,0.,0.,0.],
+        [0.,0.,1.,0.,0.],
+        [0.,0.,0.,1.,0.],
+        [0.,0.,0.,0.,1.],
+        [0.,1.,0.,0.,0.]])
+}
+
+pub fn sample_pr_sort11() -> Array1<f32> {
+    arr1(&[23.4,20.1,14.2,-10.1,100.7,23.3])
+}
+
+pub fn sample_pr_sort12() -> Array1<f32> {
+    arr1(&[23.4,-10.1,14.2,20.1,23.3,100.7])
+}
+
+
 /////////////////////////////// end: methods for ordering binary error interpolator elements.
 
 #[cfg(test)]
@@ -213,7 +226,7 @@ mod tests {
 
         // case 2
         let mut pr = sample_pr_sort11();
-        let x4 = sort_arr2_tie_breakers(x2.clone(),pr,active_size_of_vec);
+        let x4 = sort_arr2_tie_breakers(x2.clone(),pr,active_size_of_vec).0;
 
         let sol1:Array2<f32> = arr2(&[[0., 1., 0., 0., 0.],
          [0., 0., 0., 1., 0.],
@@ -227,7 +240,7 @@ mod tests {
 
         // case 3
         let mut pr2 = sample_pr_sort12();
-        let x5 = sort_arr2_tie_breakers(x2.clone(),pr2,active_size_of_vec);
+        let x5 = sort_arr2_tie_breakers(x2.clone(),pr2,active_size_of_vec).0;
         let sol2:Array2<f32> = arr2(&[[0., 0., 0., 1., 0.],
                             [0., 1., 0., 0., 0.],
                             [1., 0., 1., 0., 0.],
@@ -235,6 +248,18 @@ mod tests {
                             [1., 1., 1., 0., 0.],
                             [0., 1., 1., 1., 1.]]);
         assert_eq!(sol2.clone(),x5);
+
+        // case 4
+        let mut a = sample_arr2_sort2();
+        pr = sample_pr_sort12();
+        let sol3:Array2<f32> = arr2(&[[0., 1., 0., 0., 0.],
+                            [0., 0., 1., 0., 0.],
+                            [0., 0., 0., 1., 0.],
+                            [0., 0., 0., 0., 1.],
+                            [1., 0., 0., 0., 0.],
+                            [0., 1., 0., 0., 0.]]);
+        let x6 = sort_arr2_tie_breakers(a,pr,active_size_of_vec).0;
+        assert_eq!(sol3.clone(),x6);
     }
 
 

@@ -9,3 +9,4 @@ pub mod matrixf;
 pub mod vecf;
 pub mod ds_fob_c;
 pub mod vs;
+pub mod hashfit;
