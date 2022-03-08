@@ -13,7 +13,6 @@ where
 T: Clone
  {
     assert_eq!(a.len(),s.len());
-    //let mut sol = Array1::zeros(a.len());
     let mut sol:Vec<T> = Vec::new();
 
     let l = a.len();
@@ -29,11 +28,9 @@ where
 T: Clone + Default
  {
     assert_eq!(a.dim().1,s.len());
-    //let mut sol = Array2::zeros((a.dim().0,a.dim().1));
     let mut sol : Vec<Array1<T>> = Vec::new();
     for (i,s_) in s.into_iter().enumerate() {
         let mut q:Array1<T> = if is_row {a.row(s_).to_owned()} else {a.column(s_).to_owned()};
-        //setti::matrixf::replace_vec_in_arr2(&mut sol, &mut q,i,is_row);
         sol.push(q);
     }
     vec_to_arr2(sol).unwrap()
