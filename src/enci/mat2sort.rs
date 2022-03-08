@@ -8,6 +8,81 @@ use std::collections::HashSet;
 
 /////////////////////////////// start: methods for ordering binary error interpolator elements.
 
+pub fn apply_shuffle_map_arr1<T>(mut a: Array1<T>,mut s:Array1<usize>) -> Array1<T>
+where
+T: Clone
+ {
+    assert_eq!(a.len(),s.len());
+    //let mut sol = Array1::zeros(a.len());
+    let mut sol:Vec<T> = Vec::new();
+
+    let l = a.len();
+
+    for i in 0..l {
+        sol[i] = a[s[i]].clone();
+    }
+    arr1(&sol)
+}
+
+pub fn apply_shuffle_map_arr2<T>(mut a: Array2<T>,mut s:Array1<usize>,mut is_row:bool) -> Array2<T>
+where
+T: Clone + Default
+ {
+    assert_eq!(a.dim().1,s.len());
+    //let mut sol = Array2::zeros((a.dim().0,a.dim().1));
+    let mut sol : Vec<Array1<T>> = Vec::new();
+    for (i,s_) in s.into_iter().enumerate() {
+        let mut q:Array1<T> = if is_row {a.row(s_).to_owned()} else {a.column(s_).to_owned()};
+        //setti::matrixf::replace_vec_in_arr2(&mut sol, &mut q,i,is_row);
+        sol.push(q);
+    }
+    vec_to_arr2(sol).unwrap()
+}
+
+/*
+long approach; calculates index of each i'th element of a in a2
+*/
+pub fn arr2_shuffle_map<T>(mut a:Array2<T>,mut a2:Array2<T>) -> Array1<usize>
+where
+T:Eq + Clone
+{
+
+    assert_eq!(a.len(),a2.len());
+
+    let mut sol:Array1<usize> = Array1::zeros(a.dim().0);
+    let l = a.dim().0;
+    for i in 0..l {
+        let r1:Array1<T> = a.row(i).to_owned();
+        sol[i] = vec_in_arr2(a2.clone(),r1,true).unwrap();
+    }
+    sol
+}
+
+pub fn vec_in_arr2<T>(mut a:Array2<T>,mut a2: Array1<T>,is_row:bool) -> Option<usize>
+where
+T:Eq + Clone
+ {
+    let l = if is_row {a.dim().0} else {a.dim().1};
+
+    assert_eq!(l,a2.len());
+
+    for i in 0..l {
+        if is_row {
+            if a.row(i).to_owned() == a2.clone() {
+                return Some(i);
+            }
+        } else {
+            if a.column(i).to_owned() == a2.clone() {
+                return Some(i);
+            }
+        }
+    }
+
+
+    None
+
+}
+
 /*
 basic sorting function for Array2<f32>; does not take into account tie-breakers based on output
 function f.
@@ -49,16 +124,19 @@ pub fn sort_arr2_tie_breakers(a:Array2<f32>,pr:Array1<f32>,
         prx.insert(j,pr_);
     }
 
-    (f32vec_to_arr2(sol).unwrap(), Array1::from_vec(prx))
+    (vec_to_arr2(sol).unwrap(), Array1::from_vec(prx))
 
 }
 
-pub fn f32vec_to_arr2(v: Vec<Array1<f32>>) -> Option<Array2<f32>> {
+pub fn vec_to_arr2<T>(v: Vec<Array1<T>>) -> Option<Array2<T>>
+where
+T: Clone + Default
+ {
     if v.len() == 0 {
         return None;
     }
     let c = v[0].len();
-    let mut sol: Array2<f32> = Array2::zeros((v.len(),c));
+    let mut sol: Array2<T> = Array2::default((v.len(),c));
 
     for (i,v_) in v.iter().enumerate() {
         matrixf::replace_vec_in_arr2(&mut sol, &mut (*v_).clone(),i,true);
