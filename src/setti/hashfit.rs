@@ -2,9 +2,6 @@ use ndarray::{Array,Array1,Array2,arr1,arr2};
 use std::collections::HashSet;
 use std::hash::Hash;
 
-
-
-//// add a max function
 /*
 collects the subset in d with the most matches
 typical values for arguments have Array1 corresponding to indices.
@@ -42,7 +39,6 @@ pub fn fcollect_max_proper_hashfit_wrt_reference(mut d:Vec<Array1<usize>>,r:Arra
     while l > 0 {
         // 2 hashes: usize -> string
         let mut f_: Vec<Array1<usize>> = q[0].0.clone();
-        //let f: Vec<HashSet<usize>> = f_.into_iter().map(|x| HashSet::<usize>::from_iter(x.into_iter())).collect();
         if verbose {
             println!("[0] hashfit is {:?}",f_);
         }
@@ -177,7 +173,9 @@ pub fn next_possible_forward_string_hash_fit(d:Vec<HashSet<String>>,f:Vec<HashSe
     sol
 }
 
-
+/*
+arr1 version of `is_proper_hash_fit`
+*/
 pub fn is_proper_hash_fit_arr1<T>(ahf:Vec<Array1<T>>) -> bool
 where
 T: Eq + Clone + Hash
@@ -186,6 +184,10 @@ T: Eq + Clone + Hash
     is_proper_hash_fit(ahf2)
 }
 
+/*
+determines if `vh` is a vector of hashsets that do not contain
+intersecting elements.
+*/
 pub fn is_proper_hash_fit<T>(vh: Vec<HashSet<T>>) -> bool
 where
 T: Eq + Clone + Hash

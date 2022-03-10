@@ -90,7 +90,6 @@ pub fn build_DSFGen(n: usize,k: usize,d: usize,s: usize) -> DSFGen {
     DSFGen{n:n,k: k,d:d,s: s,cache: cache,results: Vec::new(),stat: true}
 }
 
-
 impl DSFGen {
 
     pub fn next_element(&mut self) -> Option<VSelect> {
@@ -189,9 +188,8 @@ impl DSFGen {
 
         stat
     }
-
-
 }
+
 
 /*
 */
@@ -217,8 +215,7 @@ pub fn iterate_DSFGen(mut dsfg:DSFGen,display:bool) -> usize {
     j
 }
 
-
-
+///////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod tests {

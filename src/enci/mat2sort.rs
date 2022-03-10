@@ -220,24 +220,10 @@ pub fn arr1_intersection_indices(v1:Array1<f32>,v2:Array1<f32>,f: fn(f32,f32) ->
 /*
 non-commutative function f by reference v1 on arg. v2.
 */
-//////
-
 pub fn intersection_difference_measure(v1:Array1<f32>,v2:Array1<f32>) -> i32 {
     let indices = arr1_intersection_indices(v1.clone(),v2.clone(),is_positive_intersection);
     let l = indices.len() as i32;
-    //l - (v2 - v1).into_iter().sum::<f32>() as i32
     (v2 - v1).into_iter().sum::<f32>() as i32 - l
-}
-
-// ordering function for binary vec.
-/*
-*/
-pub fn arr1_cmp1(v:&Array1<f32>,v2:&Array1<f32>) -> std::cmp::Ordering {
-    if active_size_of_vec((*v).clone()) <= active_size_of_vec((*v2).clone()) {
-        return Ordering::Less;
-    }
-
-    Ordering::Greater
 }
 
 /*
@@ -246,6 +232,18 @@ pub fn arr1_intersection(v:Array1<f32>,v2:Array1<f32>) -> Vec<usize> {
     let v3 = v - v2;
     let v4: Vec<(usize,f32)> = v3.into_iter().enumerate().filter(|(i,x)| *x != 0.0).collect();
     v4.into_iter().map(|(x,x2)| x).collect()
+}
+
+
+/*
+ordering function by active size
+*/
+pub fn arr1_cmp1(v:&Array1<f32>,v2:&Array1<f32>) -> std::cmp::Ordering {
+    if active_size_of_vec((*v).clone()) <= active_size_of_vec((*v2).clone()) {
+        return Ordering::Less;
+    }
+
+    Ordering::Greater
 }
 
 ////////////////////////////////////////////////////

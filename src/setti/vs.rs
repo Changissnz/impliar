@@ -72,19 +72,14 @@ impl VSelect {
         }
 
         let m = self.data[l - 1].1.clone() + 1;
-        //println!("available forward for {}:{} ::{}",self,n,m);
         if m < n {
             return Some(m);
         }
         None
     }
 
-    pub fn available_binary(&mut self, n:usize) -> Vec<(usize,usize)> {
-        Vec::new()
-    }
-
     pub fn add_elemente(&mut self, n:usize, e:(usize,usize)) -> Option<usize> {
-        let mut l:usize = self.data.len();//self.available_forward(n);
+        let mut l:usize = self.data.len();
         let l2 = self.data.len();
         for (i,x) in self.data.iter().enumerate() {
 
@@ -98,7 +93,6 @@ impl VSelect {
                 }
 
                 l = i;
-
                 break
             }
         }
@@ -106,22 +100,10 @@ impl VSelect {
         let (mut x1,mut x2) = (self.data[0..l].to_vec(), self.data[l..l2].to_vec());
         x1.push(e.to_owned());
         x1.extend(x2);
-
         self.data = x1;
         Some(l)
     }
 
-    // merges any pair of elements that are distance d apart
-    /*
-    */
-    pub fn simplify(&mut self, d:usize) {
-
-    }
-
-    /*
-    calculates the boolean value correspondios to validity to reach size k
-    */
-    //////
     /*
     calculates if valid for forward
     */
