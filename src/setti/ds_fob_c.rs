@@ -10,6 +10,19 @@ For the arguments
 
 use crate::setti::vs;
 use crate::setti::vs::VSelect;
+use crate::setti::uvs;
+use crate::setti::set_gen;
+
+use crate::setti::uvs::UVSelect;
+use std::str::FromStr;
+use std::fmt;
+
+
+use ndarray::{Array1,arr1};
+
+pub trait NE<T> {
+    fn next_element(&mut self) -> Option<T>;
+}
 
 /*
 Calculates the vector of range options for a ds-forward element of size `wanted_size` and distance
@@ -51,7 +64,9 @@ pub fn options_for_dsf_element(mut vs:VSelect, n:usize, k:usize, d:usize,s:usize
 
         // filter
         let mut vs2 = vs.clone();
-        vs2.add_elemente(n,(x,x+ ws - 1));
+        ////vs2.add_elemente(n,(x,x+ ws - 1));
+        vs2.add_elemente((x,x+ ws - 1));
+
         if vs2.is_valid_pre_vselect(n,k,d,s) {
             sol.push((x,x+ws - 1));
         } else {
@@ -75,7 +90,8 @@ pub struct DSFGen {
     s: usize,
     pub cache: Vec<VSelect>,
     pub results: Vec<VSelect>,
-    pub stat: bool // more vars?
+    pub stat: bool, // more vars?
+    pub c:usize
 }
 
 pub fn build_DSFGen(n: usize,k: usize,d: usize,s: usize) -> DSFGen {
@@ -87,12 +103,12 @@ pub fn build_DSFGen(n: usize,k: usize,d: usize,s: usize) -> DSFGen {
     let mut c: Vec<(usize,usize)> = Vec::new();
     let mut vs: VSelect = vs::build_vselect(c);
     let mut cache: Vec<VSelect> = vec![vs];
-    DSFGen{n:n,k: k,d:d,s: s,cache: cache,results: Vec::new(),stat: true}
+    DSFGen{n:n,k: k,d:d,s: s,cache: cache,results: Vec::new(),stat: true,c:0}
 }
 
-impl DSFGen {
+impl NE<VSelect> for DSFGen {
 
-    pub fn next_element(&mut self) -> Option<VSelect> {
+    fn next_element(&mut self) -> Option<VSelect> {
         if !self.stat {
             return None;
         }
@@ -129,10 +145,24 @@ impl DSFGen {
         let mut r = self.results[0].clone();
         self.results = self.results[1..].to_vec();
         Some(r)
-
     }
+}
 
+impl DSFGen {
 
+    pub fn next(&mut self) -> Option<VSelect> {
+
+        while self.stat {
+            let mut u:Option<VSelect> = self.next_element();
+            if u.is_none() {
+                continue;
+            }
+            self.c += 1;
+            return u;
+        }
+
+        None
+    }
 
     /*
     processes by bfs on each additional chunk of size [d,k];
@@ -172,7 +202,9 @@ impl DSFGen {
         for q_ in q.iter() {
             let mut vs2 = vs.clone();
             let mut d2 = vs2.size();
-            vs2.add_elemente(self.n,*q_);
+            //vs2.add_elemente(self.n,*q_);
+            vs2.add_elemente(*q_);
+
 
             //either add to cache or results
             if vs2.size() == self.k {
@@ -190,10 +222,8 @@ impl DSFGen {
     }
 }
 
-
-/*
-*/
-pub fn iterate_DSFGen(mut dsfg:DSFGen,display:bool) -> usize {
+pub fn iterate_DSFGen(mut dsfg: DSFGen,display:bool) -> usize
+ {
     let mut j:usize = 0;
 
     let mut stat:bool = true;
@@ -202,7 +232,7 @@ pub fn iterate_DSFGen(mut dsfg:DSFGen,display:bool) -> usize {
         if !dsfg.stat {
             break;
         }
-        let mut u = dsfg.next_element();
+        let mut u:Option<VSelect> = dsfg.next_element();
         if u.is_none() {
             continue;
         }
@@ -214,6 +244,121 @@ pub fn iterate_DSFGen(mut dsfg:DSFGen,display:bool) -> usize {
     }
     j
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Clone)]
+pub struct DSBGen {
+    n: usize,
+    k: usize,
+    d: usize,
+    s: usize,
+    o:Vec<usize>,
+    pub cache: Vec<UVSelect>,
+    pub results: Vec<UVSelect>,
+    pub stat: bool, // more vars?
+    pub c: usize
+}
+
+
+pub fn build_DSBGen(n: usize,k: usize,d: usize,s: usize,o:Vec<usize>) -> DSBGen {
+    assert!(s <= n);
+    assert!(d < n);
+    assert!(o.len() == n && *(o.iter().min().unwrap()) == 0 && *(o.iter().max().unwrap()) == n - 1);
+
+
+    // make empty vselect
+    let mut v:VSelect = vs::build_vselect(Vec::new());
+    let mut uvs: UVSelect = uvs::build_uvselect(v,Vec::new());
+    DSBGen{n:n,k:k,d:d,s:s,o:o,cache:vec![uvs],results: Vec::new(),stat:true,c:0}
+}
+
+impl NE<UVSelect> for DSBGen {
+
+    fn next_element(&mut self) -> Option<UVSelect> {
+        println!("CACHE SIZE {}",self.cache.len());
+        if self.results.len() != 0 {
+            let sol = Some(self.results[0].clone());
+            self.results = self.results[1..].to_vec();
+            return sol;
+        }
+
+        if self.cache.len() == 0 {
+            self.stat = false;
+            return None;
+        }
+
+        // pop reference
+        let q = self.cache[0].clone();
+        self.cache = self.cache[1..].to_vec();
+
+        // process cache elements
+        self.process_cache_element(q);
+        None
+    }
+
+}
+
+/*
+*/
+impl DSBGen {
+
+
+    pub fn next(&mut self) -> Option<UVSelect> {
+
+        while self.stat {
+            let mut u:Option<UVSelect> = self.next_element();
+            if u.is_none() {
+                continue;
+            }
+            self.c += 1;
+            return u;
+        }
+
+        None
+    }
+
+    fn process_cache_element(&mut self, mut c: UVSelect) {
+        let mut sol:Vec<UVSelect> = Vec::new();
+
+        // process cache element in size range s,n
+        let sz = c.size();
+        for i in self.s..(self.n + 1 - sz) {
+            self.process_cache_element_(c.clone(),i);
+        }
+    }
+
+    /*
+    */
+    fn process_cache_element_(&mut self, mut c: UVSelect, s_:usize) {
+        assert!(!(s_ > self.n));
+        let vus = c.available_binaries(self.n,s_,self.d);
+        let mut sol:Vec<UVSelect> = Vec::new();
+        let vus2 = set_gen::ordered_vec_by_reference(vus,self.o.clone());
+
+        for v in vus2.into_iter() {
+            let mut c2 = c.clone();
+            let v_ = <usize>::from_str(v.as_str()).unwrap();
+            c2.add_elemente((v_,v_ + s_));
+
+            if c2.is_valid_pre_vselect(self.n,self.k,self.d,self.s) {
+                sol.push(c2.clone());
+            }
+
+            if c2.size() == self.k {
+                self.results.push(c2);
+            }
+        }
+
+
+
+        sol.extend(self.cache.clone());
+        self.cache = sol;
+    }
+
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -243,7 +388,7 @@ mod tests {
     fn test_DSFGen_next_element() {
         let mut dg = build_DSFGen(20,8,2,4);
         let mut x = iterate_DSFGen(dg.clone(),false);
-        assert_eq!(x,90);
+        assert_eq!(x,91);
 
         dg = build_DSFGen(20,8,2,8);
         x = iterate_DSFGen(dg.clone(),false);
@@ -261,4 +406,5 @@ mod tests {
         x = iterate_DSFGen(dg.clone(),true);
         assert_eq!(x,2);
     }
+
 }

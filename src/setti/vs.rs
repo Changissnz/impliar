@@ -25,12 +25,18 @@ pub fn check_valid_vselect_vec(data: Vec<(usize,usize)>) -> bool {
     if d.0 >= d.1 {
         return false;
     }
-
+    let mut q = d.1;
     for i in 1..l {
         let g = data[i].clone();
+        if g.0 <= q {
+            return false;
+        }
+
         if g.0 >= g.1 {
             return false;
         }
+
+        q = g.1.clone();
     }
     true
 }
@@ -78,7 +84,7 @@ impl VSelect {
         None
     }
 
-    pub fn add_elemente(&mut self, n:usize, e:(usize,usize)) -> Option<usize> {
+    pub fn add_elemente(&mut self, e:(usize,usize)) -> Option<usize> {
         let mut l:usize = self.data.len();
         let l2 = self.data.len();
         for (i,x) in self.data.iter().enumerate() {
@@ -120,7 +126,8 @@ impl VSelect {
         }
 
         let m = self.max();
-        let sz:usize = self.subvec_option_size(n,k,d,s,m);
+        //let sz:usize = self.subvec_option_size(n,d,s,m);
+        let sz:usize = self.max_possible_option_size(n,d,s,m);
         sz + self.size() >= k
     }
 
@@ -167,16 +174,20 @@ impl VSelect {
     }
 
 
-    // TODO: add arg<start index>
     /*
     assumes already in simplified form
-
-    calculates the cumulative size of the subvectors >= minSize
+    calculates the number of the subvectors >= minSize
     */
-    pub fn subvec_option_size(&mut self,n:usize,k:usize, d:usize,s:usize,i:usize) -> usize {
+    pub fn subvec_option_size(&mut self,n:usize,d:usize,s:usize,i:usize) -> usize {
+
         let mut vs2 = self.complement(n,d);
-        let x:usize = vs2.data.iter().fold(0,|num,&val| if val.1 - val.0 >= s && val.0 >= i {num + val.1 - val.0} else {num + 0});
+        let x:usize = vs2.data.iter().fold(0,|num,&val| if val.1 - val.0 + 1 >= s && val.0 >= i {num + (val.1 - s + 1) - val.0 + 1} else {num});
         x
+    }
+
+    pub fn max_possible_option_size(&mut self,n:usize,d: usize,s:usize,i:usize) -> usize {
+        let mut vs2 = self.complement(n,d);
+        vs2.data.iter().fold(0,|num,&val| if val.1 - val.0 + 1 >= s && val.0 >= i {num + (val.1 - val.0 + 1)} else {num})
     }
 }
 
@@ -206,19 +217,19 @@ mod tests {
         let sol2:Vec<(usize,usize)> = vec![(0, 3), (4, 5), (7, 9), (10, 12), (13, 17)];
         let sol3:Vec<(usize,usize)> = vec![(0, 3), (4, 5), (10, 12)];
 
-        vs.add_elemente(20, (13,17));
+        vs.add_elemente((13,17));
         assert_eq!(vs.data,sol1);
 
-        vs.add_elemente(20,(7,9));
+        vs.add_elemente((7,9));
         assert_eq!(vs.data,sol2);
 
         let data2 = sol1[1..3].to_vec();
         let mut vs2 = build_vselect(data2.clone());
 
-        vs2.add_elemente(20,(0,3));
+        vs2.add_elemente((0,3));
         assert_eq!(vs2.data,sol3);
 
-        let x = vs2.add_elemente(20,(0,3));
+        let x = vs2.add_elemente((0,3));
         assert!(x.is_none());
     }
 
@@ -240,6 +251,14 @@ mod tests {
     }
 
     #[test]
+    fn test_VSelect_subvec_option_size() {
+        let d = vec![(13,19),(28,36),(44,49),(53,59),(75,90)];
+        let mut uv: VSelect = build_vselect(d);
+        let sos = uv.subvec_option_size(100,4,3,0);
+        assert_eq!(sos,19);
+    }
+
+    #[test]
     fn test_VSelect_is_valid_pre_vselect() {
 
         let mut vs = build_vselect(vec![(0,3)]);
@@ -248,5 +267,5 @@ mod tests {
         vs = build_vselect(vec![(0,4)]);
         assert!(!vs.is_valid_pre_vselect(20,8,2,4));
     }
-
+    
 }
