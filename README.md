@@ -17,4 +17,8 @@ SCHEDULE
   * Here are the project plans ahead.
     * Impliar will be the flame that dies. Or the last    
       flame that goes out, per se. Some will blame the
-      ice. 
+      ice.
+
+- 3/12/22
+  * I have not been able to do much.
+  
