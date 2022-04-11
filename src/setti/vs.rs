@@ -267,5 +267,5 @@ mod tests {
         vs = build_vselect(vec![(0,4)]);
         assert!(!vs.is_valid_pre_vselect(20,8,2,4));
     }
-    
+
 }

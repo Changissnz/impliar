@@ -1,7 +1,7 @@
 use crate::setti::vs;
 use crate::setti::vs::VSelect;
 use ndarray::{Array1,arr1,Axis};
-
+use std::fmt;
 
 /*
 a variant of the VSelect: the unordered vector of ranges
@@ -76,6 +76,13 @@ impl UVSelect {
 
 }
 
+impl fmt::Display for UVSelect {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "UVS {:?}", self.v.data)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -90,15 +97,12 @@ mod tests {
         let mut us = build_uvselect(vsel,vec![0,3,1,2]);
 
         let b = us.available_binaries(100,3,1);
-        assert_eq!(b,vec![0, 1, 2, 21, 22, 23, 24, 51, 52,
-                53, 73, 74, 75, 76, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
-
+        assert_eq!(b,vec![0, 1, 2, 21, 22, 23, 24, 51, 52, 53, 73, 74, 75, 76, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96]);
         let b2 = us.available_binaries(100,3,2);
-        assert_eq!(b2,vec![0, 1, 22, 23, 52, 74, 75, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+        assert_eq!(b2,vec![0, 1, 22, 23, 52, 74, 75, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96]);
 
         let b3 = us.available_binaries(100,5,0);
-        assert_eq!(b3,vec![0, 1, 20, 21, 22, 23, 50, 51, 52, 72, 73, 74, 75, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95]);
-
+        assert_eq!(b3,vec![0, 1, 20, 21, 22, 23, 50, 51, 52, 72, 73, 74, 75, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94]);
     }
 
 }

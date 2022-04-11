@@ -21,4 +21,6 @@ SCHEDULE
 
 - 3/12/22
   * I have not been able to do much.
-  
+
+- 4/11/22
+  * Attend(ed|ing) to real-life issues. I almost forgot about this thing. 

@@ -46,29 +46,29 @@ pub fn build_skew(a: Option<i32>,m: Option<i32>,
 
 
 impl fmt::Display for Skew {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            let mut s = String::from("");
-            for &o in self.ordering.iter() {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = String::from("");
+        for &o in self.ordering.iter() {
 
-                if o == 0 || o == 2 {
-                    s = s + "+";
-                } else {
-                    s = s + "*";
-                }
-
-                if o == 0 {
-                    s.push_str(&self.adder.unwrap().to_string());
-                } else if o == 1 {
-                    s.push_str(&self.multer.unwrap().to_string());
-                } else if o == 2 {
-                    s.push_str(&self.addit.as_ref().unwrap().to_string());
-                } else {
-                    s.push_str(&self.multit.as_ref().unwrap().clone().to_string());
-                }
+            if o == 0 || o == 2 {
+                s = s + "+";
+            } else {
+                s = s + "*";
             }
 
-            write!(f, "{}", s)
+            if o == 0 {
+                s.push_str(&self.adder.unwrap().to_string());
+            } else if o == 1 {
+                s.push_str(&self.multer.unwrap().to_string());
+            } else if o == 2 {
+                s.push_str(&self.addit.as_ref().unwrap().to_string());
+            } else {
+                s.push_str(&self.multit.as_ref().unwrap().clone().to_string());
+            }
         }
+
+        write!(f, "{}", s)
+    }
 }
 
 impl Skew {
@@ -87,7 +87,7 @@ impl Skew {
         // get operation
         let m =
     }
-    */ 
+    */
 
     // used for no subgroups
     pub fn apply_at(&mut self, v:Array1<i32>, i:usize) -> Array1<i32> {

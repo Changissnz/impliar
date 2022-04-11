@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use std::cmp::Eq;
 use ndarray::{Array1,Array2, array,arr1,arr2,s};
+use std::default::Default;
 
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,is_row:bool)
 where
@@ -90,6 +91,27 @@ where
         c.assign(&c2);
         x += 1;
     }
+}
+
+/*
+*/
+pub fn subarr2_by_indices<T>(a:Array2<T>,indices:Vec<usize>,is_row:bool) -> Array2<T>
+where
+T:Clone + Default
+
+ {
+    assert!(indices.len() > 0);
+
+    let l = if is_row {a.dim().0} else {a.dim().1};
+    assert!(l > *(indices.iter().max().unwrap()));
+
+    let (r,c) = (a.dim().0,a.dim().1);
+    let mut a2:Array2<T> = if is_row {Array2::default((indices.len(),c))} else {Array2::default((r,indices.len()))};
+    for (j,i) in indices.into_iter().enumerate() {
+        let mut x = if is_row {a.row(i).to_owned()} else {a.column(i).to_owned()};
+        replace_vec_in_arr2(&mut a2,&mut x,j,is_row);
+    }
+    a2
 }
 
 /*

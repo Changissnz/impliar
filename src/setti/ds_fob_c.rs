@@ -260,23 +260,22 @@ pub struct DSBGen {
     pub c: usize
 }
 
-
 pub fn build_DSBGen(n: usize,k: usize,d: usize,s: usize,o:Vec<usize>) -> DSBGen {
     assert!(s <= n);
     assert!(d < n);
     assert!(o.len() == n && *(o.iter().min().unwrap()) == 0 && *(o.iter().max().unwrap()) == n - 1);
 
-
     // make empty vselect
+    let mut v:VSelect = vs::build_vselect(Vec::new());
     let mut v:VSelect = vs::build_vselect(Vec::new());
     let mut uvs: UVSelect = uvs::build_uvselect(v,Vec::new());
     DSBGen{n:n,k:k,d:d,s:s,o:o,cache:vec![uvs],results: Vec::new(),stat:true,c:0}
 }
 
+
 impl NE<UVSelect> for DSBGen {
 
     fn next_element(&mut self) -> Option<UVSelect> {
-        println!("CACHE SIZE {}",self.cache.len());
         if self.results.len() != 0 {
             let sol = Some(self.results[0].clone());
             self.results = self.results[1..].to_vec();
@@ -329,6 +328,8 @@ impl DSBGen {
     }
 
     /*
+    processes a cache element, UVSelect, by extending it with available ranges
+    of minumum size s_
     */
     fn process_cache_element_(&mut self, mut c: UVSelect, s_:usize) {
         assert!(!(s_ > self.n));
@@ -340,7 +341,6 @@ impl DSBGen {
             let mut c2 = c.clone();
             let v_ = <usize>::from_str(v.as_str()).unwrap();
             c2.add_elemente((v_,v_ + s_));
-
             if c2.is_valid_pre_vselect(self.n,self.k,self.d,self.s) {
                 sol.push(c2.clone());
             }
@@ -349,8 +349,6 @@ impl DSBGen {
                 self.results.push(c2);
             }
         }
-
-
 
         sol.extend(self.cache.clone());
         self.cache = sol;
@@ -362,6 +360,35 @@ impl DSBGen {
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+pub fn sol_dsbg_case1() -> Vec<Vec<(usize,usize)>> {
+
+    vec![[(7, 9)].to_vec(), [(6, 8)].to_vec(), [(5, 7)].to_vec(), [(4, 6)].to_vec(), [(3, 5)].to_vec(), [(2, 4)].to_vec(),
+    [(1, 3)].to_vec(), [(0, 2)].to_vec()]
+}
+
+pub fn sol_dsbg_case2() -> Vec<Vec<(usize,usize)>> {
+
+    let s:Vec<Vec<(usize,usize)>> = vec![[(5, 9)].to_vec(), [(4, 8)].to_vec(), [(3, 7)].to_vec(),
+    [(2, 6)].to_vec(), [(1, 5)].to_vec(), [(0, 4)].to_vec(), [(4, 5), (7, 9)].to_vec(), [(3, 4), (7, 9)].to_vec(),
+    [(2, 3), (7, 9)].to_vec(), [(1, 2), (7, 9)].to_vec(), [(0, 1), (7, 9)].to_vec(), [(3, 4), (6, 8)].to_vec(),
+    [(2, 3), (6, 8)].to_vec(), [(1, 2), (6, 8)].to_vec(), [(0, 1), (6, 8)].to_vec(), [(2, 3), (5, 7)].to_vec(),
+    [(1, 2), (5, 7)].to_vec(), [(0, 1), (5, 7)].to_vec(), [(4, 6), (8, 9)].to_vec(), [(1, 2), (4, 6)].to_vec(),
+    [(0, 1), (4, 6)].to_vec(), [(3, 5), (8, 9)].to_vec(), [(3, 5), (7, 8)].to_vec(), [(0, 1), (3, 5)].to_vec(),
+    [(2, 4), (8, 9)].to_vec(), [(2, 4), (7, 8)].to_vec(), [(2, 4), (6, 7)].to_vec(), [(1, 3), (8, 9)].to_vec(),
+    [(1, 3), (7, 8)].to_vec(), [(1, 3), (6,7)].to_vec(), [(1, 3), (5, 6)].to_vec(), [(0, 2), (8, 9)].to_vec(),
+    [(0, 2), (7, 8)].to_vec(), [(0, 2), (6, 7)].to_vec(), [(0, 2), (5, 6)].to_vec(), [(0, 2), (4, 5)].to_vec(),
+    [(4, 6), (8, 9)].to_vec(), [(3, 5), (8, 9)].to_vec(), [(2, 4), (8, 9)].to_vec(), [(1, 3), (8, 9)].to_vec(),
+    [(0, 2), (8, 9)].to_vec(), [(3, 5), (7, 8)].to_vec(), [(2, 4), (7, 8)].to_vec(), [(1, 3), (7, 8)].to_vec(),
+    [(0, 2), (7, 8)].to_vec(), [(2, 4), (6, 7)].to_vec(), [(1, 3), (6, 7)].to_vec(), [(0, 2), (6, 7)].to_vec(),
+    [(1, 3), (5, 6)].to_vec(), [(0, 2), (5, 6)].to_vec(), [(4, 5), (7, 9)].to_vec(), [(0, 2), (4, 5)].to_vec(),
+    [(3, 4), (7, 9)].to_vec(), [(3, 4), (6, 8)].to_vec(), [(2, 3), (7, 9)].to_vec(), [(2, 3), (6, 8)].to_vec(),
+    [(2, 3),(5, 7)].to_vec(), [(1, 2), (7, 9)].to_vec(), [(1, 2), (6, 8)].to_vec(), [(1, 2), (5, 7)].to_vec(),
+    [(1, 2), (4, 6)].to_vec(), [(0, 1), (7, 9)].to_vec(), [(0, 1), (6, 8)].to_vec(), [(0, 1), (5, 7)].to_vec(),
+    [(0, 1), (4, 6)].to_vec(), [(0, 1), (3, 5)].to_vec()];
+    s
+}
+
+
 #[cfg(test)]
 mod tests {
 
@@ -370,18 +397,18 @@ mod tests {
     #[test]
     fn test_options_for_dsf_element() {
 
-            let mut vs = vs::build_vselect(vec![(0,3)]);
-            let mut o = options_for_dsf_element(vs.clone(),20,8,4,5,4);
-            assert!(o.len() == 0);
+        let mut vs = vs::build_vselect(vec![(0,3)]);
+        let mut o = options_for_dsf_element(vs.clone(),20,8,4,5,4);
+        assert!(o.len() == 0);
 
-            o = options_for_dsf_element(vs.clone(),20,8,4,4,4);
-            assert!(o.len() == 10);
+        o = options_for_dsf_element(vs.clone(),20,8,4,4,4);
+        assert!(o.len() == 10);
 
-            o = options_for_dsf_element(vs.clone(),20,8,4,3,4);
-            assert!(o.len() == 10);
+        o = options_for_dsf_element(vs.clone(),20,8,4,3,4);
+        assert!(o.len() == 10);
 
-            o = options_for_dsf_element(vs.clone(),20,8,4,3,1);
-            assert!(o.len() == 0);
+        o = options_for_dsf_element(vs.clone(),20,8,4,3,1);
+        assert!(o.len() == 0);
     }
 
     #[test]
@@ -405,6 +432,36 @@ mod tests {
         dg = build_DSFGen(20,19,2,19);
         x = iterate_DSFGen(dg.clone(),true);
         assert_eq!(x,2);
+    }
+
+    #[test]
+    fn test_DSBGen_next() {
+
+        let o = vec![9,8,7,6,5,4,3,2,1,0];
+        let mut dsbg0 = build_DSBGen(10,3,2,1,o.clone());
+        let mut sol0: Vec<Vec<(usize,usize)>> = Vec::new();
+        while dsbg0.stat {
+            let mut x = dsbg0.next();
+
+            if x.is_none() {
+                break;
+            }
+            sol0.push(x.unwrap().v.data);
+        }
+        assert_eq!(sol0,sol_dsbg_case1());
+
+
+        let mut dsbg = build_DSBGen(10,5,2,1,o.clone());
+        let mut sol: Vec<Vec<(usize,usize)>> = Vec::new();
+        while dsbg.stat {
+            let mut x = dsbg.next();
+
+            if x.is_none() {
+                break;
+            }
+            sol.push(x.unwrap().v.data);
+        }
+        assert_eq!(sol,sol_dsbg_case2());
     }
 
 }

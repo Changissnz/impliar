@@ -27,7 +27,6 @@ pub fn apply_shuffle_map_arr2<T>(mut a: Array2<T>,mut s:Array1<usize>,mut is_row
 where
 T: Clone + Default
  {
-    assert_eq!(a.dim().1,s.len());
     let mut sol : Vec<Array1<T>> = Vec::new();
     for (i,s_) in s.into_iter().enumerate() {
         let mut q:Array1<T> = if is_row {a.row(s_).to_owned()} else {a.column(s_).to_owned()};
@@ -106,9 +105,10 @@ values, uses probability weights pr to determine ordering. A higher probability
 weight results in higher priority.
 Implementation of insertion sort.
 */
-pub fn sort_arr2_tie_breakers(a:Array2<f32>,pr:Array1<f32>,
+pub fn sort_arr2_tie_breakers(mut a:Array2<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,
         f: fn(Array1<f32>) -> usize) -> (Array2<f32>,Array1<f32>) {
 
+    let mut a_: Array2<f32> = a.clone();
     let mut sol:Vec<Array1<f32>> = Vec::new();
     let l = a.dim().0;
     let mut prx : Vec<f32> = Vec::new();
@@ -117,7 +117,7 @@ pub fn sort_arr2_tie_breakers(a:Array2<f32>,pr:Array1<f32>,
         let pr_ = pr[i];
         //sort_insert_in_vec_tie_breakers()
         let mut prx2 = arr1(&prx);
-        let j = sort_insert_in_vec_tie_breakers(&mut sol,q, prx2,pr_,f);
+        let j = sort_insert_in_vec_tie_breakers(&mut sol,q, ignore_col.clone(),prx2,pr_,f);
         prx.insert(j,pr_);
     }
 
@@ -142,19 +142,23 @@ T: Clone + Default
     Some(sol)
 }
 
+
 /*
 helper method for `sort_arr2_tie_breakers`
 */
-pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32>, mut pr:Array1<f32>,pra:f32,f: fn(Array1<f32>) -> usize) -> usize {
+pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32>,ignore_col: Option<HashSet<usize>>, mut pr:Array1<f32>,pra:f32,f: fn(Array1<f32>) -> usize) -> usize {//f: &dyn FnOnce(Array1<f32>) -> usize) -> usize {
+
     assert_eq!((*v).len(),pr.len());
     if pr.len() > 0 {
         assert_eq!(a.len(),(*v)[0].len());
     }
     let l = (*v).len();
     let mut j:usize = 0;
-    let mut q:usize = f(a.clone());
+    let mut q:usize = if ignore_col.is_none() {f(a.clone())} else {f(a.clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
     while j < l {
-        let mut q2 = f((*v)[j].clone());
+        let mut q2:usize = if ignore_col.is_none() {f((*v)[j].clone())} else {f((*v)[j].clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
+
+        //let mut q2 = f((*v)[j].clone());
         if q < q2 {
             (*v).insert(j,a);
             return j;
@@ -176,11 +180,13 @@ pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32
 /*
 orders elements by active size.
 */
+/*
 pub fn bfs_order_arr2(mut a:Array2<f32>) -> Array2<f32> {
     let f: fn(&Array1<f32>,&Array1<f32>) -> std::cmp::Ordering = |q,q2| if active_size_of_vec((*q).clone())
             < active_size_of_vec((*q2).clone()) {Ordering::Less} else {Ordering::Greater};
     sort_arr2(a,f)
 }
+*/
 
 
 /*
@@ -203,7 +209,6 @@ pub fn active_size_intersection(v: Array1<f32>, v2:Array1<f32>) -> Array1<usize>
 pub fn is_positive_intersection(x1:f32,x2:f32) -> bool {
     if x1 > 0.0 && x2 > 0.0 {true} else {false}
 }
-
 
 pub fn arr1_intersection_indices(v1:Array1<f32>,v2:Array1<f32>,f: fn(f32,f32) ->bool) -> Array1<usize> {
     let l = if v1.len() < v2.len() {v1.len()} else {v2.len()};
@@ -299,7 +304,7 @@ mod tests {
 
         // case 2
         let mut pr = sample_pr_sort11();
-        let x4 = sort_arr2_tie_breakers(x2.clone(),pr,active_size_of_vec).0;
+        let x4 = sort_arr2_tie_breakers(x2.clone(),None,pr,active_size_of_vec).0;
 
         let sol1:Array2<f32> = arr2(&[[0., 1., 0., 0., 0.],
          [0., 0., 0., 1., 0.],
@@ -313,7 +318,7 @@ mod tests {
 
         // case 3
         let mut pr2 = sample_pr_sort12();
-        let x5 = sort_arr2_tie_breakers(x2.clone(),pr2,active_size_of_vec).0;
+        let x5 = sort_arr2_tie_breakers(x2.clone(),None,pr2,active_size_of_vec).0;
         let sol2:Array2<f32> = arr2(&[[0., 0., 0., 1., 0.],
                             [0., 1., 0., 0., 0.],
                             [1., 0., 1., 0., 0.],
@@ -331,7 +336,7 @@ mod tests {
                             [0., 0., 0., 0., 1.],
                             [1., 0., 0., 0., 0.],
                             [0., 1., 0., 0., 0.]]);
-        let x6 = sort_arr2_tie_breakers(a,pr,active_size_of_vec).0;
+        let x6 = sort_arr2_tie_breakers(a,None,pr,active_size_of_vec).0;
         assert_eq!(sol3.clone(),x6);
     }
 
