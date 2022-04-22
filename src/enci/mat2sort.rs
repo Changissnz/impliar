@@ -74,9 +74,7 @@ T:Eq + Clone
         }
     }
 
-
     None
-
 }
 
 /*
@@ -178,29 +176,26 @@ pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32
 }
 
 /*
-orders elements by active size.
-*/
-/*
-pub fn bfs_order_arr2(mut a:Array2<f32>) -> Array2<f32> {
-    let f: fn(&Array1<f32>,&Array1<f32>) -> std::cmp::Ordering = |q,q2| if active_size_of_vec((*q).clone())
-            < active_size_of_vec((*q2).clone()) {Ordering::Less} else {Ordering::Greater};
-    sort_arr2(a,f)
-}
-*/
-
-
-/*
 */
 pub fn active_size_of_vec(v: Array1<f32>) -> usize {
     let v2:Array1<f32> = v.into_iter().filter(|x| *x != 0.0).collect();
     v2.len()
 }
 
+pub fn active_indices(v:Array1<f32>) -> Array1<usize> {
+    let dummy:Array1<f32> = v.clone();
+    active_size_intersection(v,dummy) 
+}
+
+/*
+difference of active size of v1 and v2
+*/
 pub fn active_size_distance(v:Array1<f32>,v2:Array1<f32>) -> usize {
     (active_size_of_vec(v) as i32 - active_size_of_vec(v2) as i32).abs() as usize
 }
 
-
+/*
+*/
 pub fn active_size_intersection(v: Array1<f32>, v2:Array1<f32>) -> Array1<usize> {
     let v3 = v * v2;
     v3.into_iter().enumerate().filter(|(i,x)| *x != 0.0).map(|(i,x)| i).collect()
