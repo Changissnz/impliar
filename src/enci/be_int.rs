@@ -800,8 +800,6 @@ impl BEInt {
         let mut kys: HashSet<usize> = sm.into_keys().collect();
         kys = kys.difference(&rism).into_iter().map(|x| *x).collect();
         ai.difference(&kys).into_iter().map(|x| *x).collect()
-
-
     }
 
     /*
@@ -1441,7 +1439,7 @@ mod tests {
         assert!(stat);
         assert_eq!(bei2.contradictions_in_range(0,x2.dim().0 -1,true,false).len(),0);
         */
-        
+
         //// case 3
         /*
         let (x3,y3):(Array2<f32>,Array1<f32>) = test_sample_BEInt_5();
