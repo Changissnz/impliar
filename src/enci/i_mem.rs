@@ -2,8 +2,10 @@
 memory structure for interpolator
 */
 
+use crate::setti::setf;
 use ndarray::{Array,Array1,Array2,arr1,arr2,s};
 use std::collections::{HashMap,HashSet};
+use std::fmt;
 
 #[derive(Clone)]
 pub struct ContraStruct {
@@ -15,6 +17,21 @@ pub struct ContraStruct {
 
 pub fn build_contrastruct(index_identifier:Vec<usize>,expected:Option<f32>,got:Option<f32>) -> ContraStruct {
     ContraStruct{index_identifier:index_identifier,expected:expected,got:got}
+}
+
+
+impl fmt::Display for ContraStruct {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut q = "* contra ".to_string();
+        let mut s = setf::vec_to_str(self.index_identifier.clone());
+        let mut e: String = if self.expected.is_none() {"--".to_string()} else {self.expected.unwrap().clone().to_string()};
+        let mut g: String = if self.got.is_none() {"--".to_string()} else {self.got.unwrap().clone().to_string()};
+        q.push_str(&s);
+        q.push_str(&e);
+        q.push_str(&g);
+        write!(f, "{}", q)
+    }
 }
 
 pub struct IMem {

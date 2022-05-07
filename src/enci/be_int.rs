@@ -198,12 +198,12 @@ impl BEInt {
     in the range [0,i]
     */
     pub fn save_to_imem(&mut self,i:usize) {
-
+        println!("SAVING");
         // save rsoln
         self.im.soln_log.push(self.r_soln.clone());
 
         // check for contradictions
-        let output:Array1<f32> = self.rsoln_output(0,i+1);
+        let output:Array1<f32> = self.rsoln_output(0,i);
 
         // add the contradiction sequence
         let mut cs: Vec<i_mem::ContraStruct> = Vec::new();
@@ -1413,8 +1413,6 @@ mod tests {
     fn test_BEInt_order_bfs() {
         let (x,y):(Array2<f32>,Array1<f32>) = test_sample_BEInt_1();
         let mut be = build_BEInt(x,y);
-        be.order_bfs();
-
         let sol = arr2(&[[1., 0., 0., 0., 0.],
                         [0., 0., 1., 0., 0.],
                         [0., 0., 0., 1., 0.],
@@ -1428,8 +1426,6 @@ mod tests {
     fn test_BEInt_var_reprs_in_range() {
         let (x,y):(Array2<f32>,Array1<f32>) = test_sample_BEInt_2();
         let mut bei = build_BEInt(x,y);
-        bei.order_bfs();
-
         let mut vr0 = bei.var_reprs_in_range(0,0,3);
         let mut vr1 = bei.var_reprs_in_range(1,0,3);
         assert_eq!(vr1.len(),2);
@@ -1459,7 +1455,6 @@ mod tests {
         // case 2
         let (mut test_sample_1,mut test_samplesol_1) = test_sample_BEInt_2();
         let mut bei = build_BEInt(test_sample_1,test_samplesol_1);
-        bei.order_bfs();
         let mut acc = bei.accumulate(0,2);
         let sm:HashMap<usize,Array1<f32>> = HashMap::from([(0,arr1(&[0.,-1.,-1.,133.]))]);
         let (mut sc,mut score) = bei.substitute_solve_chain(acc.clone(),sm.clone(),false);
@@ -1473,11 +1468,7 @@ mod tests {
         //// case 1
         let (x,y):(Array2<f32>,Array1<f32>) = test_sample_BEInt_1();
         let mut bei = build_BEInt(x.clone(),y);
-        bei.order_bfs();
-
         let stat = bei.solve_at(x.dim().0 - 1,true,0);
-        println!("soln: {:?}",bei.r_soln);
-        println!("stat: {}",stat);
         assert!(stat);
         assert_eq!(bei.contradictions_in_range(0,x.dim().0 -1,true,false).len(),0);
 

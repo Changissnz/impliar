@@ -29,6 +29,16 @@ use std::str::FromStr;
 
 fn main() {
 
+    // test out #1
+    let (x,y):(Array2<f32>,Array1<f32>) = be_int::test_sample_BEInt_1();
+    let mut bei = be_int::build_BEInt(x.clone(),y);
+    let stat = bei.solve_at(x.dim().0 - 1,true,0);
 
-    
+    // print out i mem info.
+    println!("IMEM");
+    println!("{:?}",bei.im.soln_log);
+    println!("CONTRA");
+    for c in bei.im.contradiction_log.iter() {
+        println!("{}",c);
+    }
 }
