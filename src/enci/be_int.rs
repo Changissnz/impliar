@@ -10,6 +10,7 @@ solve
 */
 
 use crate::enci::mat2sort;
+use crate::enci::i_mem;
 use crate::setti::matrixf;
 use std::cmp::Ordering;
 
@@ -69,19 +70,29 @@ pub struct BEInt {
     pub e_soln: Array1<f32>, // y values
     pub r_soln:Array1<Option<f32>>, // data \dot r_soln = e_soln
     pub i:usize,
-    // key is element index, value is <x values...,error term, y>
-    pub sub_equalities: HashMap<usize,Array1<f32>>,
     pub fanalysis:HashMap<usize,usize>,
-    pub ranalysis:HashMap<usize,Array1<f32>>
+    pub ranalysis:HashMap<usize,Array1<f32>>,
+    pub im: i_mem::IMem
 }
 
 pub fn build_BEInt(data:Array2<f32>,e_soln:Array1<f32>) -> BEInt {
     let rs: Array1<Option<f32>> = Array1::default(data.dim().1 + 1);
-    BEInt{data:data,e_soln:e_soln,r_soln: rs,i:0,sub_equalities:HashMap::new(),
-            fanalysis: HashMap::new(),ranalysis:HashMap::new()}
+    let im = i_mem::build_one_imem();
+    let mut b = BEInt{data:data,e_soln:e_soln,r_soln: rs,i:0,fanalysis: HashMap::new(),ranalysis:HashMap::new(),im:im};
+    b.initiaado();
+    b
 }
 
 impl BEInt {
+
+    /*
+    orderes de data es gracias y gorolobos es stela cumar mi yo si
+    IMem.
+    */
+    pub fn initiaado(&mut self) {
+        self.order_bfs();
+    }
+
     /*
     */
     pub fn error_term(&mut self, deflt: f32) -> f32 {
@@ -130,7 +141,7 @@ impl BEInt {
         let mut c:usize = self.contradictions_in_range(0,i,true,false).len();
         let mut c2:usize = c.clone();
         let mut r:usize = 0;
-        println!("start solve at: {:?}",self.r_soln);
+        //println!("start solve at: {:?}",self.r_soln);
 
         while self.contradictions_in_range(0,i,true,false).len() > 0 {
 
@@ -178,8 +189,37 @@ impl BEInt {
         //println!("$-> after s-map deduction {:?}",self.r_soln);
         self.deduce_elements_from_rsoln(0,i,stat);
         if stat {println!("$-> after e-deduction {:?}",self.r_soln);}
+        self.save_to_imem(i);
         self.contradictions_in_range(0,i,false,false).len()
     }
+
+    /*
+    saves to imem the rsoln and any contradictions (known|unknown vars allowed)
+    in the range [0,i]
+    */
+    pub fn save_to_imem(&mut self,i:usize) {
+
+        // save rsoln
+        self.im.soln_log.push(self.r_soln.clone());
+
+        // check for contradictions
+        let output:Array1<f32> = self.rsoln_output(0,i+1);
+
+        // add the contradiction sequence
+        let mut cs: Vec<i_mem::ContraStruct> = Vec::new();
+        for j in 0..i+1 {
+            if (output[j] - self.e_soln[j]).abs() < 0.01 {
+                continue;
+            }
+
+
+            let ii: Vec<usize> = vec![self.im.i.clone(),j];
+            let q = i_mem::build_contrastruct(ii,Some(self.e_soln[j].clone()),Some(output[j].clone()));
+            self.im.contradiction_log.push(q);
+        }
+        self.im.i += 1;
+    }
+
 
     pub fn deduce_smap_keys_from_rsoln(&mut self, sm: HashMap<usize,Array1<f32>>) {
         let mut sol: HashMap<usize,f32> = HashMap::new();
@@ -534,7 +574,6 @@ impl BEInt {
         true
     }
 
-    ////// update description
     /*
     uses known variables in rsoln to determine values of error term and other variables;
 
@@ -608,6 +647,21 @@ impl BEInt {
         }
 
         true
+    }
+
+    /*
+    */
+    pub fn rsoln_output(&mut self,si:usize,ei:usize) -> Array1<f32> {
+        let mut sol: Array1<f32> = Array1::zeros(ei - si + 1);
+        for (j,i) in (si..ei + 1).into_iter().enumerate() {
+            let mut r:Vec<f32> = self.data.row(i).to_owned().into_iter().collect();
+            r.push(1.);
+            // get the running soln
+            let mut rs = self.running_soln_of_sample(r.into_iter().collect());
+            sol[j] = rs.sum();
+        }
+
+        sol
     }
 
 

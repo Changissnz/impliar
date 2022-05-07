@@ -5,7 +5,7 @@ memory structure for interpolator
 use ndarray::{Array,Array1,Array2,arr1,arr2,s};
 use std::collections::{HashMap,HashSet};
 
-
+#[derive(Clone)]
 pub struct ContraStruct {
     // timestamp, element
     pub index_identifier:Vec<usize>,
@@ -19,6 +19,7 @@ pub fn build_contrastruct(index_identifier:Vec<usize>,expected:Option<f32>,got:O
 
 pub struct IMem {
     pub soln_log:Vec<Array1<Option<f32>>>,
+    // TODO: add map_log
     pub contradiction_log: Vec<ContraStruct>,
     pub i:usize
 }
@@ -31,15 +32,19 @@ impl IMem {
 
     /*
     */
-    pub fn timestamp_differences(&mut self,t1:usize,t2:usize) -> (HashSet<usize>,HashSet<usize>) {
+    pub fn timestamp_differences(&mut self,t1:usize,t2:usize,f: fn(&Array1<Option<f32>>) -> HashSet<usize>) -> (HashSet<usize>,HashSet<usize>) {
+        let t1_:HashSet<usize> = f(&self.soln_log[t1]);
+        let t2_:HashSet<usize> = f(&self.soln_log[t2]);
 
         // get t1 +
-        let d1: HashSet<usize> = t1.difference(&t2).into_iter().collect();
+        let d1: HashSet<usize> = t1_.difference(&t2_).into_iter().map(|x| *x).collect();
+
         // get t1 -
-        let d2: HashSet<usize> = t2.difference(&t1);
+        let d2: HashSet<usize> = t2_.difference(&t1_).into_iter().map(|x| *x).collect();
 
         (d1,d2)
     }
+
 
     pub fn add_soln(&mut self,soln: Array1<Option<f32>>) {
         self.soln_log.push(soln);
@@ -49,9 +54,9 @@ impl IMem {
         self.contradiction_log.push(c);
     }
 
-    pub fn contrastructs_at_ii(&mut self,ii: Vec<Option<f32>>) -> Vec<ContraStruct> {
+    pub fn contrastructs_at_ii(&mut self,ii: Vec<Option<usize>>) -> Vec<ContraStruct> {
         let mut sol: Vec<ContraStruct> = Vec::new();
-        for c in self.contradiction_log.into_iter() {
+        for c in self.contradiction_log.iter() {
             let mut stat:bool = true;
             for (j,ii_) in ii.iter().enumerate() {
                 if (*ii_).is_none() {
@@ -60,7 +65,7 @@ impl IMem {
 
                 let xi = (*ii_).unwrap();
 
-                if xi != c.index_identifier[j] {
+                if xi != (*c).index_identifier[j] {
                     stat = false;
                     break;
                 }
@@ -85,11 +90,11 @@ impl IMem {
         for i in 0..l {
 
             let r = ieg.row(i).to_owned();
-            let i_ = r[0].unwrap().clone();
-            let mut ii = Vec::new();
+            let i_ = r[0].unwrap().clone() as usize;
+            let mut ii:Vec<usize> = Vec::new();
             ii.push(self.i);
             ii.push(i_);
-            let cs = self.build_contrastruct(ii,r[1].clone(),r[2].clone());
+            let cs = build_contrastruct(ii,r[1].clone(),r[2].clone());
             self.add_contradiction(cs);
         }
 
