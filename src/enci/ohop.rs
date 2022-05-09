@@ -34,22 +34,10 @@ pub struct OrderOfOperator {
     pub branches: Vec<String>,
     pub branch_identifiers: HashMap<String,String>,
     pub incstring: inc::Inc1String,
-    ////pub incstring2: inc::Inc1String, // for functions
-    /*
-    standard uses underscore
-    fnotation uses a function
-
-    affects class vars branches and branch_identifiers
-    */
-    ////pub expression_mode: String, // standard, fnotation
-    ////pub f_identifiers: Vec<String> // function identifiers
 }
 
 pub fn build_order_of_operator(sr:String) -> OrderOfOperator {
     let mut is1 = inc::Inc1String{value: default_branch_identifier_seed().to_string()};
-    //let mut is2 = inc::Inc1String{value: default_function_identifier_seed().to_string()};
-    //OrderOfOperator{str_repr:sr, branches: Vec::new(), branch_identifiers: HashMap::new(),
-    //    incstring: is1,incstring2:is2, expression_mode:"standard".to_string(),f_identifiers:Vec::new()}
     OrderOfOperator{str_repr:sr, branches: Vec::new(), branch_identifiers: HashMap::new(),
         incstring: is1}
 }
@@ -97,22 +85,10 @@ impl OrderOfOperator {
 
         if s == "(" {
             let lb = self.branches.len();
-            /*
-            if self.expression_mode == "fnotation".to_string() && lb > 0 {
-                // if branch before, add function to branches first
-                let mut qf = self.incstring2.inc_();
-                self.branches.push(qf);
-            }
-            */
             return self.new_branch(i + 1);
         } else if s == ")" {
             return self.close_branch(i);
         } else if s == "_" {
-            // add function to branches
-            /*
-            let mut qf = self.incstring2.inc_();
-            self.branches.push(qf);
-            */
             return Some(i + 1);
         }
         else {
@@ -121,17 +97,6 @@ impl OrderOfOperator {
             if self.branches.len() == 0 {
                 return self.new_branch(i);
             }
-
-            // case: previous branch, make new function
-            /*
-            if i > 0 && self.expression_mode == "fnotation".to_string() {
-                let s2 = &self.str_repr.substring(i-1,i).to_owned();
-                if s2 == ")" {
-                    let mut qf = self.incstring2.inc_();
-                    self.branches.push(qf);
-                }
-            }
-            */
 
             let mut m = next_element(self.str_repr.clone(),i);
             if m.is_none() {
