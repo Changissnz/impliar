@@ -365,7 +365,7 @@ outputs the vector map for restriction|requirement
 */
 pub fn identity_k_vector_map(k:usize, rs: usize) -> Vec<(usize,Vec<usize>)> {
     let mut vm: Vec<(usize,Vec<usize>)> = Vec::new();
-    let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect(); //identity_vector(rs,1);
+    let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect(); 
     for r in 0..k {
         vm.push((r,idv.clone()));
     }

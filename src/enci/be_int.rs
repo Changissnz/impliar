@@ -8,7 +8,7 @@ accumulate
 substitute
 solve
 */
-
+#[allow(non_snake_case)]
 use crate::enci::mat2sort;
 use crate::enci::i_mem;
 use crate::setti::matrixf;
@@ -17,6 +17,8 @@ use std::cmp::Ordering;
 use ndarray::{Array,Array1,Array2,arr1,arr2,s};
 use std::collections::{HashMap,HashSet};
 use std::hash::Hash;
+
+
 
 /*
 calculates a soln for vector bv of active variables to equal float f32.
@@ -64,6 +66,8 @@ features:
 - (brute-force)|(frequency-analysis) search for substitution.
 
 */
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 pub struct BEInt {
     // data load
     pub data: Array2<f32>, // x values
@@ -75,6 +79,7 @@ pub struct BEInt {
     pub im: i_mem::IMem
 }
 
+#[allow(non_snake_case)]
 pub fn build_BEInt(data:Array2<f32>,e_soln:Array1<f32>) -> BEInt {
     let rs: Array1<Option<f32>> = Array1::default(data.dim().1 + 1);
     let im = i_mem::build_one_imem();
@@ -179,6 +184,7 @@ impl BEInt {
             println!("best s-map: {:?}",sm);
             println!("at start: {:?}",self.r_soln);
         }
+        let lxx:usize = self.active_size_of_soln(self.r_soln.clone());
 
         let (mut sc,mut score) = self.substitute_solve_chain(acc.clone(),sm.clone(),stat);
 
@@ -190,6 +196,8 @@ impl BEInt {
         self.deduce_elements_from_rsoln(0,i,stat);
         if stat {println!("$-> after e-deduction {:?}",self.r_soln);}
         self.save_to_imem(i);
+
+        if stat {println!("$-> delta in r-soln: {}", self.active_size_of_soln(self.r_soln.clone()) - lxx)}
         self.contradictions_in_range(0,i,false,false).len()
     }
 
@@ -198,7 +206,6 @@ impl BEInt {
     in the range [0,i]
     */
     pub fn save_to_imem(&mut self,i:usize) {
-        println!("SAVING");
         // save rsoln
         self.im.soln_log.push(self.r_soln.clone());
 
@@ -378,7 +385,7 @@ impl BEInt {
     outputs a substitution representation of the sample, a vector of length |s|;
     substitution minimizes the number of (active && unknown) variables.
 
-    derives variable substitutes from the chunk [startRef,endRef].
+    derives variable substitutes from the chunk [start_ref,end_ref].
 
     substitution targets variables that are not known in the running solution.
 
@@ -386,7 +393,7 @@ impl BEInt {
 
     s := expression
     */
-    pub fn substitution_repr(&mut self,s: Array1<f32>, startRef:usize,endRef:usize,verbose:bool) -> HashMap<usize,Array1<f32>> {
+    pub fn substitution_repr(&mut self,s: Array1<f32>, start_ref:usize,end_ref:usize,verbose:bool) -> HashMap<usize,Array1<f32>> {
 
         let mut active_var:HashSet<usize> = self.active_indices_of_expr(s.clone()).into_iter().collect();
         let ai:HashSet<usize> = self.active_indices_of_soln(self.r_soln.clone()).into_iter().collect();
@@ -439,7 +446,7 @@ impl BEInt {
                 println!("* var reprs for {}",active_vars[c2]);
             }
 
-            let vr = self.var_reprs_in_range(active_vars[c2],startRef,endRef + 1);
+            let vr = self.var_reprs_in_range(active_vars[c2],start_ref,end_ref + 1);
 
             // add each possibility back to cache
             for v in vr.into_iter() {
@@ -1129,12 +1136,18 @@ impl BEInt {
             let mut el: HashMap<usize,Array1<f32>> = sm.clone();
             el.insert(h,v.clone());
 
+            if el == sm {
+                continue;
+            }
+
             // re-arrange ordering
+            /*
             let mut nu_orderingh: HashSet<usize> = self.active_indices_of_expr(v.clone());
             let mut nu_ordering: Vec<usize> = nu_orderingh.clone().into_iter().collect();
             let nu_ordering2: Vec<usize> = ordering.clone().into_iter().filter(|x| !nu_orderingh.contains(&x)).collect();
             nu_ordering.extend(&nu_ordering2);
-
+            */
+            let nu_ordering = ordering[1..].to_vec();
             sol.push((el,nu_ordering));
         }
 
@@ -1244,25 +1257,31 @@ impl BEInt {
             }
 
             let more_maps = mm.unwrap();
+            println!("pushing {} maps for ",more_maps.len());
+            println!("{:?}",q);
 
             // iterate through more_maps and get best
             for m in more_maps.into_iter() {
+                println!("\t** pushing");
+                println!("{:?}",m);
                 cache.push(m.clone());
                 let q2 = self.conduct_substitution(expr.clone(),m.0.clone(),false);
-                let ri = self.active_size_of_expr(q2);
+                let ri = self.active_size_of_expr(q2.clone());
 
                 if verbose {
                     println!("%-> representatives for\n{:?}\n",m.0.clone());
+                    println!("\t\t* {:?}",q2);
                     println!("\t\t* {:?}",ri);
                 }
 
-                if ri < sol_score && ri > 1 {
+                if ri < sol_score && ri >= 1 {
                     sol = m.0.clone();
                     sol_score = ri;
                     if verbose {println!("\tUpdating");}
                 }
             }
             l = cache.len();
+            println!("L: {}",l);
         }
 
         sol
@@ -1336,6 +1355,7 @@ impl BEInt {
     }
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_1() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[0.,1.,1.,1.,1.],
         [1.,0.,0.,0.,0.],
@@ -1345,11 +1365,13 @@ pub fn test_sample_BEInt_1() -> (Array2<f32>,Array1<f32>) {
         arr1(&[1.,30.,21.,32.,47.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_2() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[0.,1.],[1.,0.],[1.,1.]]),
     arr1(&[24.,32.,133.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_3() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[1.,1.,1.,1.,0.,0.,0.,0.,0.,],
     [1.,0.,1.,1.,0.,0.,1.,1.,0.,],
@@ -1363,6 +1385,7 @@ pub fn test_sample_BEInt_3() -> (Array2<f32>,Array1<f32>) {
     arr1(&[24.,42.,57.,93.,83.,61.,37.,150.,19.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_4() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[0.,0.,1.,1.,1.,0.],
         [1.,0.,0.,1.,0.,0.],
@@ -1372,6 +1395,7 @@ pub fn test_sample_BEInt_4() -> (Array2<f32>,Array1<f32>) {
         arr1(&[70.,130.,263.,312.,474.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_5() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[0.,0.,1.],
         [1.,0.,1.],
@@ -1382,6 +1406,7 @@ pub fn test_sample_BEInt_5() -> (Array2<f32>,Array1<f32>) {
         //arr1(&[7.,1301.,26325.,3012.,1474.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_6() -> (Array2<f32>,Array1<f32>) {
     /*
     (arr2(&[[1.,1.,0.],
@@ -1396,6 +1421,7 @@ pub fn test_sample_BEInt_6() -> (Array2<f32>,Array1<f32>) {
         //arr1(&[7.,1301.,26325.,3012.,1474.]))
 }
 
+#[allow(non_snake_case)]
 pub fn test_sample_BEInt_7() -> (Array2<f32>,Array1<f32>) {
     (arr2(&[[1.,1.,0.,0.,0.,0.],
             [0.,0.,1.,1.,0.,0.],

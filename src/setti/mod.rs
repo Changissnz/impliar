@@ -11,3 +11,6 @@ pub mod ds_fob_c;
 pub mod vs;
 pub mod uvs;
 pub mod hashfit;
+
+pub mod ir2f_hm;
+pub mod ftemp;

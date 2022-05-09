@@ -85,6 +85,10 @@ pub fn unique_object_frequency_requirement(n: usize,m:usize) -> usize {
 }
 
 
+pub fn is_properset_sequence_closed() {
+    
+}
+
 #[cfg(test)]
 mod tests {
 
