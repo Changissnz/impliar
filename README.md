@@ -23,4 +23,8 @@ SCHEDULE
   * I have not been able to do much.
 
 - 4/11/22
-  * Attend(ed|ing) to real-life issues. I almost forgot about this thing. 
+  * Attend(ed|ing) to real-life issues. I almost forgot about this thing.
+
+- 5/9/22
+  * Worked on adding some important structs. Forecast is that project is
+    behind schedule, but still on track.
