@@ -9,19 +9,83 @@ use std::string::ToString;
 use std::string::String;
 use substring::Substring;
 use std::fmt;
+use std::ops::{Add, Sub};
 
+impl Add for VectorCounter {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        let mut sol: HashMap<String,i32> = HashMap::new();
+
+        // collect all keys
+        let mut k1:Vec<String> = self.data.clone().into_keys().into_iter().collect();
+        let mut k2:Vec<String> = other.data.clone().into_keys().into_iter().collect();
+        k1.extend(k2);
+
+        for k in k1.into_iter() {
+            let mut x:i32 = 0;
+            let stat = self.data.contains_key(&k);
+            if stat {
+                x = x + self.data.get(&k).unwrap();
+            }
+
+            let stat2 = other.data.contains_key(&k);
+            if stat2 {
+                x = x + other.data.get(&k).unwrap();
+            }
+
+            sol.insert(k.clone(),x);
+        }
+
+        VectorCounter{data:sol}
+    }
+}
+
+
+impl Sub for VectorCounter {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        let mut sol: HashMap<String,i32> = HashMap::new();
+
+        // collect all keys
+        let mut k1:Vec<String> = self.data.clone().into_keys().into_iter().collect();
+
+        for k in k1.into_iter() {
+            let mut x:i32 = *(self.data.get(&k).unwrap());
+
+            let stat2 = other.data.contains_key(&k);
+            if stat2 {
+                x = x - *(other.data.get(&k).unwrap());
+            }
+
+            sol.insert(k.clone(),x);
+        }
+
+        VectorCounter{data:sol}
+    }
+}
+
+
+#[derive(Clone)]
 pub struct VectorCounter {
     pub data: HashMap<String,i32>,
 }
 
-pub trait Count<T> {
-    fn countv(&mut self,v:Vec<T>);// -> &mut VectorCounter;
+pub fn build_VectorCounter() -> VectorCounter {
+    VectorCounter{data:HashMap::new()}
 }
+
+pub trait Count<T> {
+    fn countv(&mut self,v:Vec<T>);
+}
+
+
 
 impl<T> Count<T> for VectorCounter
 where T: ToString{
-    fn countv(&mut self,v: Vec<T>) {
 
+    fn countv(&mut self,v: Vec<T>) {
         for v_ in v.iter() {
             let x = v_.to_string();
 
@@ -39,7 +103,7 @@ impl fmt::Display for VectorCounter {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut s = String::from("");
             for k in self.data.keys() {
-                s = s + &(k).to_string() + "|=|";// + ",";
+                s = s + &(k).to_string() + "|=|";
                 s = s + &(self.data[k].to_string()) +", ";
             }
 
@@ -47,7 +111,7 @@ impl fmt::Display for VectorCounter {
                 s = (s.substring(0,s.len() -1)).to_owned();
             }
 
-            write!(f, "{}", s)//self.number)
+            write!(f, "{}", s)
         }
 }
 
@@ -66,8 +130,6 @@ pub fn vec_to_str<T>(s: Vec<T>) -> String
     }
 
     h
-    //s.join("-");
-    //itertools::join(s, ", ")
 }
 
 
@@ -169,7 +231,7 @@ mod tests {
 
         let mut y1 = vec![1,2,3];
         let mut y2 = vec![2,3,7];
-        let mut x = VectorCounter{data:HashMap::new()};
+        let mut x = build_VectorCounter();
         x.countv(y1);
         x.countv(y2);
 

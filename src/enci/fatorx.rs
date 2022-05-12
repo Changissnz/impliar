@@ -269,7 +269,7 @@ by adding an i32.
 */
 pub fn max_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32 {
     let b: Vec<Vec<i32>> = ranked_mult_additive_for_vec(v,v2);
-    let mut vc: setf::VectorCounter = setf::VectorCounter{data: HashMap::new()};
+    let mut vc: setf::VectorCounter = setf::build_VectorCounter();
 
     for b_ in b.into_iter() {
         vc.countv(b_);

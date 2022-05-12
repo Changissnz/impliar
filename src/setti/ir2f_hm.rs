@@ -14,7 +14,7 @@ impl IndexRange2FunctionHM {
 
     /*
     */
-    pub fn index_to_function(&mut self,i:usize) -> Option<fn(String) -> String> {
+    pub fn at(&mut self,i:usize) -> Option<fn(String) -> String> {
 
         // iterate through
         for k in self.hm.clone().into_keys() {

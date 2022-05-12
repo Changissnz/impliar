@@ -14,3 +14,4 @@ pub mod hashfit;
 
 pub mod ir2f_hm;
 pub mod ftemp;
+pub mod disinc;

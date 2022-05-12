@@ -12,7 +12,7 @@ use factorial::Factorial;
 /*
 */
 pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
-    let mut vc = setf::VectorCounter{data:HashMap::new()};
+    let mut vc = setf::build_VectorCounter();
     let mut unique = HashSet::new();
 
     let r = s[0].len();
@@ -82,11 +82,6 @@ pub fn number_of_m_intersections(n: usize,m:usize) -> usize {
 
 pub fn unique_object_frequency_requirement(n: usize,m:usize) -> usize {
     nCr(n-1,m-1)
-}
-
-
-pub fn is_properset_sequence_closed() {
-    
 }
 
 #[cfg(test)]

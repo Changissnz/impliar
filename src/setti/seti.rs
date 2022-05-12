@@ -72,8 +72,8 @@ pub fn build_set_imp<T>(v: Vec<T>,baseOptions:Vec<T>,rs:usize,distance:usize) ->
     T:ToString + Clone + PartialEq,
  {
     let r = setf::generic_vec_to_stringvec((v).clone());
-    let mut dt= setf::VectorCounter{data:HashMap::new()};
-        dt.countv(r.clone());
+    let mut dt= setf::build_VectorCounter();
+    dt.countv(r.clone());
 
     // get the highest one
     let vm = strng_srt::inc1string_vector_max(r.clone());

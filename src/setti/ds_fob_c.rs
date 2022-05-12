@@ -52,7 +52,6 @@ pub fn options_for_dsf_element(mut vs:VSelect, n:usize, k:usize, d:usize,s:usize
     }
 
     let mut x:usize = x2.unwrap();
-    let mut c: Vec<(usize,usize)> = Vec::new();
     if x > 0 {
         x = x + d - 1;
     }
@@ -201,8 +200,6 @@ impl DSFGen {
         let mut stat:bool = false;
         for q_ in q.iter() {
             let mut vs2 = vs.clone();
-            let mut d2 = vs2.size();
-            //vs2.add_elemente(self.n,*q_);
             vs2.add_elemente(*q_);
 
 
@@ -267,7 +264,6 @@ pub fn build_DSBGen(n: usize,k: usize,d: usize,s: usize,o:Vec<usize>) -> DSBGen 
 
     // make empty vselect
     let mut v:VSelect = vs::build_vselect(Vec::new());
-    let mut v:VSelect = vs::build_vselect(Vec::new());
     let mut uvs: UVSelect = uvs::build_uvselect(v,Vec::new());
     DSBGen{n:n,k:k,d:d,s:s,o:o,cache:vec![uvs],results: Vec::new(),stat:true,c:0}
 }
@@ -318,7 +314,6 @@ impl DSBGen {
     }
 
     fn process_cache_element(&mut self, mut c: UVSelect) {
-        let mut sol:Vec<UVSelect> = Vec::new();
 
         // process cache element in size range s,n
         let sz = c.size();

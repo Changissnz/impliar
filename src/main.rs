@@ -22,6 +22,8 @@ use crate::setti::ds_fob_c;
 use crate::setti::ds_fob_c::NE;
 use crate::enci::be_int;
 
+use crate::setti::disinc;
+
 use setti::selection_rule::std_collision_score;
 use setti::selection_rule::SelectionRule;
 use enci::skew::Skew;
