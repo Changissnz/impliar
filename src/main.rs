@@ -3,6 +3,7 @@
 #[allow(non_snake_case)]
 mod setti;
 mod enci;
+mod metrice;
 
 use std::collections::HashSet;
 use std::collections::HashMap;
@@ -14,6 +15,9 @@ use factorial::Factorial;
 use asciis::asc::Asciis;
 use ndarray::array;
 use ndarray::{Array2, Array1,arr1,arr2,arr3, stack,s,Axis,Dim};
+
+use crate::setti::strng_srt;
+use crate::setti::selection_rule;
 use crate::setti::selection_rule::Requirement;
 use crate::setti::selection_rule::Restriction;
 use crate::setti::vs;
@@ -31,4 +35,5 @@ use std::mem;
 use std::str::FromStr;
 
 fn main() {
+
 }

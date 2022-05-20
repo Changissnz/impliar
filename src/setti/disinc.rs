@@ -94,8 +94,8 @@ where
 
 #[derive(Clone)]
 pub struct DisIncRule {
-    float_range:(f32,f32),
-    vec_merge_rule: fn(Vec<String>,Vec<String>) -> Vec<String>
+    pub float_range:(f32,f32),
+    pub vec_merge_rule: fn(Vec<String>,Vec<String>) -> Vec<String>
 }
 
 impl DisIncRule {
@@ -130,7 +130,7 @@ a struct that is extensible, acts as a container for
 include: Vec<Hash>
 disclude : Vec<Hash>
 
-Each extension is a hashset and will result in an include-disclude pair.
+Each extension is a vec<string> and will result in an include-disclude pair.
 */
 #[derive(Clone)]
 pub struct DisIncForwardChainHead {
@@ -143,7 +143,7 @@ pub struct DisIncForwardChainHead {
     identifier: String,
 
     // reference set
-    ref_vec: Vec<String>,
+    pub ref_vec: Vec<String>,
 
     // include: the intersection of the elements
     inc_e: Includia<String>,
@@ -153,7 +153,7 @@ pub struct DisIncForwardChainHead {
 
     mem: Vec<(Includia<String>,Discludio<String>)>,
     vcproc: setf::VectorCounter,
-    dsr: DisIncRule,
+    pub dsr: DisIncRule,
 }
 
 pub fn build_DisIncForwardChainHead(idn: String,rv:Vec<String>,dsr:DisIncRule) -> DisIncForwardChainHead {
@@ -189,8 +189,33 @@ T: Clone
     (i1 + i2) / 2.0 - (d1 + d2) / 2.0
 }
 
+/*
+converts a pair of hashsets into their Includia-Discludio form.
+*/
+pub fn hashset_pair_to_incdis_pair<T>(vk:HashSet<T>,vk2:HashSet<T>) -> (Includia<T>,Discludio<T>)
+where
+T:Clone + Hash + Eq {
+
+    let mut d1:HashSet<T> = vk.difference(&vk2).into_iter().map(|x| (*x).clone()).collect();
+    let mut d2:HashSet<T> = vk2.difference(&vk).into_iter().map(|x| (*x).clone()).collect();
+    let dis = Discludio{data:vec![d1,d2]};
+
+    let mut i2:HashSet<T> = vk.intersection(&vk2).into_iter().map(|x| (*x).clone()).collect();
+    let incl = Includia{data:vec![i2]};
+
+    (incl,dis)
+}
+
 impl DisIncForwardChainHead
  {
+
+     pub fn mod_identifier(&mut self, idn: String) {
+         self.identifier = idn;
+     }
+
+     pub fn idn(&mut self) -> String {
+         self.identifier.clone()
+     }
 
      /*
      stores includia and discludio in memory
@@ -213,13 +238,19 @@ impl DisIncForwardChainHead
         // get difference from previous
         let mut vk2:HashSet<String> = vc.data.clone().into_keys().collect();
         let mut vk:HashSet<String> = self.vcproc.data.clone().into_keys().collect();
+        let (incl,dis) = hashset_pair_to_incdis_pair(vk.clone(),vk2.clone());
 
+            /////////////////////////////////
+        /*
         let mut d1:HashSet<String> = vk.difference(&vk2).into_iter().map(|x| (*x).clone()).collect();
         let mut d2:HashSet<String> = vk2.difference(&vk).into_iter().map(|x| (*x).clone()).collect();
         let dis = Discludio{data:vec![d1,d2]};
 
         let mut i2:HashSet<String> = vk.intersection(&vk2).into_iter().map(|x| (*x).clone()).collect();
         let incl = Includia{data:vec![i2]};
+        */
+            /////////////////////////////////
+
 
         // do vector count for includia and discludio
         self.inc_e = incl.clone();
@@ -229,7 +260,7 @@ impl DisIncForwardChainHead
 
     /*
     */
-    pub fn decision_process(&mut self,x:Vec<String>,fr:(f32,f32)) -> bool {
+    pub fn decision_process(&mut self,x:Vec<String>) -> bool {
         let ps = self.process_next(x.clone());
         let output = self.dsr.bool_decision(self.ref_vec.clone(),x,ps);
 
@@ -277,7 +308,12 @@ mod tests {
         // case: 1
         let idn = "id1".to_string();
         let rv:Vec<String> = test_sample_disinc_vec_0();
-        let mut dif = build_DisIncForwardChainHead(idn,rv);
+
+
+        let dsra1:(f32,f32) = (0.,1.);
+        let  dsr:DisIncRule = DisIncRule{float_range:dsra1,vec_merge_rule: vec_merge_rule_v1};
+
+        let mut dif = build_DisIncForwardChainHead(idn,rv,dsr);
 
         let rv2 = test_sample_disinc_vec_1();
         let mut dif_ = dif.clone();

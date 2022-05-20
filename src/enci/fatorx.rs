@@ -50,6 +50,36 @@ pub fn factors_of_i32(v:i32) -> HashSet<i32> {
     sol
 }
 
+/*
+
+finds closest multiple c for u * c = v.
+
+direction in {any|over|under}
+*/
+pub fn closest_multiple_i32_pair(u: i32, v: i32, direction:String) -> i32 {
+    let c = v / u;
+
+    if c * u == v {
+        return c;
+    }
+
+    if direction == "any".to_string() {
+        if (v - (c + 1) * u).abs() < (v - c * u).abs() {
+            return c + 1;
+        }
+        return c;
+    } else if direction == "over".to_string() {
+        return c + 1;
+    } else if direction == "under".to_string() {
+        return c;
+    } else {
+        assert!(false);
+        assert!(true);
+        return 1;
+    }
+
+}
+
 
 /*
 */
@@ -490,6 +520,19 @@ mod tests {
         let (a,a2):(Array1<i32>,Array1<i32>) = sample_arr1_pair_3();
         let i:i32 = max_satisfying_mult_additive_for_vec(a.clone(),a2.clone());
         assert!(i == -12 || i == -9);
+    }
+
+    #[test]
+    fn test_closest_multiple_i32_pair() {
+
+        let x1 = closest_multiple_i32_pair(3,8,"over".to_string());
+        assert_eq!(x1,3);
+
+        let x2 = closest_multiple_i32_pair(3,8,"any".to_string());
+        assert_eq!(x2,3);
+
+        let x3 = closest_multiple_i32_pair(3,8,"under".to_string());
+        assert_eq!(x3,2);
     }
 
 }

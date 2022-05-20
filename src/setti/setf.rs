@@ -10,6 +10,7 @@ use std::string::String;
 use substring::Substring;
 use std::fmt;
 use std::ops::{Add, Sub};
+use std::mem;
 
 impl Add for VectorCounter {
     type Output = Self;
@@ -62,10 +63,28 @@ impl Sub for VectorCounter {
             sol.insert(k.clone(),x);
         }
 
+        // go through any unused key in other
+        let mut sk1:HashSet<String> = sol.clone().into_keys().collect();
+        let sk2:HashSet<String> = other.data.clone().into_keys().collect();
+        let d1:HashSet<String> = sk2.difference(&sk1).into_iter().map(|x| x.to_string()).collect();
+
+        for d in d1.into_iter() {
+            let v:i32 = *(other.data.get(&d).unwrap());
+            sol.insert(d,-1 * v);
+        }
+
+        sk1 = sol.clone().into_keys().collect();
+
+        for sk in sk1.into_iter() {
+            let q = sol.get(&sk).unwrap().clone();
+            if q == 0 {
+                sol.remove(&sk);
+            }
+        }
+
         VectorCounter{data:sol}
     }
 }
-
 
 #[derive(Clone)]
 pub struct VectorCounter {
@@ -113,6 +132,20 @@ impl fmt::Display for VectorCounter {
 
             write!(f, "{}", s)
         }
+}
+
+impl VectorCounter {
+    /*
+    place each key as value 1
+    */
+    pub fn one_it(&mut self) {
+        let k:Vec<String> = self.data.clone().into_keys().collect();
+
+        for k_ in k.into_iter() {
+            *self.data.get_mut(&k_).unwrap() = 1;
+        }
+    }
+
 }
 
 pub fn vec_to_str<T>(s: Vec<T>) -> String
@@ -246,6 +279,40 @@ mod tests {
 
         let mut ans = (x.data.get_mut("7").unwrap()).clone();
         assert_eq!(ans,1);
+    }
+
+    #[test]
+    fn test_VectorCounter_sub_AND_add() {
+        let mut v1 = build_VectorCounter();
+        v1.countv(vec![0,1,3]);
+
+        let mut v2 = build_VectorCounter();
+        v2.countv(vec![0,10,3,4,8]);
+
+        let v3 = v1.clone() - v2.clone();
+        let v4 = v2.clone() - v1.clone();
+        let v5 = v1 + v2;
+
+        let sol1:HashMap<String,i32> = HashMap::from([("10".to_string(),-1),
+                                        ("1".to_string(),1),
+                                        ("8".to_string(),-1),
+                                        ("4".to_string(),-1)]);
+
+        let sol2:HashMap<String,i32> = HashMap::from([("10".to_string(),1),
+                                        ("1".to_string(),-1),
+                                        ("8".to_string(),1),
+                                        ("4".to_string(),1)]);
+
+        let sol3:HashMap<String,i32> = HashMap::from([("10".to_string(),1),
+                                        ("1".to_string(),1),
+                                        ("8".to_string(),1),
+                                        ("0".to_string(),2),
+                                        ("3".to_string(),2),
+                                        ("4".to_string(),1)]);
+
+        assert_eq!(v3.data,sol1);
+        assert_eq!(v4.data,sol2);
+        assert_eq!(v5.data,sol3);
     }
 
 }

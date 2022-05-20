@@ -84,6 +84,18 @@ pub fn unique_object_frequency_requirement(n: usize,m:usize) -> usize {
     nCr(n-1,m-1)
 }
 
+/*
+TODO: uses hashfit
+
+determine the best subsets S' for S in which S' contains
+elements e1,e2,... from S' that have "merged".
+*/
+/*
+pub fn best_subsets_for_merge() {
+}
+*/
+
+
 #[cfg(test)]
 mod tests {
 

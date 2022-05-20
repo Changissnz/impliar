@@ -403,6 +403,8 @@ impl BEInt {
         let mut dummy:Array1<f32> = Array1::zeros(s.len());
 
         // collect into cache and determine the best
+
+        // (map,score)
         let mut cache:Vec<(HashMap<usize,Array1<f32>>,usize)> = Vec::new();
 
         // load first substitution map
@@ -412,8 +414,6 @@ impl BEInt {
         // collects all possible substitution maps, and determines the best one (results in least active vars)
         let mut best_map:HashMap<usize,Array1<f32>> = HashMap::new();
         let mut best_score:i32 = i32::MAX;//active_vars.len();
-
-
         while cache.len() > 0 {
             // get element
             let (mut c1,mut c2) = cache[0].clone();
@@ -450,15 +450,29 @@ impl BEInt {
 
             // add each possibility back to cache
             for v in vr.into_iter() {
+
                 let mut c1_ = c1.clone();
                 c1_.insert(active_vars[c2],v.clone());
                 if verbose {
                     println!("--- adding poss. {}\nto {:?}", v, c1);
                     println!("--- contradiction is...");
                 }
+
                 // check if valid substitution map
                 if !self.is_contradictory_substitution_map(c1_.clone()) {
-                    if verbose {println!("--- --- YES")};
+                    if verbose {println!("--- --- MAYBE")};
+
+                    // check active size improvement by rep indices
+                    //// let (mut s2,_) = self.substitute_solve_chain(s.clone(),c1.clone(),false);
+                    /*
+                    let (_,mut s1) = self.substitute_solve_chain(s.clone(),c1.clone(),false);
+                    let (_,mut s2) = self.substitute_solve_chain(s.clone(),c1_.clone(),false);
+
+                    if s2 > s1 {
+                        continue;
+                    }
+                    */
+
                     cache.push((c1_,c2 + 1));
                 } else {
                     if verbose {println!("--- --- NO")};
