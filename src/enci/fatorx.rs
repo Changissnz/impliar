@@ -50,6 +50,13 @@ pub fn factors_of_i32(v:i32) -> HashSet<i32> {
     sol
 }
 
+pub fn gcd_of_i32_pair(i1:i32,i2:i32) -> i32 {
+    let mut f1 = factors_of_i32(i1);
+    let mut f2 = factors_of_i32(i2);
+    let mut f3:HashSet<i32> = f1.intersection(&f2).into_iter().map(|x| *x).collect();
+    *f3.iter().max().unwrap()
+}
+
 /*
 
 finds closest multiple c for u * c = v.

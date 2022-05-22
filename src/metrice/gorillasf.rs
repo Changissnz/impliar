@@ -9,7 +9,7 @@ use crate::setti::vs::VSelect;
 use crate::setti::set_gen;
 use crate::setti::setf;
 use crate::setti::disinc;
-
+use crate::enci::fatorx;
 use crate::metrice::deviance;
 
 use ndarray::{Array1,arr1};
@@ -95,17 +95,16 @@ pub fn normal_measure_of_sequence(a:Vec<Array1<i32>>,i:usize,existence_weight:f3
 average of sequence of arr1 vec
 */
 pub fn sequence_analysis_(a:Vec<Array1<i32>>,existence_weight:f32) -> f32 {
-    //let mut sol: Vec<f32> = Vec::new();
     let l = a.len();
     if l == 0 {return 1.;}
 
     let mut s: f32 = 0.;
     for i in 0..l {
         s += normal_measure_of_sequence(a.clone(),i,existence_weight.clone());
-        //sol.push(s);
     }
     s / l as f32
 }
+
 
 
 /*
@@ -124,14 +123,7 @@ pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32,verbose:boo
 
     assert!(existence_weight >= 0. && existence_weight <= 1.);
 
-    // iterates through all 2-permutations and performs analysis of
-
-    // go through each element of s and get its dual vec from euclid's
-    // collect all c-vec and a-vec into sets C and A
-
-    // determine abnormal sequences
-
-    /////// approach 0: collect all elements into c and a, vec<arr1>
+    // collect all elements into c and a, vec<arr1>
     let l = s.len();
     let mut c:Vec<Array1<i32>> = Vec::new();
     let mut a:Vec<Array1<i32>> = Vec::new();
@@ -172,9 +164,42 @@ pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32,verbose:boo
     (sol.into_iter().collect(),sol2.into_iter().collect())
 }
 
+pub fn gorilla_touch_arr1_gcd(s: Array1<i32>, existence_weight:f32,verbose:bool) -> Array1<f32> {
+
+    pub fn gcdseq_of_i(s:Array1<i32>,i:usize) -> Array1<i32> {
+        let l = s.len();
+        let mut solo:Vec<i32> = Vec::new();
+        for j in 0..l {
+            if j == i {
+                continue;
+            }
+            solo.push(fatorx::gcd_of_i32_pair(s[i].clone(),s[j].clone()));
+        }
+        solo.into_iter().collect()
+    }
+
+    // iterate through and collect each gcd sequence for element
+    let mut sol: Vec<Array1<i32>> = Vec::new();
+
+    // collect the gcd seq for each var i
+    let l = s.len();
+    for w in 0..l {
+        sol.push(gcdseq_of_i(s.clone(),w));
+    }
+
+    // calculate the normal score for each element in s
+    let nsvec:Array1<f32> = (0..l).into_iter().map(|i| normal_measure_of_sequence(sol.clone(),i,existence_weight.clone())).collect();
+    nsvec
+}
+
+/////////////////////////////////////////////////////////////////////////////
 
 pub fn test_sample_gorilla_touch_arr1_1() -> Array1<i32> {
     arr1(&[14,18,81131222,75121])
+}
+
+pub fn test_sample_gorilla_touch_arr1_2() -> Array1<i32> {
+    arr1(&[2,4,8,16])
 }
 
 #[cfg(test)]
@@ -192,5 +217,14 @@ mod tests {
         let q2:Array1<f32> = arr1(&[0.33234128, 0.952381, 0.5, 0.8333334]);
         assert!(q1 == hs.0);
         assert!(q2 == hs.1);
+    }
+
+    #[test]
+    fn test_gorilla_touch_arr1_gcd() {
+        let s = test_sample_gorilla_touch_arr1_2();
+        let ew:f32 = 0.5;
+        let hs = gorilla_touch_arr1_gcd(s, ew,true);
+        let q1:Array1<f32> = arr1(&[0.5555556, 0.34444442, 0.28333333, 0.28333333]);
+        assert!(q1 == hs);
     }
 }
