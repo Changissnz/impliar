@@ -365,7 +365,7 @@ outputs the vector map for restriction|requirement
 */
 pub fn identity_k_vector_map(k:usize, rs: usize) -> Vec<(usize,Vec<usize>)> {
     let mut vm: Vec<(usize,Vec<usize>)> = Vec::new();
-    let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect(); 
+    let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect();
     for r in 0..k {
         vm.push((r,idv.clone()));
     }
@@ -468,7 +468,7 @@ mod tests {
     }
 
     #[test]
-    fn test_order_vec_by_reference() {
+    fn test_ordered_vec_by_reference() {
         let mut x1: Vec<i32> = vec![120,140,3000,34,54,61,1,31,-2];
         let mut x2: Vec<i32> = vec![-2,1,31,54,34];
         let mut s1 = ordered_vec_by_reference(x1,x2.clone());

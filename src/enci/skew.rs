@@ -9,7 +9,6 @@ pub struct Skew {
     pub multit: Option<Array1<i32>>,
     pub skew_size: usize,
     pub ordering:Vec<usize>,
-    pub subgroups:Option<Vec<Vec<usize>>>
 }
 
 /*
@@ -41,7 +40,7 @@ pub fn build_skew(a: Option<i32>,m: Option<i32>,
         ss += 1;
     }
 
-    Skew {adder: a,multer: m,addit: ad, multit: am,skew_size: ss,ordering:o,subgroups:sg}
+    Skew {adder: a,multer: m,addit: ad, multit: am,skew_size: ss,ordering:o}
 }
 
 
@@ -82,14 +81,6 @@ impl Skew {
         v
     }
 
-    /*
-    pub fn subgroup_apply(&mut self, v:Array1<i32>, i: usize) -> Array1<i32> {
-        // get operation
-        let m =
-    }
-    */
-
-    // used for no subgroups
     pub fn apply_at(&mut self, v:Array1<i32>, i:usize) -> Array1<i32> {
         assert!(i <= 3);
 

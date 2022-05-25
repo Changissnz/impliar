@@ -34,5 +34,8 @@ use enci::skew::Skew;
 use std::mem;
 use std::str::FromStr;
 
+extern crate round;
+use round::{round, round_up, round_down};
+
 fn main() {
 }

@@ -3,7 +3,14 @@ use crate::setti::setf;
 use crate::setti::setf::Count;
 
 /*
-vector counter on vec
+compares the elements of two arr1's. the score is:
+
+SUM(VectorCounter(a1) -  VectorCounter(a2)) * (1 - existence_weight) +
+SUM(VectorCounter(a1.to_binary) -  VectorCounter(a2.to_binary)) * (existence_weight)
+
+a1 := an arr1
+a2 := an arr1
+existence_weight := f32 in [0,1] that weighs the binary difference of a1 and a2.
 */
 pub fn cmp_arr1_pair_1(a1:Array1<i32>,a2:Array1<i32>,existence_weight:f32) -> f32 {
     assert!(existence_weight >= 0. && existence_weight <= 1.);
@@ -32,6 +39,8 @@ pub fn cmp_arr1_pair_1(a1:Array1<i32>,a2:Array1<i32>,existence_weight:f32) -> f3
     let s2:f32 = d2s / ((v1.data.len() + v2.data.len()) as f32);
     ((1. - existence_weight) * s1) + (existence_weight * s2)
 }
+
+////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
