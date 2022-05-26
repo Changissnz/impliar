@@ -31,7 +31,6 @@ pub fn csv_to_arr1_seq(filepath: &str) -> Result<Vec<Array1<f32>>, Box<dyn std::
     let mut sol: Vec<Array1<f32>> = Vec::new();
 
     for line in reader.lines() {
-        //println!("{}", line?);
         let s: Vec<String> = setf::str_to_vec(line?);
         let s2:Array1<f32> = s.into_iter().map(|x| x.parse::<f32>().unwrap()).collect();
         sol.push(s2);
@@ -59,11 +58,8 @@ pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Er
     let mut sol: Vec<f32> = Vec::new();
 
     for line in reader.lines() {
-        //println!("{}", line?);
         let s: Vec<String> = setf::str_to_vec(line?);
         sol.push(s[0].parse::<f32>().unwrap());
-        //let s2:Array1<f32> = s.into_iter().map(|x| x.parse::<f32>().unwrap()).collect();
-        //sol.push(s2);
     }
 
     Ok(sol.into_iter().collect())
