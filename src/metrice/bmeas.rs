@@ -110,7 +110,7 @@ conducts f32 addition of a to f in the bounds b
 */
 pub fn additive_in_bounds(b:(f32,f32),f:f32,a:f32) -> f32 {
     assert!(is_proper_bounds(b.clone()));
-    assert!(in_bounds(b.clone(),f.clone()));
+    assert!(in_bounds(b.clone(),f.clone()), "have bounds {:?} value {}",b.clone(),f);
 
     // && in_bounds(b.clone(),a.clone()));
 

@@ -18,7 +18,7 @@ pub struct FSelect {
 }
 
 pub fn empty_FSelect() -> FSelect {
-    FSelect{data:Vec::new(),data_labels:Array1::default(0),bounds:(0.,0.),score:None}
+    FSelect{data:Vec::new(),data_labels:Array1::default(0),bounds:(0.,1.),score:None}
 }
 
 /*
@@ -86,7 +86,6 @@ impl FSelect {
     }
 
     pub fn label_of_f32(&mut self, f:f32) -> Option<usize> {
-
         let i = self.index_of_f32(f);
 
         if i.is_none() {
