@@ -28,3 +28,8 @@ SCHEDULE
 - 5/9/22
   * Worked on adding some important structs. Forecast is that project is
     behind schedule, but still on track.
+
+- 5/25/22
+  * Code analysis is required for redundant code. The issue is looking more
+    probable as this project's cache computation requirements follow the
+    same basic pattern. 
