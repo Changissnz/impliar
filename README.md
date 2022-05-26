@@ -32,4 +32,8 @@ SCHEDULE
 - 5/25/22
   * Code analysis is required for redundant code. The issue is looking more
     probable as this project's cache computation requirements follow the
-    same basic pattern. 
+    same basic pattern.
+
+  * update (evening):
+      Code analysis and refactoring will hold off until integration code
+      between `metrice::brp` and `metrice::gorillasf` has been built. 

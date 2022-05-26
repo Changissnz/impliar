@@ -21,16 +21,6 @@ pub fn empty_FSelect() -> FSelect {
     FSelect{data:Vec::new(),data_labels:Array1::default(0),bounds:(0.,1.),score:None}
 }
 
-/*
-*/
-///////
-/*
-pub fn merge_intersections_of_bounds_vec(bv: Vec<(f32,f32)>) -> Vec<(f32,f32)> {
-}
-*/
-
-
-
 pub fn build_FSelect(data: Vec<(f32,f32)>, data_labels:Array1<usize>,bounds: (f32,f32)) -> FSelect {
     assert!(bmeas::is_proper_bounds(bounds.clone()));
     assert!(data_labels.len() == data.len());
