@@ -262,7 +262,8 @@ impl RangePartitionGF2 {
         score
     }
 
-    pub fn greedy_search__decision_for_f32(i:usize) {
+    pub fn greedy_search__decision_for_f32(&mut self,i:usize) {
+        //self.choices_at_index(f:fs::FSelect,i:usize) -> Vec<fs::FSelect> {
 
     }
 }
@@ -280,7 +281,7 @@ mod tests {
 
     #[test]
     pub fn test__rpgf2__brute_force_search__decision() {
-        // case 1 
+        // case 1
         let mut srp = test_sample_rpgf2_1();
         srp.size_threshold = 8;
         let mut f = srp.brute_force_search__decision().unwrap();
