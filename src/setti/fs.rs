@@ -6,7 +6,7 @@ use ndarray::{arr1,Array1};
 /*
 the f32 version that is the VSelect from setti::vs.
 `data` is an unordered vec of proper bounds in `bounds`.
-elements of `data` can intersect.
+elements of `data` cannot intersect.
 
 */
 #[derive(Clone)]

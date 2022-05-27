@@ -19,12 +19,12 @@ MIN(contra * size)
 */
 pub struct RangePartitionGF2 {
     // x and y data
-    f32_vec: Array1<f32>,
-    binary_labels: Array1<usize>,
+    pub f32_vec: Array1<f32>,
+    pub binary_labels: Array1<usize>,
     pub size_threshold:usize,
 
     // solution
-    fselect: fs::FSelect,
+    pub fselect: fs::FSelect,
     score:usize,
     // solution attrib.
 
@@ -41,6 +41,31 @@ pub fn build_range_partition_gf2(f32_vec: Array1<f32>,binary_labels: Array1<usiz
 }
 
 impl RangePartitionGF2 {
+
+    /*
+    outputs the label of the f32
+    */
+    pub fn output(&mut self,f:f32) -> Option<usize> {
+        let l = self.fselect.label_of_f32(f);
+
+        if l.is_none() {return None;}
+
+        if self.is_contra_value(f) {
+            println!("YES");
+            return Some((l.unwrap() + 1) % 2);
+        }
+        Some(l.unwrap())
+    }
+
+    pub fn is_contra_value(&mut self,f:f32) -> bool {
+
+        for c in self.contra_indices.clone().into_iter() {
+            if (self.f32_vec[c] - f).abs() > 0.00001 {
+                return true;
+            }
+        }
+        false
+    }
 
     /*
     most frequent label for elements of f32_vec[r.0..r.1] in bounds b
@@ -87,13 +112,12 @@ impl RangePartitionGF2 {
         let d = bmeas::closest_distance_to_subbound((0.,1.),b.clone(),f2);
 
         let mut sol:(f32,f32) = b.clone();
-        if round((bmeas::additive_in_bounds((0.,1.),f2,d) - b.0) as f64,3) == 0. {
+
+        //// approach 2: relative to each end of bound b
+        if f2 < b.0 {
             sol.0 = f2;
-        } else if round((bmeas::additive_in_bounds((0.,1.),f2,d) - b.1) as f64,3) == 0. {
-        //else if round(bmeas::additive_in_bounds(b.clone(),f2,d) - b.1,3) == 0. {
+        } else if f2 > b.1 {
             sol.1 = f2;
-        } else {
-            assert!(false);
         }
 
         if sol.0 > sol.1 {
@@ -120,6 +144,7 @@ impl RangePartitionGF2 {
         // case: intersecting bounds
             // get all other from data
             let mut ibh:HashSet<usize> = ib.clone().into_iter().collect();
+            ibh.insert(bi);
             let rem_indices: Vec<usize> = (0..blen).into_iter().filter(|x| !ibh.contains(&x)).collect();
             let mut rem_data: Vec<((f32,f32),usize)> = f.indexvec_to_data_labels(rem_indices);
 
@@ -164,6 +189,7 @@ impl RangePartitionGF2 {
         default_sol.score = Some(l as f32 * self.size_threshold as f32);
         let mut q = self.fs_cache.clone().into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
         self.score_fselect(&mut q,(0,l),true);
+        self.fselect = q.clone();
         Some(q)
     }
 
@@ -180,7 +206,7 @@ impl RangePartitionGF2 {
     /*
     */
     pub fn brute_force_search__decision_at_index(&mut self,i:usize) {
-
+        println!("BRUTE FORCE @ {}",i);
         // case: i = 0, re-initialize cache
         if i == 0 {
             self.fs_cache = Vec::new();
@@ -262,9 +288,36 @@ impl RangePartitionGF2 {
         score
     }
 
-    pub fn greedy_search__decision_for_f32(&mut self,i:usize) {
-        //self.choices_at_index(f:fs::FSelect,i:usize) -> Vec<fs::FSelect> {
+    pub fn greedy_search__decision(&mut self) {
+        let l = self.f32_vec.len();
+        self.fs_cache = Vec::new();
+        self.fs_cache.push(fs::empty_FSelect());
 
+        for i in 0..l {
+            self.greedy_search__decision_for_f32(i);
+        }
+
+        let mut ff = self.fs_cache[0].clone();
+        self.score_fselect(&mut ff,(0,l),true);
+        self.fselect = ff;
+
+    }
+
+    pub fn greedy_search__decision_for_f32(&mut self,i:usize) {
+        let mut new_cache: Vec<fs::FSelect> = Vec::new();
+
+        while self.fs_cache.len() > 0 {
+            let mut f = self.fs_cache[0].clone();
+            self.fs_cache = self.fs_cache[1..].to_vec();
+            let mut cho = self.choices_at_index(f,i);
+            new_cache.extend(cho);
+        }
+
+        // determine the lowest score in new_cache
+        let mut default_sol = fs::empty_FSelect();
+        default_sol.score = Some(self.f32_vec.len() as f32 * self.size_threshold as f32);
+        let mut q = new_cache.into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
+        self.fs_cache = vec![q];
     }
 }
 
