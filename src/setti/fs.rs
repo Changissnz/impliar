@@ -4,6 +4,35 @@ use std::collections::HashSet;
 use ndarray::{arr1,Array1};
 
 /*
+struct used to keep track of FSelect mean and frequency per bound
+*/
+#[derive(Clone)]
+pub struct FM {
+    pub frequency: usize,
+    pub meen: f32
+}
+
+pub fn empty_FM() -> FM {
+    FM{frequency:0,meen:0.}
+}
+
+impl FM {
+
+    /*
+    */
+    pub fn update_values(&mut self,v: f32) {
+        let mut q = self.meen.clone() * self.frequency as f32;
+        self.frequency += 1;
+        //println!("F M {} {}", self.meen,self.frequency);
+        self.meen = (self.meen + v)  / self.frequency as f32;
+    }
+
+}
+
+// deravel
+
+
+/*
 the f32 version that is the VSelect from setti::vs.
 `data` is an unordered vec of proper bounds in `bounds`.
 elements of `data` cannot intersect.
@@ -14,14 +43,22 @@ pub struct FSelect {
     pub data: Vec<(f32,f32)>,
     pub data_labels:Array1<usize>,
     pub bounds: (f32,f32),
-    pub score:Option<f32>
+    pub score:Option<f32>,
+
+    // basic | fm
+    pub mode: String,
+    // used in the event of fm mode
+    pub fm: Option<Vec<FM>>
 }
 
-pub fn empty_FSelect() -> FSelect {
-    FSelect{data:Vec::new(),data_labels:Array1::default(0),bounds:(0.,1.),score:None}
+pub fn empty_FSelect(mode:String) -> FSelect {
+    let om: HashSet<String> = HashSet::from_iter(["basic".to_string(), "fm".to_string()]);
+    let fm : Option<Vec<FM>> = if mode == "basic".to_string() {None} else {Some(Vec::new())};
+    FSelect{data:Vec::new(),data_labels:Array1::default(0),bounds:(0.,1.),score:None,
+        mode: mode, fm: fm}
 }
 
-pub fn build_FSelect(data: Vec<(f32,f32)>, data_labels:Array1<usize>,bounds: (f32,f32)) -> FSelect {
+pub fn build_FSelect(data: Vec<(f32,f32)>, data_labels:Array1<usize>,bounds: (f32,f32),mode:String) -> FSelect {
     assert!(bmeas::is_proper_bounds(bounds.clone()));
     assert!(data_labels.len() == data.len());
     let mut md: f32 = f32::MAX;
@@ -31,10 +68,27 @@ pub fn build_FSelect(data: Vec<(f32,f32)>, data_labels:Array1<usize>,bounds: (f3
         assert!(bmeas::in_bounds(bounds.clone(),d.0) && bmeas::in_bounds(bounds.clone(),d.1));
     }
 
-    FSelect{data:data,data_labels:data_labels,bounds:bounds,score:None}
+    let fm : Option<Vec<FM>> = if mode == "basic".to_string() {None} else {Some(Vec::new())};
+    FSelect{data:data,data_labels:data_labels,bounds:bounds,score:None,
+        mode:mode,fm:fm}
 }
 
 impl FSelect {
+
+    pub fn mod_fm_at_index(&mut self,i:usize,f:f32) {
+        if self.mode == "basic".to_string() {
+            return ;
+        }
+
+        let mut fm1 = self.fm.clone().unwrap();
+
+        while fm1.len() <= i {
+            fm1.push(empty_FM());
+        }
+
+        fm1[i].update_values(f);
+        self.fm = Some(fm1);
+    }
 
     /*
     sorts bounds by closest distance to f. distance is 0. if f in b.
@@ -114,7 +168,7 @@ mod tests {
     pub fn test_bdistance_of_f32pair() {
         let d: Vec<(f32,f32)> = vec![(2.,4.),(10.,11.5), (20.,26.)];
         let dl: Array1<usize> = arr1(&[0,1,2]);
-        let mut fsel = build_FSelect(d,dl,(0.,28.));
+        let mut fsel = build_FSelect(d,dl,(0.,28.),"basic".to_string());
 
         assert_eq!(Some(0),fsel.label_of_f32(3.));
         assert_eq!(Some(1),fsel.label_of_f32(10.3));

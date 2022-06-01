@@ -3,7 +3,9 @@ measures on proper bounds b = (start,end); start < end
 */
 extern crate round;
 
+use ndarray::Array1;
 use round::round;
+use crate::enci::mat2sort;
 
 pub fn is_proper_bounds(b:(f32,f32)) -> bool {
     b.0 <= b.1
@@ -14,6 +16,16 @@ pub fn is_proper_bounds(b:(f32,f32)) -> bool {
 pub fn in_bounds(b:(f32,f32),f:f32) -> bool {
     assert!(is_proper_bounds(b.clone()));
     f >= b.0 && f <= b.1
+}
+
+/*
+
+*/
+pub fn is_subbound(b:(f32,f32),b2:(f32,f32)) -> bool {
+    assert!(is_proper_bounds(b.clone()));
+    assert!(is_proper_bounds(b.clone()));
+
+    in_bounds(b.clone(),b2.0) && in_bounds(b.clone(),b2.1)
 }
 
 /*
@@ -160,6 +172,80 @@ pub fn merge_bounds(bv: Vec<(f32,f32)>) -> (f32,f32) {
     (minimum,maximum)
 }
 
+/*
+outputs a subbound f32 of refb (a proper bound of f in (real numbers)^2)
+based on b of [0.,1.]^2.
+*/
+pub fn bound_01_to_subbound_f32(refb:(f32,f32),b:(f32,f32)) -> (f32,f32) {
+    assert!(is_proper_bounds(refb.clone()));
+    assert!(is_proper_bounds(b.clone()));
+    let d = refb.1.clone() - refb.0.clone();
+    let s = refb.0 + b.0 * d;
+    let e = refb.0 + b.1 * d;
+    (s,e)
+}
+
+/*
+outputs a bound f2 in [0.,1.]^2 for f in (real numbers)^2 based on refb (a proper bound
+ of f in (real numbers)^2).
+*/
+////
+
+/*
+b2 is subbound of b1
+*/
+pub fn subbound_f32_to_bound_01(b1:(f32,f32),b2:(f32,f32)) -> (f32,f32) {
+
+    assert!(is_proper_bounds(b2.clone()));
+    assert!(is_proper_bounds(b1.clone()));
+
+    assert!(in_bounds(b1.clone(),b2.0));
+    assert!(in_bounds(b1.clone(),b2.1));
+
+    let d = b1.1.clone() - b1.0.clone();
+    if d == 0. {
+        return (0.,0.);
+    }
+
+
+    let f1 = (b2.0.clone() - b1.0.clone()) / d;
+    let f2 = (b2.1.clone() - b1.0.clone()) / d;
+    (f1,f2)
+}
+
+/*
+*/
+pub fn bounds_of_bv(bv: Vec<(f32,f32)>) -> (f32,f32) {
+    assert!(bv.len() != 0);
+
+    // collect all into 1-d
+    let mut a: Vec<f32> = Vec::new();//bv.into_iter();
+
+    for b in bv.into_iter() {
+        a.push(b.0.clone());
+        a.push(b.1.clone());
+    }
+
+    let mut c: Array1<f32> = a.into_iter().collect();
+    c = mat2sort::sort_arr1(c,mat2sort::f32_cmp1);
+    let l = c.len();
+
+    (c[0],c[l -1])
+}
+
+/*
+maps vector of bounds of (real numbers)^2 to bounds of [0,1]^2 by
+[min(fv as arr1),max(fv as arr1)]
+*/
+pub fn bvec_f32_to_bvec_01(fv:Vec<(f32,f32)>) -> Vec<(f32,f32)> {
+    let bvv = merge_bounds(fv.clone());
+    fv.clone().into_iter().map(|x| subbound_f32_to_bound_01(bvv.clone(),x)).collect()
+}
+
+pub fn bvec_01_to_bvec_f32(bv:Vec<(f32,f32)>,refb:(f32,f32)) -> Vec<(f32,f32)> {
+    bv.clone().into_iter().map(|x| bound_01_to_subbound_f32(refb.clone(),x)).collect()
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn test_sample_bmeas_info() -> ((f32,f32),(f32,f32),(f32,f32)) {
@@ -198,5 +284,40 @@ mod tests {
         assert!(additive_in_bounds(f.clone(),p1.0,b1) == p1.1);
         assert!(additive_in_bounds(f.clone(),p2.0,b2_ as f32) == p2.1);
     }
+
+    #[test]
+    pub fn test_bound_01_to_subbound_f32() {
+        assert_eq!(bound_01_to_subbound_f32(
+                (-100.,110.),(0.2,0.5)),(-58.,5.));
+    }
+
+    #[test]
+    pub fn test_subbound_f32_to_bound_01() {
+        assert_eq!(subbound_f32_to_bound_01(
+                (-10.,10.),(0.0,5.0)),(0.5,0.75));
+    }
+
+    #[test]
+    pub fn test_bvec_f32_to_bvec_01() {
+        let fv: Vec<(f32,f32)> = vec![(-13.0,2.),(4.,24.), (-36.,-16.0)];
+        let bv = bvec_f32_to_bvec_01(fv);
+
+        let sol: Vec<(f32,f32)> = vec![(0.38333333, 0.6333333), (0.6666667, 1.0), (0.0, 0.33333334)];
+        assert_eq!(sol,bv);
+    }
+
+    #[test]
+    pub fn test_bvec_01_to_bvec_f32() {
+        let fv: Vec<(f32,f32)> = vec![(-13.0,2.),(4.,24.), (-36.,-16.0)];
+        let bv = bvec_f32_to_bvec_01(fv.clone());
+
+        let sol: Vec<(f32,f32)> = vec![(0.38333333, 0.6333333), (0.6666667, 1.0), (0.0, 0.33333334)];
+        let bl = merge_bounds(fv.clone());
+        let bv2 = bvec_01_to_bvec_f32(sol,bl);
+        assert_eq!(bv2,fv);
+    }
+
+
+
 
 }

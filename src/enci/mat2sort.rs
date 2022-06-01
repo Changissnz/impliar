@@ -77,6 +77,21 @@ T:Eq + Clone
     None
 }
 
+pub fn f32_cmp1(s1: &f32, s2: &f32) -> std::cmp::Ordering {
+
+    if s1 < s2 {
+    	return Ordering::Less;
+    }
+    Ordering::Greater
+}
+
+pub fn sort_arr1(mut a: Array1<f32>,f: fn(&f32,&f32) -> std::cmp::Ordering) -> Array1<f32> {
+    let mut v: Vec<f32> = a.into_iter().collect();
+    v.sort_by(f);
+    v.into_iter().collect()
+}
+
+
 /*
 basic sorting function for Array2<f32>; does not take into account tie-breakers based on output
 function f.
@@ -184,7 +199,7 @@ pub fn active_size_of_vec(v: Array1<f32>) -> usize {
 
 pub fn active_indices(v:Array1<f32>) -> Array1<usize> {
     let dummy:Array1<f32> = v.clone();
-    active_size_intersection(v,dummy) 
+    active_size_intersection(v,dummy)
 }
 
 /*

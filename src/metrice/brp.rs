@@ -12,7 +12,9 @@ extern crate round;
 use round::{round, round_up, round_down};
 
 /*
-over galois field 2
+over galois field 2:
+- labels are 0,1
+- sequence elements are in f32::[0,1]
 
 partition for binary labels is the one with
 MIN(contra * size)
@@ -31,13 +33,14 @@ pub struct RangePartitionGF2 {
     // for each indice, flip solution from FSelect
     pub contra_indices: Vec<usize>, // from f32_vec
     // cache of candidates in brute-force approach
-    fs_cache: Vec<fs::FSelect>
+    fs_cache: Vec<fs::FSelect>,
+    c_type:String
 }
 
-pub fn build_range_partition_gf2(f32_vec: Array1<f32>,binary_labels: Array1<usize>,szt:usize) ->RangePartitionGF2 {
+pub fn build_range_partition_gf2(f32_vec: Array1<f32>,binary_labels: Array1<usize>,szt:usize,c_type:String) ->RangePartitionGF2 {
     RangePartitionGF2{f32_vec:f32_vec,binary_labels:binary_labels,
-        size_threshold:szt,fselect: fs::empty_FSelect(),score:0,
-        contra_indices:Vec::new(),fs_cache:Vec::new()}
+        size_threshold:szt,fselect: fs::empty_FSelect(c_type.clone()),score:0,
+        contra_indices:Vec::new(),fs_cache:Vec::new(),c_type:c_type}
 }
 
 impl RangePartitionGF2 {
@@ -51,7 +54,6 @@ impl RangePartitionGF2 {
         if l.is_none() {return None;}
 
         if self.is_contra_value(f) {
-            println!("YES");
             return Some((l.unwrap() + 1) % 2);
         }
         Some(l.unwrap())
@@ -96,21 +98,39 @@ impl RangePartitionGF2 {
         sol3.0
     }
 
+    pub fn label_fm(&mut self,f: &mut fs::FSelect,f2:f32) {
+        if f.mode != "fm".to_string() {
+            return;
+        }
+
+        // get index of fselect
+        let index = f.index_of_f32(f2);
+        let mut q = f.fm.clone().unwrap();//.clone();
+        q[index.unwrap()].update_values(f2);
+        f.fm = Some(q);
+    }
+
     /*
     - modify an fselect's bounds at index bi with float f2
     - check for intersection with any other bound of fselect and perform appropriate
       merges.
-    - calculates new label for bound based on contradiction score
+    - calculates new label for bound
+        * based on contradiction score
+        *
 
-
+    f := involved FSelect
+    bi := index of bounds of FSelect f
+    f2 := involved f32
     r := typically the range 0-(i - 1) right before the i'th element for FSelect f
+    label_mode_majority := bool for relabelling of modified bounds by majority (frequency),
+                            alternative is SUM
     */
-    pub fn modify_and_merge_fselect_bounds(&mut self,f: &mut fs::FSelect,bi:usize,f2:f32,r:(usize,usize))
-        -> ((f32,f32),usize) {
+    pub fn modify_and_merge_fselect_bounds(&mut self,f: &mut fs::FSelect,bi:usize,f2:f32,r:(usize,usize),
+        label_mode_majority:bool) -> ((f32,f32),usize) {
+
         // get bounds to modify and mod distance
         let b = f.index_to_data(bi);
         let d = bmeas::closest_distance_to_subbound((0.,1.),b.clone(),f2);
-
         let mut sol:(f32,f32) = b.clone();
 
         //// approach 2: relative to each end of bound b
@@ -138,8 +158,8 @@ impl RangePartitionGF2 {
             // modify bi exclusively
             f.data[bi] = sol.clone();
             f.data_labels[bi] = self.best_label_for_bounds(sol.clone(),r.clone());
+            f.mod_fm_at_index(bi,f2);
             return (f.data[bi].clone(),f.data_labels[bi].clone());
-
         } else {
         // case: intersecting bounds
             // get all other from data
@@ -158,15 +178,16 @@ impl RangePartitionGF2 {
 
             // mod the data and data_labels variables of f
             rem_data.push((nb.clone(),bestl));
-
+            let mut i2 = rem_data.len() - 1;
             f.data = Vec::new();
             let mut fdl:Vec<usize> = Vec::new();
             for rd in rem_data.into_iter() {
                 f.data.push(rd.0);
                 fdl.push(rd.1);
             }
-            f.data_labels = fdl.into_iter().collect();
 
+            f.data_labels = fdl.into_iter().collect();
+            f.mod_fm_at_index(i2,f2);
             return (nb.clone(),bestl);
         }
     }
@@ -185,10 +206,12 @@ impl RangePartitionGF2 {
         // iterate through and select the one with the best score
         self.update_cache_fselect_scores();
 
-        let mut default_sol = fs::empty_FSelect();
-        default_sol.score = Some(l as f32 * self.size_threshold as f32);
+        let mut default_sol = fs::empty_FSelect(self.c_type.clone());
+        default_sol.score = Some(f32::MAX);
         let mut q = self.fs_cache.clone().into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
-        self.score_fselect(&mut q,(0,l),true);
+
+        self.score_fselect_(&mut q,(0,l),true);
+
         self.fselect = q.clone();
         Some(q)
     }
@@ -198,7 +221,7 @@ impl RangePartitionGF2 {
         let fl = self.f32_vec.len();
         for i in 0..l {
             let mut q = self.fs_cache[i].clone();
-            self.score_fselect(&mut q,(0,fl),false);
+            self.score_fselect_(&mut q,(0,fl),false);
             self.fs_cache[i] = q;
         }
     }
@@ -206,11 +229,11 @@ impl RangePartitionGF2 {
     /*
     */
     pub fn brute_force_search__decision_at_index(&mut self,i:usize) {
-        println!("BRUTE FORCE @ {}",i);
+
         // case: i = 0, re-initialize cache
         if i == 0 {
             self.fs_cache = Vec::new();
-            self.fs_cache.push(fs::empty_FSelect());
+            self.fs_cache.push(fs::empty_FSelect(self.c_type.clone()));
         }
 
         // get bounds index
@@ -238,9 +261,10 @@ impl RangePartitionGF2 {
         let mut sol: Vec<fs::FSelect> = Vec::new();
         for j in 0..bl {
             let mut fsel = f.clone();
-            self.modify_and_merge_fselect_bounds(&mut fsel,j,v,(0,i));
+            self.modify_and_merge_fselect_bounds(&mut fsel,j,v,(0,i),true);
             fsel.score = None;
-            self.score_fselect(&mut fsel,(0,i),false);
+            self.score_fselect_(&mut fsel,(0,i),false);
+
             sol.push(fsel);
         }
 
@@ -254,17 +278,55 @@ impl RangePartitionGF2 {
             let mut vv:Vec<usize> = f2.data_labels.clone().into_iter().collect();
             vv.push(self.binary_labels[i].clone());
             f2.data_labels = vv.into_iter().collect();
-            self.score_fselect(&mut f2,(0,i),false);
+            self.score_fselect_(&mut f2,(0,i),false);
+
+            f2.mod_fm_at_index(i,self.f32_vec[i].clone());
             sol.push(f2);
         }
 
         sol
     }
 
+    pub fn score_fselect_(&mut self,f:&mut fs::FSelect,r:(usize,usize),save_contra:bool) -> f32 {
+        if self.c_type != "fm".to_string() {
+            return self.score_fselect(f,r,save_contra);
+        } else {
+            return self.score_fselect_fm(f,r);
+        }
+    }
+
+    /*
+    score function based on distance of elements in f32_vec[r.0..r.1]
+    to their labels
+    */
+    pub fn score_fselect_fm(&mut self,f:&mut fs::FSelect,r:(usize,usize)) -> f32 {
+
+        let d = r.1 - r.0;
+        if d == 0 {
+            f.score = None;
+            return f32::MAX;
+        }
+
+        let fm = f.fm.clone().unwrap();
+        let mut s:f32 = 0.;
+        for i in r.0..r.1 {
+            let ou = f.index_of_f32(self.f32_vec[i].clone());
+            let j = ou.unwrap();
+            s += (fm[j].meen - self.f32_vec[i].clone()).abs();
+        }
+
+        f.score = Some(s / d as f32);
+        f.score.clone().unwrap()
+    }
+
     /*
     if FSelect violates size threshold t,outputs f32::MAX
     */
     pub fn score_fselect(&mut self,f:&mut fs::FSelect,r:(usize,usize),save_contra:bool) -> f32 {
+        if f.data.len() > self.size_threshold {
+            return f32::MAX;
+        }
+
         // contradiction * size
         if save_contra {
             self.contra_indices = Vec::new();
@@ -291,16 +353,16 @@ impl RangePartitionGF2 {
     pub fn greedy_search__decision(&mut self) {
         let l = self.f32_vec.len();
         self.fs_cache = Vec::new();
-        self.fs_cache.push(fs::empty_FSelect());
+        self.fs_cache.push(fs::empty_FSelect(self.c_type.clone()));
 
         for i in 0..l {
             self.greedy_search__decision_for_f32(i);
         }
 
         let mut ff = self.fs_cache[0].clone();
-        self.score_fselect(&mut ff,(0,l),true);
-        self.fselect = ff;
+        self.score_fselect_(&mut ff,(0,l),false);
 
+        self.fselect = ff;
     }
 
     pub fn greedy_search__decision_for_f32(&mut self,i:usize) {
@@ -314,8 +376,8 @@ impl RangePartitionGF2 {
         }
 
         // determine the lowest score in new_cache
-        let mut default_sol = fs::empty_FSelect();
-        default_sol.score = Some(self.f32_vec.len() as f32 * self.size_threshold as f32);
+        let mut default_sol = fs::empty_FSelect(self.c_type.clone());
+        default_sol.score = Some(f32::MAX);
         let mut q = new_cache.into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
         self.fs_cache = vec![q];
     }
@@ -324,7 +386,7 @@ impl RangePartitionGF2 {
 pub fn test_sample_rpgf2_1() -> RangePartitionGF2 {
     let v: Array1<f32> = arr1(&[0.2,0.3,0.4,0.5,0.55,0.7,0.75,0.8]);
     let vl: Array1<usize> = arr1(&[0,1,0,1,0,1,0,1]);
-    build_range_partition_gf2(v,vl,2)
+    build_range_partition_gf2(v,vl,2,"basic".to_string())
 }
 
 #[cfg(test)]
@@ -350,8 +412,13 @@ mod tests {
         srp.score_fselect(&mut f,(0,8),false);
         assert_eq!(f.score,Some(4.));
         assert_eq!(4,srp.contra_indices.len());
-
-
     }
 
+    #[test]
+    pub fn test__rpgf2__greedy_search__decision() {
+        let mut rpgf2 = test_sample_rpgf2_1();
+        rpgf2.size_threshold = 2;
+        rpgf2.greedy_search__decision();//brute_force_search__decision();
+        assert!(6. == rpgf2.fselect.score.unwrap() || rpgf2.fselect.score.unwrap() == 8.);
+    }
 }

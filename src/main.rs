@@ -43,4 +43,7 @@ use std::io::{Write, BufReader, BufRead, Error};
 use std::fs::OpenOptions;
 
 fn main() {
+
+    //let f1: Array1<f32> = arr1(&[1.0,40.0,5.,-34.0,100.3]);
+    //let f1: Array1<f32> = arr1(&[10.0,40.0,20.,-34.0,60.]);
 }
