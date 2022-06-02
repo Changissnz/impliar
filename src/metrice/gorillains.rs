@@ -8,10 +8,10 @@ use ndarray::{arr1,Array1};
 /*
 Gorilla instructor GorillaIns is a "normal"-detection algorithm
 that is given a sequence S of f32, and determines a mapping
-                f: s in S --> 0|1,
+                f: s in S --> {0,1}^|S| OR (0|1),
 based on user arg. (vector of boolean values denoting normal).
 
-GorillaIns can proceed by computation by one of the following:
+GorillaIns can proceed by one of the following:
 - pre-labelled data (normal values) for sequence S using data struct RangePartitionGF2
 - non-labelled data, hypothesis computed by ArbitraryRangePartition
 */
