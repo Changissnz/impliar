@@ -39,8 +39,8 @@ impl VRed {
         self.s.push(a);
     }
 
-    pub fn mod_tailn(&mut self,a:fn(Array1<f32>) -> Array1<f32>) {
-        self.s.push(a);
+    pub fn mod_tailn(&mut self,nt:fn(Array1<f32>) -> Array1<f32>) {
+        self.tailn = Some(nt);
     }
 
     pub fn mod_tail1(&mut self,nt:fn(Array1<f32>) -> f32) {

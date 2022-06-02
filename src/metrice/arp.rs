@@ -4,24 +4,6 @@ use ndarray::{Array1,arr1};
 use crate::metrice::bmeas;
 use crate::enci::mat2sort;
 
-/*
-difference w/ RangePartitionGF2 rests on auto-labelling
-
-struct solution search process is essentially k-means on 1 dimension.
-
-for each FSelect to include an arbitrary f32, uses choices calculated from
-RangePartitionGF2 and modifies their score.
-*/
-pub struct ArbitraryRangePartition {
-    // vec is over real numbers
-    f32_vec: Array1<f32>,
-    xstream: (f32,f32),
-    rpgf2: brp::RangePartitionGF2,
-    pub fselect:Option<fs::FSelect>, // used to keep track of distance score: mean and frequency for each range
-    t:usize,
-    cache:Vec<(fs::FSelect,f32)> // FSelect, arp score
-}
-
 pub fn arr1_f32_to_arr1_01(f:Array1<f32>) -> Array1<f32> {
     let c = mat2sort::sort_arr1(f.clone(),mat2sort::f32_cmp1);
     let l = c.len();
@@ -53,6 +35,25 @@ pub fn arr1_minmax(f:Array1<f32>) -> (f32,f32) {
     let minumum = f.clone().into_iter().fold(ans.clone(),|acc,s| if s > acc {acc} else {s});
     let maximum = f.clone().into_iter().fold(ans.clone(),|acc,s| if s < acc {acc} else {s});
     (minumum,maximum)
+}
+
+//////////
+/*
+difference w/ RangePartitionGF2 rests on auto-labelling
+
+struct solution search process is essentially k-means on 1 dimension.
+
+for each FSelect to include an arbitrary f32, uses choices calculated from
+RangePartitionGF2 and modifies their score.
+*/
+pub struct ArbitraryRangePartition {
+    // vec is over real numbers
+    f32_vec: Array1<f32>,
+    xstream: (f32,f32),
+    rpgf2: brp::RangePartitionGF2,
+    pub fselect:Option<fs::FSelect>, // used to keep track of distance score: mean and frequency for each range
+    t:usize,
+    cache:Vec<(fs::FSelect,f32)> // FSelect, arp score
 }
 
 pub fn build_ArbitraryRangePartition(f32_vec: Array1<f32>,szt:usize) -> ArbitraryRangePartition {
@@ -93,7 +94,7 @@ impl ArbitraryRangePartition {
         // scale vec(bounds)
         let data = f.data.clone();
         let amm = arr1_minmax(self.f32_vec.clone());
-        let bv = bmeas::bvec_01_to_bvec_f32(data,amm.clone());
+        let bv = bmeas::bvec_01_to_bvec_f32(data,self.xstream.clone());//amm.clone());
         f.data = bv;
 
         // scale fm meens
@@ -101,7 +102,7 @@ impl ArbitraryRangePartition {
         let l = fm.len();
 
         for i in 0..l {
-            fm[i].meen = amm.0 + fm[i].meen * (amm.1 - amm.0)
+            fm[i].meen = self.xstream.0 + fm[i].meen * (amm.1 - amm.0)
         }
         f.fm = Some(fm);
     }
