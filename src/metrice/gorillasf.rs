@@ -119,7 +119,7 @@ uses Euclid's algorithm as mapping function
 -------
 
 */
-pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32,verbose:bool) -> (Array1<f32>,Array1<f32>) {
+pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32) -> (Array1<f32>,Array1<f32>) {
 
     assert!(existence_weight >= 0. && existence_weight <= 1.);
 
@@ -164,7 +164,7 @@ pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32,verbose:boo
     (sol.into_iter().collect(),sol2.into_iter().collect())
 }
 
-pub fn gorilla_touch_arr1_gcd(s: Array1<i32>, existence_weight:f32,verbose:bool) -> Array1<f32> {
+pub fn gorilla_touch_arr1_gcd(s: Array1<i32>, existence_weight:f32) -> Array1<f32> {
 
     pub fn gcdseq_of_i(s:Array1<i32>,i:usize) -> Array1<i32> {
         let l = s.len();
@@ -211,7 +211,7 @@ mod tests {
     fn test_gorilla_touch_arr1_basic() {
         let s = test_sample_gorilla_touch_arr1_1();
         let ew:f32 = 0.5;
-        let hs = gorilla_touch_arr1_basic(s, ew,true);
+        let hs = gorilla_touch_arr1_basic(s, ew);
 
         let q1:Array1<f32> = arr1(&[0.56666666, 0.8592593, 1.0, 0.88383836]);
         let q2:Array1<f32> = arr1(&[0.33234128, 0.952381, 0.5, 0.8333334]);
@@ -223,7 +223,7 @@ mod tests {
     fn test_gorilla_touch_arr1_gcd() {
         let s = test_sample_gorilla_touch_arr1_2();
         let ew:f32 = 0.5;
-        let hs = gorilla_touch_arr1_gcd(s, ew,true);
+        let hs = gorilla_touch_arr1_gcd(s, ew);
         let q1:Array1<f32> = arr1(&[0.5555556, 0.34444442, 0.28333333, 0.28333333]);
         assert!(q1 == hs);
     }

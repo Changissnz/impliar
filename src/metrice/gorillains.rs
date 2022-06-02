@@ -1,4 +1,5 @@
 use crate::metrice::brp;
+use crate::metrice::vreducer;
 
 /*
 Gorilla instructor GorillaIns is a "normal"-detection algorithm
@@ -10,15 +11,30 @@ GorillaIns can proceed by computation by one of the following:
 - pre-labelled data (normal values) for sequence S using data struct RangePartitionGF2
 - non-labelled data, hypothesis computed by ArbitraryRangePartition
 */
+
+///////////////////////////////////
+
 pub struct GorillaIns {
     S: Vec<f32>,
+    approach: vreducer::VRed,
     wanted_normal:Option<Vec<usize>>,
-
-    approach: String,
-    //
     rpgf2_sol: Option<brp::RangePartitionGF2>,
-    //
-    //arp_sol: Option
+    // two recognition modes:
+    /*
+    (1) f32 for sequence
+    (2) f32 for each value of sequence
+
+    recog_mode_seq := true -> (1)
+    */
+    recog_mode_seq:bool
+}
+
+impl GorillaIns {
+
+    pub fn process_one() {
+
+    }
+
 }
 
 
