@@ -144,8 +144,8 @@ mod tests {
         let mut ifn2 = build_index_fraction_notation(q2.clone());
         ifn2.process();
         for i in 0..7 {
-            let mut j = ifn2.output(i);
-            let mut g = ans2[i as usize];
+            let j = ifn2.output(i);
+            let  g = ans2[i as usize];
             assert_eq!(j,g);
         }
 

@@ -20,7 +20,8 @@ pub struct GorillaIns {
     approach: vreducer::VRed,
 
     // indices from S that are labelled "normal"
-    wanted_normal:Option<Array1<usize>>,
+    wanted_normaln:Option<Array1<usize>>,
+    wanted_normal1:Option<usize>,
 
     /// two approaches to getting soln for normal: manual | auto
     man_sol: Option<brp::RangePartitionGF2>,
@@ -28,41 +29,67 @@ pub struct GorillaIns {
 
     // two recognition modes:
     /*
-    (1) f32 for sequence
-    (2) f32 for each value of sequence
+    (0) f32 for sequence
+    (1) f32 for each value of sequence
 
-    recog_mode_seq := true -> (1)
+    recog_mode_seq := true -> (0)
     */
-    recog_mode_seq:bool,
+    tail_mode:usize,
     szt:usize,
-    soln:Option<fs::FSelect>
+    pub soln:Option<fs::FSelect>
 }
 
 /*
 */
-pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_normal:Option<Array1<usize>>,
-    recog_mode_seq:bool,szt:usize) -> GorillaIns {
-    GorillaIns{sequence:sequence,approach:approach,wanted_normal:wanted_normal,
-        man_sol:None,auto_sol:None,recog_mode_seq:recog_mode_seq,szt:szt,soln:None}
+pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
+    wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
+
+    GorillaIns{sequence:sequence,approach:approach,wanted_normaln:wanted_normaln,
+    wanted_normal1:wanted_normal1,man_sol:None,auto_sol:None,
+    tail_mode:tail_mode,szt:szt,soln:None}
 }
 
 impl GorillaIns {
 
-    /*
-    uses brute-force approach of *RangePartition* to process entire var<sequence>
-    */
-    pub fn brute_process_one(&mut self) {
-        // case: auto-labelling required
-        if self.wanted_normal.is_none() {
-            let mut arp1 = arp::build_ArbitraryRangePartition(self.sequence.clone(),self.szt);
+    pub fn approach_on_sequence(&mut self) -> (Option<f32>,Option<Array1<f32>>) {
+        self.approach.apply(self.sequence.clone(),self.tail_mode)
+    }
+
+    pub fn brute_process_tailn(&mut self) {
+        let (_,mut x1) = self.approach_on_sequence();
+
+        if self.wanted_normaln.is_none() {
+            let mut arp1 = arp::build_ArbitraryRangePartition(x1.clone().unwrap(),self.szt);
             arp1.brute_force_search__decision();
             self.soln = arp1.fselect.clone();
             return;
         }
 
-        let mut rpgf2 = brp::build_range_partition_gf2(self.sequence.clone(),self.wanted_normal.clone().unwrap(),
+        let mut rpgf2 = brp::build_range_partition_gf2(x1.clone().unwrap(),self.wanted_normaln.clone().unwrap(),
             self.szt,"basic".to_string());
         rpgf2.brute_force_search__decision();
         self.soln = Some(rpgf2.fselect);
     }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    pub fn test__GorillaIns__brute_process_tailn() {
+        // case 1:
+        let q:Array1<f32> = arr1(&[14.,18.,81131222.,75121.]);
+        let fx: Vec<fn(Array1<f32>) -> Array1<f32>> = Vec::new();
+        let mut r: vreducer::VRed = vreducer::build_VRed(fx,None,None);
+        r.mod_tailn(vreducer::std_euclids_reducer);
+        let normal:Array1<usize> = arr1(&[1,1,0,0]);
+        let mut gi = build_GorillaIns(q,r,Some(normal),None,1,3);
+        gi.brute_process_tailn();
+        assert!(gi.soln.unwrap().score.unwrap() == 2.);
+
+
+    }
+
 }

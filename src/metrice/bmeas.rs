@@ -32,7 +32,7 @@ pub fn is_subbound(b:(f32,f32),b2:(f32,f32)) -> bool {
 f,b2 in b1.
 */
 pub fn closest_distance_to_subbound(b1:(f32,f32),b2:(f32,f32),f:f32) -> f32 {
-    assert!(in_bounds(b1.clone(),f));
+    assert!(in_bounds(b1.clone(),f), "bounds {:?} for {}",b1,f);
     assert!(in_bounds(b1.clone(),b2.0) && in_bounds(b1.clone(),b2.1));
 
     if in_bounds(b2.clone(),f) {

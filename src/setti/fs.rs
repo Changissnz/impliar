@@ -1,7 +1,9 @@
 use crate::enci::be_int;
 use crate::metrice::bmeas;
+use crate::setti::setf;
 use std::collections::HashSet;
 use ndarray::{arr1,Array1};
+use std::fmt;
 
 /*
 struct used to keep track of FSelect mean and frequency per bound
@@ -23,14 +25,9 @@ impl FM {
     pub fn update_values(&mut self,v: f32) {
         let mut q = self.meen.clone() * self.frequency as f32;
         self.frequency += 1;
-        //println!("F M {} {}", self.meen,self.frequency);
         self.meen = (self.meen + v)  / self.frequency as f32;
     }
-
 }
-
-// deravel
-
 
 /*
 the f32 version that is the VSelect from setti::vs.
@@ -71,6 +68,20 @@ pub fn build_FSelect(data: Vec<(f32,f32)>, data_labels:Array1<usize>,bounds: (f3
     let fm : Option<Vec<FM>> = if mode == "basic".to_string() {None} else {Some(Vec::new())};
     FSelect{data:data,data_labels:data_labels,bounds:bounds,score:None,
         mode:mode,fm:fm}
+}
+
+impl fmt::Display for FSelect {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut q = "* fselect ".to_string();
+        q.push_str(&format!("** data\n{:?}\n", self.data.clone()));
+        if !self.score.is_none() {
+            q.push_str(&format!("** score {}",self.score.unwrap()));
+        } else {
+            q.push_str("** score ??");
+        }
+        write!(f, "{}", q)
+    }
 }
 
 impl FSelect {

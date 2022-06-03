@@ -369,7 +369,7 @@ impl RangePartitionGF2 {
         let mut new_cache: Vec<fs::FSelect> = Vec::new();
 
         while self.fs_cache.len() > 0 {
-            let mut f = self.fs_cache[0].clone();
+            let f = self.fs_cache[0].clone();
             self.fs_cache = self.fs_cache[1..].to_vec();
             let mut cho = self.choices_at_index(f,i);
             new_cache.extend(cho);
@@ -378,7 +378,7 @@ impl RangePartitionGF2 {
         // determine the lowest score in new_cache
         let mut default_sol = fs::empty_FSelect(self.c_type.clone());
         default_sol.score = Some(f32::MAX);
-        let mut q = new_cache.into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
+        let q = new_cache.into_iter().fold(default_sol,|acc,f| if acc.score.unwrap() < f.score.unwrap() {acc} else {f});
         self.fs_cache = vec![q];
     }
 }

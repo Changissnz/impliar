@@ -193,21 +193,14 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     let d3 = vec![r,r+1];
     d.insert(setf::vec_to_str(d2),d3);
     q.push(s[r].clone());
-
-    //let mut c = 0;
     while q.len() > 0 {
         // fetch next base
         let x = q[0].clone();
         q = q[1..].to_vec();
-        //println!("next base: {}", x);
 
         // get info for add-on
         let mut ni = (d.get_mut(&x).unwrap()).clone();
-        //println!("converting");
         let mut x3 = setf::str_to_vec(x.clone());
-        //println!("[2] next base: {}", x);
-        //println!("check0 {}|{}",ni[0],ni[1]);
-        //println!("check {}|{}|{}|{}",ni[1],x3.len(),k,s.len());
 
             // determine if terminate
         let slen = s.len() + 1;
@@ -215,51 +208,39 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     		k as i32, slen as i32);
 
     	if !vil {
-            //println!("not valid index");
-            //println!("-------------------------------------------");
     		continue;
     	}
 
         while x3.len() < k {
     		let x32 = x3.clone();
-            //println!("_: {},{}",ni[0],ni[1]);
 
     		// UPDATE ELEMENT
     		let n = s[ni[1]].clone();
     		x3.push(n);
 
     		// UPDATE OLD KEY
-            //println!("\t---------|----------");
     		let ok = setf::vec_to_str(x32);
-            //println!("updating old key {}", ok);
-            //println!("\t* index for update: {},{}",ni[0],ni[1]);
 	        let mut nok = (d.get_mut(&(ok.to_string())).unwrap()).clone();
     		nok[1] = nok[1] + 1;
-            //println!("\t* new key {}|{}", nok[0],nok[1]);
     		d.insert(ok.to_string(),nok);
 
     		// UPDATE NEW KEY
     		let nk = setf::vec_to_str(x3.clone());
-            //println!("updating new key {}", nk);
             let nk2 = nk.clone();
+
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
     			let ans = vec![ni[1],ni[1] + 1];
-                //println!("\tkey not contained: {}",nk);
                 if ni[1] + 1 >= s.len() {
                     continue;
                 }
-                //println!("\t\tupdating: {},{}|{}",ans[0],ans[1] - 1,ans[1]);
     			d.insert(nk.clone(),ans.clone());
     		} else {// case: new key exist
     			let mut ans = (d.get_mut(&(nk.clone())).unwrap()).clone();
     			ans[1] = ans[1] + 1;
-                //println!("\tkey contained, updating {},{}|{}",ans[0],ans[1] - 1, ans[1]);
-                //println!("\tkey contained");
                 if ni[1] +1 >= s.len() {
                     continue;
                 }
-                //println!("updating {},{}|{}",ans[0],ans[1] - 1, ans[1]);
                 d.insert(nk.clone(),ans.clone());
     		}
 
@@ -269,16 +250,13 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
             if x3.len() >= k {
                 continue;
             }
-            //println!("\n\tupdate key after: {}|{}",ni[0],ni[1]);
     		q.push(nk.to_string());
         }
 
         let nk = setf::vec_to_str(x3.clone());
-        //println!("^ key is {}",nk);
         let h: HashSet<String> = x3.into_iter().collect();
         result.push(h);
         q.push(x.clone());
-        //println!("-------------------------------------------");
    }
     result
 }
@@ -436,13 +414,6 @@ mod tests {
 
             let mut y = strng_srt::stringized_srted_vec(&mut x);
             let mut s = fcollect(x,0,3);
-            /*
-            for s_ in s.iter() {
-                let mut s2: Vec<String> = Vec::from_iter((*s_).clone());
-                let s3 = stringized_srted_vec(&mut s2);
-                println!("^^: {}", s3);
-            }
-            */
             assert_eq!(s.len(),10);
 
     }
@@ -488,13 +459,10 @@ mod tests {
     #[test]
     fn test_sr_op() {
         let (mut rs,mut rq) = selection_rule::test_rule_contents_2();
-        //println!("RS\n{}\n",rs.data.clone());
-        //println!("RQ\n{}",rq.data.clone());
         let mut sr = selection_rule::SelectionRule{res:rs,req:rq,choice:Vec::new()};
         let mut c = 0;
         while true {
             let (mut x1,mut x2) = sr_op(&mut sr,c);
-            //println!("i {} choice {} stat: {}", c, x1, x2);
             if !x2 {
                 break;
             }
@@ -506,10 +474,7 @@ mod tests {
                 break;
             }
 
-            //println!("----------------------------------------------");
         }
-
-        //assert_eq!(c,6);
         assert!(c >=3);
     }
 
