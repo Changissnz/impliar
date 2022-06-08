@@ -4,7 +4,6 @@ use crate::metrice::vreducer;
 use crate::setti::fs;
 use ndarray::{arr1,Array1};
 
-
 /*
 Gorilla instructor GorillaIns is a "normal"-detection algorithm
 that is given a sequence S of f32, and determines a mapping
@@ -18,6 +17,8 @@ GorillaIns can proceed by one of the following:
 pub struct GorillaIns {
     sequence: Array1<f32>,
     approach: vreducer::VRed,
+    app_out1: Option<f32>,
+    app_outn: Option<Array1<f32>>,
 
     // indices from S that are labelled "normal"
     wanted_normaln:Option<Array1<usize>>,
@@ -43,10 +44,9 @@ pub struct GorillaIns {
 */
 pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
-
-    GorillaIns{sequence:sequence,approach:approach,wanted_normaln:wanted_normaln,
-    wanted_normal1:wanted_normal1,man_sol:None,auto_sol:None,
-    tail_mode:tail_mode,szt:szt,soln:None}
+    GorillaIns{sequence:sequence,approach:approach,app_out1:None,app_outn:None,
+    wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
+    auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None}
 }
 
 impl GorillaIns {
@@ -69,6 +69,15 @@ impl GorillaIns {
             self.szt,"basic".to_string());
         rpgf2.brute_force_search__decision();
         self.soln = Some(rpgf2.fselect);
+        self.app_outn = x1.clone();
+    }
+
+    /*
+    improves solution by the same size threshold t. uses struct<Skew> to
+    modify values.
+    */
+    pub fn improve_approach(&mut self) {
+        // get skew
     }
 }
 
@@ -87,9 +96,7 @@ mod tests {
         let normal:Array1<usize> = arr1(&[1,1,0,0]);
         let mut gi = build_GorillaIns(q,r,Some(normal),None,1,3);
         gi.brute_process_tailn();
-        assert!(gi.soln.unwrap().score.unwrap() == 2.);
-
-
+        assert!(gi.soln.clone().unwrap().score.unwrap() <= 2., "got {} <= 2",gi.soln.unwrap().score.unwrap());
     }
 
 }

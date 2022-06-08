@@ -36,4 +36,7 @@ SCHEDULE
 
   * update (evening):
       Code analysis and refactoring will hold off until integration code
-      between `metrice::brp` and `metrice::gorillasf` has been built. 
+      between `metrice::brp` and `metrice::gorillasf` has been built.
+
+- 6/8/22
+  * planning for another file called `skewcorrctr.rs` in `metrice`.

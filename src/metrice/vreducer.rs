@@ -1,12 +1,10 @@
-/*
-implementation of vector reducer: a sequence of functions (arr1->arr1),and the last is
-(arr1->f32).
-
-
-*/
 use ndarray::Array1;
 use crate::metrice::gorillasf;
 
+/*
+implementation of vector reducer: a sequence of functions (arr1->arr1),and the last is
+(arr1->f32)|(arr1->arr1).
+*/
 pub struct VRed {
     s: Vec<fn(Array1<f32>) -> Array1<f32>>,
     tail1: Option<fn(Array1<f32>) -> f32>,
@@ -18,7 +16,6 @@ pub fn build_VRed(s:Vec<fn(Array1<f32>) -> Array1<f32>>,
     VRed{s:s,tail1:tail1,tailn:tailn}
 }
 
-// for Euclid's, output of s' is boolean vec for normal
 impl VRed {
 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {

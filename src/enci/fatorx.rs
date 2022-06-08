@@ -32,7 +32,12 @@ pub fn factors_of_usize(v:usize) -> HashSet<usize> {
 
 
 pub fn factors_of_i32(v:i32) -> HashSet<i32> {
-
+    /*
+    let v = v.abs();
+    let sol_:HashSet<usize> = factors_of_usize(v as usize);//.into_iter().map(|x| x as i32).collect();
+    neg_double_vec(sol_.into_iter().collect()).into_iter().collect()
+    */
+    /////
     if v >= 0 {
         let sol:HashSet<i32> = factors_of_usize(v as usize).into_iter().map(|x| x as i32).collect();
         return sol;
@@ -269,6 +274,9 @@ pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
 
     for v_ in v.into_iter() {
         v2.push(v_ as i32);
+        if v_ == 0 {
+            continue;
+        }
         v2.push(v_ as i32 * -1);
     }
     v2

@@ -1,6 +1,7 @@
 use ndarray::Array1;
 use ndarray::arr1;
 use ndarray::Dim;
+use std::fmt;
 
 /*
 element of IndexFractionNotation
@@ -34,6 +35,14 @@ impl FloorDiv {
         FloorDiv{t:self.t.clone(),b:self.b,m:self.m}
     }
 
+}
+
+impl fmt::Display for FloorDiv {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut q = &format!("* floor div: {:?} | {} | {} ",self.t,self.b,self.m);
+        write!(f, "{}", q)
+    }
 }
 
 /*

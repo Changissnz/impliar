@@ -7,6 +7,7 @@ use crate::setti::setf;
 use crate::setti::strng_srt;
 use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 use std::collections::HashSet;
+use std::fmt;
 
 /*
 */
@@ -142,6 +143,7 @@ pub fn empty_selection_rule() {
 
 }
 
+
 /*
 calculates the next choice given choice (of len k) by greedy forward selection (first available).
 
@@ -175,7 +177,6 @@ pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Optio
         // get max of previous chunk (size is distance)
         // try iterating one forward from min
         let x:usize = choice[0];
-        //let x2:usize = x + l + distance - 1;
         let x2:usize = x + l;
         if x2 < n {
             let mut c_:Vec<usize> = Vec::new();
@@ -199,6 +200,18 @@ pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Optio
         }
 
         return Some(c_);
+    }
+}
+
+impl fmt::Display for SelectionRule {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut q = "* selection rule ".to_string();
+        q.push_str(&format!("\n*\trestriction matrix\n"));
+        q.push_str(&format!("{:?}\n",self.res.data));
+        q.push_str(&format!("\n*\trequirement matrix\n"));
+        q.push_str(&format!("{:?}",self.req.data));
+        write!(f, "{}", q)
     }
 }
 
