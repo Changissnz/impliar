@@ -3,7 +3,7 @@ measures on proper bounds b = (start,end); start < end
 */
 extern crate round;
 
-use ndarray::Array1;
+use ndarray::{Array1,arr1};
 use round::round;
 use crate::enci::mat2sort;
 
@@ -246,6 +246,97 @@ pub fn bvec_01_to_bvec_f32(bv:Vec<(f32,f32)>,refb:(f32,f32)) -> Vec<(f32,f32)> {
     bv.clone().into_iter().map(|x| bound_01_to_subbound_f32(refb.clone(),x)).collect()
 }
 
+    //////////////////////// specialized functions for i32
+
+/*
+special case of cheapest add:
+
+soln is i32
+*/
+pub fn pos_neg_add_vecs_target_i32(v1:Array1<i32>,b:(i32,i32),li:i32) -> (Array1<i32>,Array1<i32>) {
+    // get + & - values for v1 to li
+    let mut pv: Vec<i32> = Vec::new();
+    let mut nv: Vec<i32> = Vec::new();
+    for v in v1.into_iter() {
+        if v > li {
+            pv.push(b.1 - v + li - b.0);
+            nv.push(li - v);
+        } else {
+            pv.push(li - v);
+            nv.push(-(v - b.0 + b.1 - li));
+        }
+    }
+
+    (pv.into_iter().collect(),nv.into_iter().collect())
+}
+
+pub fn bounded_cheapest_add_target_i32_(v1:Array1<i32>,b:(i32,i32),li:i32) -> Array1<i32> {
+    let (x1,x2) = pos_neg_add_vecs_target_i32(v1.clone(),b.clone(),li);
+    let mut sol:Vec<i32> = Vec::new();
+    let l = x1.len();
+    for i in 0..l {
+        if x1[i].abs() < x2[i].abs() {
+            sol.push(x1[i]);
+        } else {
+            sol.push(x2[i]);
+        }
+    }
+    sol.into_iter().collect()
+}
+
+/*
+*/
+pub fn bounded_cheapest_add_target_i32(v1:Array1<i32>,b:(i32,i32),li:i32) -> i32 {
+    let (pv,nv) = pos_neg_add_vecs_target_i32(v1.clone(),b.clone(),li);
+
+    // get average of each
+    let (a1,a2) = (pv.mean().unwrap(),nv.mean().unwrap());
+
+    // add each average to v1
+    let mut v2 = v1.clone() + round(a1 as f64,0) as i32;
+    let mut v3 = v1.clone() + round(a2 as f64,0) as i32;
+    let l = v1.len();
+
+    // calibrate each value in bounds
+    // determine cumulative absolute bdistance for each of v2,v3
+    let (mut c2,mut c3):(i32,i32) = (0,0);
+    for i in 0..l {
+        // calibrate
+        let v2_ = calibrate_in_bounds((b.0 as f32,b.1 as f32),v2[i] as f32);
+        let v3_ = calibrate_in_bounds((b.0 as f32,b.1 as f32),v3[i] as f32);
+
+        // abs bdistance
+        let d2 = bdistance_of_f32pair((v2_,li as f32),(b.0 as f32,b.1 as f32));
+        let d3 = bdistance_of_f32pair((v3_,li as f32),(b.0 as f32,b.1 as f32));
+
+        c2 = c2 + (round(d2 as f64,0) as i32).abs();
+        c3 = c3 + (round(d3 as f64,0) as i32).abs();
+    }
+
+    // determine which value results in the least distance
+    if c2 < c3 {
+        return a1 as i32;
+    }
+    a2 as i32
+}
+
+pub fn calibrate_arr1_i32_in_bounds(v1:Array1<i32>,b:(i32,i32)) -> Array1<i32> {
+    let mut f:Vec<i32> = Vec::new();
+
+    for v in v1.into_iter() {
+        let x = calibrate_in_bounds((b.0 as f32,b.1 as f32),v as f32) as i32;
+        f.push(x);
+    }
+    f.into_iter().collect()
+}
+
+pub fn abs_arr1_bdistance(v1:Array1<i32>, f:i32, b:(i32,i32)) -> usize {
+
+    let x:Array1<usize> = v1.into_iter().map(|x| bdistance_of_f32pair((x as f32,f as f32),(b.0 as f32,b.1 as f32)).abs() as usize ).collect();
+    x.sum()
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn test_sample_bmeas_info() -> ((f32,f32),(f32,f32),(f32,f32)) {
@@ -255,6 +346,12 @@ pub fn test_sample_bmeas_info() -> ((f32,f32),(f32,f32),(f32,f32)) {
     (p1,p2,f)
 }
 
+pub fn test_sample_bmeas_info_2() -> (Array1<i32>,(i32,i32),i32) {
+    let x:Array1<i32> = arr1(&[1,100,112,314]);
+    let b:(i32,i32) = (-20,400);
+    let l: i32 = 60;
+    (x,b,l)
+}
 #[cfg(test)]
 mod tests {
 
@@ -317,7 +414,22 @@ mod tests {
         assert_eq!(bv2,fv);
     }
 
+    #[test]
+    pub fn test_pos_neg_add_vecs_target_i32() {
+        let (x,b,l) = test_sample_bmeas_info_2();
 
+        let (pv,nv) = pos_neg_add_vecs_target_i32(x.clone(),b.clone(),l);
+        assert_eq!(pv,arr1(&[59, 380, 368, 166]));
+        assert_eq!(nv,arr1(&[-361, -40, -52, -254]));
+    }
+
+    #[test]
+    pub fn test_bounded_cheapest_add_target_i32_() {
+        let (x,b,l) = test_sample_bmeas_info_2();
+        let c2 = bounded_cheapest_add_target_i32_(x.clone(),b.clone(),l);
+        let x4 = calibrate_arr1_i32_in_bounds(x.clone() + c2,b.clone());
+        assert_eq!(0,abs_arr1_bdistance(x4,l,b.clone()));
+    }
 
 
 }
