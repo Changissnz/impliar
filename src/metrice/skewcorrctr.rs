@@ -101,9 +101,8 @@ pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normal
 }
 
 /*
-skew is addit
 */
-pub fn form_skew_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
+pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
     wanted_normaln:Array1<usize>) -> Array1<f32> {
 
     pub fn bounded_cheapest_add_target_i32__(v1:Array1<f32>,li:f32) -> Array1<f32> {
