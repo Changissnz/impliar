@@ -9,18 +9,19 @@ pub struct BFGSelectionRule {
     pub sr: selection_rule::SelectionRule,
     // column-wise index in search
     pub i:usize,
-    pub next_path:Vec<usize>
+    pub next_path:Vec<usize>,
+    pub score:Option<f32>
 }
 
 pub fn build_BFGSelectionRule(sr:selection_rule::SelectionRule) -> BFGSelectionRule {
-    BFGSelectionRule{sr:sr,i:0,next_path:Vec::new()}
+    BFGSelectionRule{sr:sr,i:0,next_path:Vec::new(),score:None}
 }
 
 pub fn default_BFGSelectionRule(r:usize,c:usize) -> BFGSelectionRule {
-    let rq:Array2<i32> = Array2::ones((r,c));
+    let rq:Array2<i32> = Array2::ones((r,c)) * -1;
     let rs:Array2<i32> = Array2::zeros((r,c));
     let sr = selection_rule::SelectionRule{res:selection_rule::Restriction{data:rs},req:selection_rule::Requirement{data:rq},choice:Vec::new()};
-    BFGSelectionRule{sr:sr,i:0,next_path:Vec::new()}
+    BFGSelectionRule{sr:sr,i:0,next_path:Vec::new(),score:None}
 }
 
 impl BFGSelectionRule {
@@ -40,10 +41,10 @@ pub struct BFGSearcher {
     tmp_cache <- search(p)
     tmp_cache -> (cache|all_cache)
     */
-    cache:Vec<BFGSelectionRule>,
+    pub cache:Vec<BFGSelectionRule>,
         // for each rule in tmp_cache
-    tmp_cache:Vec<BFGSelectionRule>,
-    all_cache:Vec<BFGSelectionRule>,
+    pub tmp_cache:Vec<BFGSelectionRule>,
+    pub all_cache:Vec<BFGSelectionRule>,
 
     // timestamp 0..|selection_rule.columns|
     pub ts:usize
@@ -91,13 +92,19 @@ impl BFGSearcher {
         }
 
         let mut c = self.cache[0].clone();
+        self.cache = self.cache[1..].to_vec();
+
+        if c.i == c.sr.dimso().1 {
+            self.all_cache.push(c);
+            return true;
+        }
         let l = self.next_srs_(&mut c).len();
+
         // case: no more elements, finished
         if l == 0 {
             self.all_cache.push(c);
         }
-        
-        self.cache = self.cache[1..].to_vec();
+
         true
     }
 

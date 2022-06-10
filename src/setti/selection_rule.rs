@@ -272,6 +272,8 @@ impl SelectionRule{
         }
         self.res.restrict_row(ch);
         self.req.restrict_row(ch);
+
+        self.choice.push(ch);
         ch
     }
 

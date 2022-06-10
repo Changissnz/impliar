@@ -6,6 +6,8 @@ use std::hash::Hash;
 use std::cmp::Eq;
 use ndarray::{Array1,Array2, array,arr1,arr2,s};
 use std::default::Default;
+use std::collections::HashMap;
+
 
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,is_row:bool)
 where
@@ -130,6 +132,25 @@ where
     sol
 }
 
+pub fn label_to_iset_map<T>(v: Vec<T>) -> HashMap<T,Vec<usize>>
+where
+    T: Clone + Hash + Eq {
+
+    let mut h:HashMap<T,Vec<usize>> = HashMap::new();
+
+    for (i,v_) in v.into_iter().enumerate() {
+        if h.contains_key(&v_) {
+            let mut l = h.get_mut(&v_).unwrap();
+            l.push(i);
+            let x:Vec<usize> = l.clone();
+            *h.get_mut(&v_).unwrap() = x;
+        } else {
+            h.insert(v_,vec![i]);
+        }
+    }
+    h
+}
+
 /////////////////////////////////////////////////////////////////////////
 
 pub fn test_d() -> Array2<i32> {
@@ -225,6 +246,13 @@ mod tests {
                         [0, 0, 0, 0]]);
 
         assert_eq!(c,d);
+    }
+
+    #[test]
+    fn test_label_to_iset_map() {
+        let h = label_to_iset_map(vec![0,0,1,1,1,1,0]);
+        let ans:HashMap<usize,Vec<usize>> = HashMap::from_iter([(1,vec![2, 3, 4, 5]), (0,vec![0, 1, 6])]);
+        assert_eq!(h,ans);
     }
 
 }
