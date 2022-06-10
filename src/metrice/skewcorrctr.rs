@@ -4,7 +4,6 @@ skew corrector contains functions for improving approach by GorillaIns
 /////////////////////////////////////////////////////////////
 use crate::setti::matrixf;
 use crate::setti::bfngsrch;
-use crate::enci::skew;
 use crate::metrice::bmeas;
 use crate::setti::dessi;
 use std::collections::{HashSet,HashMap};
@@ -144,7 +143,6 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
 }
 
 /*
-calculates a Skew.apply_at function,
 */
 pub fn gorilla_improve_approach_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSelectionRule {
     let mut fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
