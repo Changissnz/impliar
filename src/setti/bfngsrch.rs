@@ -46,7 +46,8 @@ pub struct BFGSearcher {
     pub tmp_cache:Vec<BFGSelectionRule>,
     pub all_cache:Vec<BFGSelectionRule>,
 
-    // timestamp 0..|selection_rule.columns|
+    // timestamp 0..|selection_rule.columns
+    // UNUSED
     pub ts:usize
 }
 
@@ -60,7 +61,6 @@ impl BFGSearcher {
 
     pub fn next_srs(&mut self, sri :Option<usize>) {
         // case: brute
-        //////
         if sri.is_none() {
             // iterate through tmp_cache
             let mut l = self.tmp_cache.len();

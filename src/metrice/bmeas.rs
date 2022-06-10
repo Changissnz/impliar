@@ -18,9 +18,6 @@ pub fn in_bounds(b:(f32,f32),f:f32) -> bool {
     f >= b.0 && f <= b.1
 }
 
-/*
-
-*/
 pub fn is_subbound(b:(f32,f32),b2:(f32,f32)) -> bool {
     assert!(is_proper_bounds(b.clone()));
     assert!(is_proper_bounds(b.clone()));
@@ -51,9 +48,6 @@ pub fn closest_distance_to_subbound(b1:(f32,f32),b2:(f32,f32),f:f32) -> f32 {
     bd1
 }
 
-/*
-
-*/
 pub fn bounds_intersect(b1:(f32,f32),b2:(f32,f32)) -> bool {
     in_bounds(b2.clone(),b1.0) || in_bounds(b2.clone(),b1.1)
 }
@@ -124,8 +118,6 @@ pub fn additive_in_bounds(b:(f32,f32),f:f32,a:f32) -> f32 {
     assert!(is_proper_bounds(b.clone()));
     assert!(in_bounds(b.clone(),f.clone()), "have bounds {:?} value {}",b.clone(),f);
 
-    // && in_bounds(b.clone(),a.clone()));
-
     // check for remainder
     calibrate_in_bounds(b.clone(),f + a)
 }
@@ -186,12 +178,6 @@ pub fn bound_01_to_subbound_f32(refb:(f32,f32),b:(f32,f32)) -> (f32,f32) {
 }
 
 /*
-outputs a bound f2 in [0.,1.]^2 for f in (real numbers)^2 based on refb (a proper bound
- of f in (real numbers)^2).
-*/
-////
-
-/*
 b2 is subbound of b1
 */
 pub fn subbound_f32_to_bound_01(b1:(f32,f32),b2:(f32,f32)) -> (f32,f32) {
@@ -219,7 +205,7 @@ pub fn bounds_of_bv(bv: Vec<(f32,f32)>) -> (f32,f32) {
     assert!(bv.len() != 0);
 
     // collect all into 1-d
-    let mut a: Vec<f32> = Vec::new();//bv.into_iter();
+    let mut a: Vec<f32> = Vec::new();
 
     for b in bv.into_iter() {
         a.push(b.0.clone());
@@ -284,43 +270,6 @@ pub fn bounded_cheapest_add_target_i32_(v1:Array1<i32>,b:(i32,i32),li:i32) -> Ar
     sol.into_iter().collect()
 }
 
-/// WRONG 
-/*
-*/
-pub fn bounded_cheapest_add_target_i32(v1:Array1<i32>,b:(i32,i32),li:i32) -> i32 {
-    let (pv,nv) = pos_neg_add_vecs_target_i32(v1.clone(),b.clone(),li);
-
-    // get average of each
-    let (a1,a2) = (pv.mean().unwrap(),nv.mean().unwrap());
-
-    // add each average to v1
-    let mut v2 = v1.clone() + round(a1 as f64,0) as i32;
-    let mut v3 = v1.clone() + round(a2 as f64,0) as i32;
-    let l = v1.len();
-
-    // calibrate each value in bounds
-    // determine cumulative absolute bdistance for each of v2,v3
-    let (mut c2,mut c3):(i32,i32) = (0,0);
-    for i in 0..l {
-        // calibrate
-        let v2_ = calibrate_in_bounds((b.0 as f32,b.1 as f32),v2[i] as f32);
-        let v3_ = calibrate_in_bounds((b.0 as f32,b.1 as f32),v3[i] as f32);
-
-        // abs bdistance
-        let d2 = bdistance_of_f32pair((v2_,li as f32),(b.0 as f32,b.1 as f32));
-        let d3 = bdistance_of_f32pair((v3_,li as f32),(b.0 as f32,b.1 as f32));
-
-        c2 = c2 + (round(d2 as f64,0) as i32).abs();
-        c3 = c3 + (round(d3 as f64,0) as i32).abs();
-    }
-
-    // determine which value results in the least distance
-    if c2 < c3 {
-        return a1 as i32;
-    }
-    a2 as i32
-}
-
 pub fn calibrate_arr1_i32_in_bounds(v1:Array1<i32>,b:(i32,i32)) -> Array1<i32> {
     let mut f:Vec<i32> = Vec::new();
 
@@ -332,10 +281,8 @@ pub fn calibrate_arr1_i32_in_bounds(v1:Array1<i32>,b:(i32,i32)) -> Array1<i32> {
 }
 
 pub fn abs_arr1_bdistance(v1:Array1<i32>, f:i32, b:(i32,i32)) -> usize {
-
     let x:Array1<usize> = v1.into_iter().map(|x| bdistance_of_f32pair((x as f32,f as f32),(b.0 as f32,b.1 as f32)).abs() as usize ).collect();
     x.sum()
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,6 +300,7 @@ pub fn test_sample_bmeas_info_2() -> (Array1<i32>,(i32,i32),i32) {
     let l: i32 = 60;
     (x,b,l)
 }
+
 #[cfg(test)]
 mod tests {
 
@@ -431,6 +379,4 @@ mod tests {
         let x4 = calibrate_arr1_i32_in_bounds(x.clone() + c2,b.clone());
         assert_eq!(0,abs_arr1_bdistance(x4,l,b.clone()));
     }
-
-
 }
