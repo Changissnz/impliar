@@ -79,7 +79,7 @@ impl ArbitraryRangePartition {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn brute_force_search__decision(&mut self) {
-        let mut f_ = self.rpgf2.brute_force_search__decision();
+        let f_ = self.rpgf2.brute_force_search__decision();
 
         if f_.is_none() {
             println!("ERROR: no search resut for ARP");

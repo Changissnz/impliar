@@ -58,14 +58,14 @@ pub fn build_VRed(fv:Vec<FCast>,sv:Vec<skewf32::SkewF32>,
 impl VRed {
 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {
-        let mut a2 = self.apply_body(a);
+        let a2 = self.apply_body(a);
 
         // tail1
         if tail_type == 1 {
             if self.tail1.is_none() {
                 return (None,Some(a2));
             }
-            let mut a3 = (self.tail1.clone().unwrap()).apply(a2);
+            let a3 = (self.tail1.clone().unwrap()).apply(a2);
             return (Some(a3),None);
         }
 
@@ -73,7 +73,7 @@ impl VRed {
         if self.tailn.is_none() {
             return (None,Some(a2));
         }
-        let mut a2 = (self.tailn.clone().unwrap()).skew_value(a2);
+        let a2 = (self.tailn.clone().unwrap()).skew_value(a2);
         (None,Some(a2))
     }
 
@@ -133,7 +133,7 @@ impl VRed {
         for i in 1..l {
             // check off all indices prior: (prior,i)
             let x2 = self.directions[i].clone();
-            let mut qr:usize = if q == 1 {ls.clone()} else {lf.clone()};
+            let qr:usize = if q == 1 {ls.clone()} else {lf.clone()};
 
             if x2 >= qr {
                 return false;
@@ -155,7 +155,7 @@ impl VRed {
     }
 
     pub fn current_switch(&mut self) -> usize {
-        let mut q = self.switch_f.clone();
+        let q = self.switch_f.clone();
         (q + self.directions.len() - 1) % 2
     }
 
@@ -192,8 +192,8 @@ impl VRed {
 pub fn sample_vred_adder_skew(a:Array1<f32>) -> skewf32::SkewF32 {
 
     // get size
-    let mut y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
-    let mut v_:Array1<i32> = a.into_iter().map(|x1| (x1 * f32::powf(10.,y as f32)) as i32).collect();
+    let y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
+    let v_:Array1<i32> = a.into_iter().map(|x1| (x1 * f32::powf(10.,y as f32)) as i32).collect();
     let sk = skew::build_skew(None,None,Some(v_),None,vec![2],None);
     skewf32::SkewF32{sk:sk,s:y}
 }
@@ -218,8 +218,8 @@ pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
     fv.push(FCast{f:f3});
 
     let mut sv: Vec<skewf32::SkewF32> = Vec::new();
-    let mut m1:Array1<f32> = arr1(&[1.,3.134,54.12,60.11111,-55.2]);
-    let mut m2:Array1<f32> = arr1(&[3.134,1.,-55.2,60.11111,54.12]);
+    let m1:Array1<f32> = arr1(&[1.,3.134,54.12,60.11111,-55.2]);
+    let m2:Array1<f32> = arr1(&[3.134,1.,-55.2,60.11111,54.12]);
     sv.push(sample_vred_adder_skew(m1));
     sv.push(sample_vred_adder_skew(m2));
 
@@ -231,7 +231,7 @@ average for gorilla euclid additive vector A and coefficient vector C
 */
 pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
-    let (mut g1,mut g2) = gorillasf::gorilla_touch_arr1_basic(s1,0.5);
+    let (g1,g2) = gorillasf::gorilla_touch_arr1_basic(s1,0.5);
     (g1 + g2) / 2.0
 }
 

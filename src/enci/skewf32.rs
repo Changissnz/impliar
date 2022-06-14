@@ -13,9 +13,9 @@ pub struct SkewF32 {
 
 impl SkewF32 {
 
-    pub fn skew_value(&mut self, mut v : Array1<f32>) -> Array1<f32> {
+    pub fn skew_value(&mut self, v : Array1<f32>) -> Array1<f32> {
         //
-        let mut v_:Array1<i32> = v.into_iter().map(|x| (x * f32::powf(10.,self.s as f32)) as i32).collect();
+        let v_:Array1<i32> = v.into_iter().map(|x| (x * f32::powf(10.,self.s as f32)) as i32).collect();
         let ans:Array1<i32> = self.sk.skew_value(v_);
         ans.into_iter().map(|x| (x as f32) / f32::powf(10.,self.s as f32)).collect()
     }

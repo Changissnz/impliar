@@ -142,7 +142,7 @@ impl OrderOfOperator {
         let mut q = self.incstring.inc_();
 
         // locate the branch data: last element in branches
-        let mut b:&str = self.branches[self.branches.len() - 1].as_str();//clone();
+        let b:&str = self.branches[self.branches.len() - 1].as_str();//clone();
 
         // case: branch is identifier, merge last 2 branch
         if is_branch_identifier(b.to_string()) {
@@ -176,7 +176,7 @@ pub fn sample_OrderOfOperator_soln1() -> (Vec<String>,HashMap<String,String>) {
 }
 
 pub fn sample_OrderOfOperator_soln2() -> (Vec<String>,HashMap<String,String>) {
-    let mut vs:Vec<String> = vec!["XX5B".to_string(),"4".to_string(),"XX5D".to_string()];
+    let vs:Vec<String> = vec!["XX5B".to_string(),"4".to_string(),"XX5D".to_string()];
     let mut bi:HashMap<String,String> = HashMap::new();
     bi.insert("XX5B".to_string(),"8_5_1_XX5A".to_string());
     bi.insert("XX5D".to_string(),"XX5C_7".to_string());
@@ -186,7 +186,7 @@ pub fn sample_OrderOfOperator_soln2() -> (Vec<String>,HashMap<String,String>) {
 }
 
 pub fn sample_OrderOfOperator_soln3() -> (Vec<String>,HashMap<String,String>) {
-    let mut vs:Vec<String> = vec!["XX5B_4".to_string(),"XX5C_7".to_string()];
+    let vs:Vec<String> = vec!["XX5B_4".to_string(),"XX5C_7".to_string()];
     let mut bi:HashMap<String,String> = HashMap::new();
     bi.insert("XX5B".to_string(),"8_5_1_XX5A".to_string());
     bi.insert("XX5A".to_string(),"2_3".to_string());

@@ -113,7 +113,7 @@ impl BEInt {
         let c = self.data.dim().1;
 
         for i in 0..c {
-            let mut c_:Array1<f32> = self.data.column(i).to_owned();
+            let c_:Array1<f32> = self.data.column(i).to_owned();
             matrixf::replace_vec_in_arr2(&mut sol, &mut c_.to_owned(),i,false);
         }
         matrixf::replace_vec_in_arr2(&mut sol, &mut self.e_soln.clone(),c,false);
@@ -124,15 +124,15 @@ impl BEInt {
     initial ordering by active size
     */
     pub fn order_bfs(&mut self) {
-        let mut d = self.ds_arr2();
+        let  d = self.ds_arr2();
         let lj = d.dim().1 - 1;
         let ic = Some(HashSet::from_iter([lj]));
         let pr:Array1<f32> = Array1::ones(d.dim().0);
-        let (mut x1,mut x2) = mat2sort::sort_arr2_tie_breakers(d,ic,pr,mat2sort::active_size_of_vec);
+        let (x1,x2) = mat2sort::sort_arr2_tie_breakers(d,ic,pr,mat2sort::active_size_of_vec);
         let l = x1.dim().0;
 
         for i in 0..l {
-            let mut y1 = x1.slice(s![i,0..lj]);
+            let y1 = x1.slice(s![i,0..lj]);
             self.e_soln[i] = x1[[i,lj]];
             matrixf::replace_vec_in_arr2(&mut self.data, &mut y1.to_owned(),i,true);
         }
@@ -143,7 +143,7 @@ impl BEInt {
     outputs whether data can be solved
     */
     pub fn solve_at(&mut self,i:usize,verbose:bool,solve_mode:usize) -> bool {
-        let mut c:usize = self.contradictions_in_range(0,i,true,false).len();
+        let c:usize = self.contradictions_in_range(0,i,true,false).len();
         let mut c2:usize = c.clone();
         let mut r:usize = 0;
         //println!("start solve at: {:?}",self.r_soln);
@@ -186,7 +186,7 @@ impl BEInt {
         }
         let lxx:usize = self.active_size_of_soln(self.r_soln.clone());
 
-        let (mut sc,mut score) = self.substitute_solve_chain(acc.clone(),sm.clone(),stat);
+        let (sc,score) = self.substitute_solve_chain(acc.clone(),sm.clone(),stat);
 
         let sc2: Array1<f32> = sc.into_iter().map(|x| if x.is_none() {0.} else {x.unwrap()}).collect();
         self.save_sol_to_rsoln(sc2);
@@ -213,7 +213,7 @@ impl BEInt {
         let output:Array1<f32> = self.rsoln_output(0,i);
 
         // add the contradiction sequence
-        let mut cs: Vec<i_mem::ContraStruct> = Vec::new();
+        let cs: Vec<i_mem::ContraStruct> = Vec::new();
         for j in 0..i+1 {
             if (output[j] - self.e_soln[j]).abs() < 0.01 {
                 continue;
@@ -264,18 +264,18 @@ impl BEInt {
     */
     pub fn accumulate(&mut self, si:usize,ei:usize) -> Array1<f32> {
         let mut sol:Array1<f32> = Array1::zeros(self.data.dim().1 + 2);
-        let mut j = 0;
+        let j = 0;
         for i in si..ei + 1 {
             let mut sol2:Vec<f32> = self.data.row(i).to_owned().into_iter().collect();
             sol2.push(1.);
             sol2.push(self.e_soln[i].clone());
-            let mut sol2_:Array1<f32> = sol2.into_iter().collect();
+            let sol2_:Array1<f32> = sol2.into_iter().collect();
             sol = sol.clone() + sol2_;
         }
 
         // apply running soln to expr
-        let mut sol2:Array1<f32> = sol.slice(s![0..self.data.dim().1 + 1]).to_owned();
-        let mut rs = self.running_soln_of_sample(sol2.clone());
+        let sol2:Array1<f32> = sol.slice(s![0..self.data.dim().1 + 1]).to_owned();
+        let rs = self.running_soln_of_sample(sol2.clone());
         self.apply_running_soln_to_expr(sol,rs)
     }
 
@@ -286,7 +286,7 @@ impl BEInt {
     rs := [var values|error value]
     */
     pub fn apply_running_soln_to_expr(&mut self, expr:Array1<f32>,rs:Array1<f32>) -> Array1<f32> {
-        let mut rssum = rs.sum();
+        let rssum = rs.sum();
         let mut sol = expr.clone();
         sol[rs.len()] = sol[rs.len()] - rssum;
 
@@ -376,7 +376,7 @@ impl BEInt {
 
         // solve for unknown
         let l = sub.len() - 1;
-        let mut edsol = equal_dist_soln_for_f32(sub.slice(s![0..l]).to_owned(),sub[l]);
+        let edsol = equal_dist_soln_for_f32(sub.slice(s![0..l]).to_owned(),sub[l]);
         let sc = mat2sort::active_size_of_vec(edsol.clone()) as i32;
         (edsol.into_iter().map(|x| if x != 0. {Some(x)} else {None}).collect(),sc)
     }
@@ -398,9 +398,8 @@ impl BEInt {
         let mut active_var:HashSet<usize> = self.active_indices_of_expr(s.clone()).into_iter().collect();
         let ai:HashSet<usize> = self.active_indices_of_soln(self.r_soln.clone()).into_iter().collect();
         active_var = active_var.difference(&ai).into_iter().map(|x| *x).collect();
-        let mut active_vars:Array1<usize> = active_var.into_iter().collect();
-
-        let mut dummy:Array1<f32> = Array1::zeros(s.len());
+        let active_vars:Array1<usize> = active_var.into_iter().collect();
+        let dummy:Array1<f32> = Array1::zeros(s.len());
 
         // collect into cache and determine the best
 
@@ -416,7 +415,7 @@ impl BEInt {
         let mut best_score:i32 = i32::MAX;//active_vars.len();
         while cache.len() > 0 {
             // get element
-            let (mut c1,mut c2) = cache[0].clone();
+            let (c1,c2) = cache[0].clone();
             cache = cache[1..].to_vec();
 
             if verbose {
@@ -426,7 +425,7 @@ impl BEInt {
 
             // case: done w/ element, check for best
             if c2 == active_vars.len() {
-                let (mut s2,mut bs2) = self.substitute_solve_chain(s.clone(),c1.clone(),verbose);
+                let (s2,bs2) = self.substitute_solve_chain(s.clone(),c1.clone(),verbose);
                 if verbose {
                     println!("\t* done,checking");
                     println!("\t* try substituting : {}",s);
@@ -505,14 +504,14 @@ impl BEInt {
             println!("SM:\n{:?}\n",substitution_map);
         };
 
-        let mut sol:Array1<f32> = Array1::default(expr.len());
+        let sol:Array1<f32> = Array1::default(expr.len());
         let l2 = expr.len() - 2;
         let mut exp1 = expr.clone();
 
         while true {
             // check to see if any active indices in substitution map
             let ai = self.active_indices_of_expr(exp1.clone());
-            let mut bx:usize = ai.into_iter().fold(0, |acc,s| if substitution_map.clone().contains_key(&s) {acc + 1} else {acc.clone()});
+            let bx:usize = ai.into_iter().fold(0, |acc,s| if substitution_map.clone().contains_key(&s) {acc + 1} else {acc.clone()});
             if bx == 0 {
                 break;
             }
@@ -539,15 +538,11 @@ impl BEInt {
             } else {
                 let mut sub = substitution_map[&i].clone();
                 // flip the y-value
-                //// println!("adding sub {}",sub);
                 sub[l2 + 1] = -1.0 * sub[l2 + 1];
                 sub = sub * expr[i];
-                //// println!("substitution for {}: {}", i,sub);
                 sol[i] = 0.;
                 // add substitution to sol
                 sol = sol + sub;
-                //// println!("sol after: {}",sol);
-                //// println!("$#$");
             }
         }
 
@@ -605,7 +600,7 @@ impl BEInt {
     pub fn deduce_elements_from_rsoln(&mut self,si:usize,ei:usize,verbose:bool) -> bool {
 
         // sort range by number of unknown
-        let mut original:Array1<Option<f32>> = self.r_soln.clone();
+        let original:Array1<Option<f32>> = self.r_soln.clone();
         let mut iunk: Vec<(usize,f32)> = Vec::new();
         for i in si..ei + 1 {
             let mut s:Vec<f32> = self.data.row(i).to_owned().into_iter().collect();
@@ -617,8 +612,8 @@ impl BEInt {
 
         iunk.sort_by(usize_f32_cmp1);
 
-        let mut new_rsoln = self.r_soln.clone();
-        let mut stat_solved:bool = true;
+        let new_rsoln = self.r_soln.clone();
+        let stat_solved:bool = true;
 
         for i in iunk.into_iter() {
 
@@ -678,7 +673,7 @@ impl BEInt {
             let mut r:Vec<f32> = self.data.row(i).to_owned().into_iter().collect();
             r.push(1.);
             // get the running soln
-            let mut rs = self.running_soln_of_sample(r.into_iter().collect());
+            let rs = self.running_soln_of_sample(r.into_iter().collect());
             sol[j] = rs.sum();
         }
 
@@ -697,7 +692,7 @@ impl BEInt {
             let mut r:Vec<f32> = self.data.row(i).to_owned().into_iter().collect();
             r.push(1.);
             // get the running soln
-            let mut rs = self.running_soln_of_sample(r.into_iter().collect());
+            let rs = self.running_soln_of_sample(r.into_iter().collect());
 
             // contradiction only if known
             let q = self.remaining_unknown_of_sample(self.data.row(i).to_owned(),rs.clone());
@@ -802,13 +797,9 @@ impl BEInt {
     contradictory outputs true, o.w. false.
     */
     pub fn is_contradictory_substitution_map(&mut self, substitution_map:HashMap<usize,Array1<f32>>) -> bool {
-        //println!("CONTRAA");
-        //println!("{:?}",substitution_map);
-        let mut keys:Vec<usize> = substitution_map.clone().into_keys().collect();
+        let keys:Vec<usize> = substitution_map.clone().into_keys().collect();
         for k in keys.into_iter() {
-            //println!("checking key: {}",k);
             let b = self.check_varsub_contradiction(k,substitution_map.clone());
-            //println!("check {}",b);
             if b {
                 return true;
             }
@@ -870,8 +861,8 @@ impl BEInt {
 
     /// TODO: test this
     pub fn representative_indices_of_expr(&mut self, expr: Array1<f32>,sm: HashMap<usize,Array1<f32>>) -> HashSet<usize> {
-        let mut ai = self.active_indices_of_expr(expr.clone());
-        let mut rism = self.representative_indices_of_smap(sm.clone());
+        let ai = self.active_indices_of_expr(expr.clone());
+        let rism = self.representative_indices_of_smap(sm.clone());
         let mut kys: HashSet<usize> = sm.into_keys().collect();
         kys = kys.difference(&rism).into_iter().map(|x| *x).collect();
         ai.difference(&kys).into_iter().map(|x| *x).collect()
@@ -905,7 +896,7 @@ impl BEInt {
         assert_eq!(s.len(), r.len() - 1);
 
         let l = s.len();
-        let mut r_ = r.slice(s![0..l]).to_owned();
+        let r_ = r.slice(s![0..l]).to_owned();
         let w:HashSet<usize> = mat2sort::active_size_intersection(s.clone(),r_.clone()).into_iter().collect();
 
         let unknown:Array1<f32> = s.into_iter().enumerate().map(|(i,j)| if !w.contains(&i) {j} else {0.0}).collect();
@@ -951,10 +942,6 @@ impl BEInt {
             let base2:Array1<f32> = (0..self.data.dim().1).into_iter().map(|j| if av.contains(&j) {1.} else {0.}).collect();
 
             for av_ in av.into_iter() {
-                /*
-                if !sol.contains_key(&av_.clone()) {
-                    sol.insert(av_.clone(),base.clone());
-                }*/
 
                 // modify key
                 let mut val = sol.get_mut(&av_).unwrap().clone();
@@ -973,7 +960,7 @@ impl BEInt {
     obtains all variables in which var i is either a direct or indirect parent of.
     */
     ////
-    pub fn relevant_vars_of_var_in_relevance_table(&mut self,mut rt:HashMap<usize,Array1<f32>>,i:usize) -> Array1<f32> {
+    pub fn relevant_vars_of_var_in_relevance_table(&mut self,rt:HashMap<usize,Array1<f32>>,i:usize) -> Array1<f32> {
         let rvs = self.relevant_vars_structure_of_var_in_relevance_table(rt,i);
         let mut h:HashSet<usize> = HashSet::new();
         for x in rvs.into_iter() {
@@ -986,7 +973,7 @@ impl BEInt {
     ?????
     */
     pub fn relevant_vars_structure_of_var_in_relevance_table(&mut self,mut rt:HashMap<usize,Array1<f32>>,i:usize) -> Vec<HashSet<usize>> {
-        let mut g = rt.get_mut(&i);
+        let g = rt.get_mut(&i);
         if g.is_none() {
             return Vec::new();
         }
@@ -1033,7 +1020,7 @@ impl BEInt {
     }
 
     pub fn representative_relevance_table(&mut self,mut rt:HashMap<usize,Array1<f32>>,index_order:Array1<usize>) -> Array2<f32> {
-        let mut keys:Vec<usize> = index_order.clone().into_iter().collect();
+        let keys:Vec<usize> = index_order.clone().into_iter().collect();
         let k2 = keys.clone();
         let lk = keys.len();
 
@@ -1042,12 +1029,12 @@ impl BEInt {
             let mut val:Array1<f32> = rt.get_mut(&k).unwrap().clone();
             // add initial
             matrixf::replace_vec_in_arr2(&mut sol,&mut val,i,true);
-            let mut ai = mat2sort::active_indices(val.clone());
+            let ai = mat2sort::active_indices(val.clone());
 
             // iterate through each active var for relevant vars
             for a in ai.into_iter() {
-                let mut rv2 = self.relevant_vars_of_var_in_relevance_table(rt.clone(),a);
-                let mut io1:Array1<f32> = index_order.clone().into_iter().map(|x| rv2[x].clone()).collect();
+                let rv2 = self.relevant_vars_of_var_in_relevance_table(rt.clone(),a);
+                let io1:Array1<f32> = index_order.clone().into_iter().map(|x| rv2[x].clone()).collect();
                 /*
                 println!("AFTER RV");
                 println!("{:?}",rv2);
@@ -1067,12 +1054,12 @@ impl BEInt {
     ///////////////////////////////// start: relevance submatrix methods
     pub fn relevance_submatrix(&mut self,key_indices:Array1<usize>) -> HashMap<usize,Array1<f32>> {
         let mut sol:HashMap<usize,Array1<f32>> = HashMap::new();
-        let mut k2: HashSet<usize> = key_indices.clone().into_iter().collect();
+        let k2: HashSet<usize> = key_indices.clone().into_iter().collect();
         let ki2: Array1<usize> = key_indices.clone();
 
         for k in key_indices.into_iter() {
             let q = self.ranalysis.get_mut(&k).unwrap().clone();
-            let mut q_: Array1<f32> = ki2.clone().into_iter().map(|x| q[x].clone()).collect();
+            let q_: Array1<f32> = ki2.clone().into_iter().map(|x| q[x].clone()).collect();
             sol.insert(k,q_);
         }
         sol
@@ -1185,7 +1172,7 @@ impl BEInt {
         // declare the cache
         let mut cache:Vec<usize> = rep_analysis.into_iter().map(|x| x.0.clone()).collect();
         let q = cache.clone();
-        let mut sm: HashMap<usize,Array1<f32>> = HashMap::new();
+        let sm: HashMap<usize,Array1<f32>> = HashMap::new();
         let mut l = cache.len();
 
         // construct the representative map
@@ -1202,12 +1189,12 @@ impl BEInt {
 
         while l > 0 {
 
-            let mut x = cache[0].clone();
+            let x = cache[0].clone();
             cache = cache[1..].to_vec();
 
             // select next var repr
             let ev = rep_map.get_mut(&x).unwrap().clone();
-            let mut vr = self.select_var_repr_by_max_candidates(x, ev);
+            let vr = self.select_var_repr_by_max_candidates(x, ev);
             if vr.is_none() {
                 continue;
             }
@@ -1222,7 +1209,7 @@ impl BEInt {
             let mut nu_cacheh:HashSet<usize> = HashSet::new();
             for ii in vrai.into_iter() {
 
-                let mut rmv = rep_map.get_mut(&x).unwrap();
+                let rmv = rep_map.get_mut(&x).unwrap();
                 rmv.insert(x.clone());
 
                 if !sol.contains_key(&ii) {
@@ -1345,18 +1332,18 @@ impl BEInt {
 
         // get remaining  ukknown
         let l = expr.len() - 2;
-        let mut s:Array1<f32> = (0..l + 1).into_iter().map(|i| expr[i].clone()).collect();
+        let s:Array1<f32> = (0..l + 1).into_iter().map(|i| expr[i].clone()).collect();
 
         let r:Array1<f32> = self.running_soln_of_sample(s.clone());
         let u2 = self.remaining_unknown_of_sample(s.slice(s![0..l]).to_owned(),r);
-        let mut ui_:Array1<usize> = mat2sort::active_indices(u2);
+        let ui_:Array1<usize> = mat2sort::active_indices(u2);
 
         // get submatrices
         let rs = self.relevance_submatrix(ui_.clone());
         let rs2 = self.rr_submatrix(ui_.clone());
 
         // perform analysis
-        let mut ra = self.representative_analysis(rs2.clone(),ui_.clone());
+        let ra = self.representative_analysis(rs2.clone(),ui_.clone());
 
         if verbose {
             println!("\tfetching s-map by rep decision");

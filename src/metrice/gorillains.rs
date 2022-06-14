@@ -60,7 +60,7 @@ impl GorillaIns {
     }
 
     pub fn brute_process_tailn(&mut self) {
-        let (_,mut x1) = self.approach_on_sequence();
+        let (_, x1) = self.approach_on_sequence();
 
         if self.wanted_normaln.is_none() {
             let mut arp1 = arp::build_ArbitraryRangePartition(x1.clone().unwrap(),self.szt);

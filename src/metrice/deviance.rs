@@ -27,7 +27,7 @@ pub fn cmp_arr1_pair_1(a1:Array1<i32>,a2:Array1<i32>,existence_weight:f32) -> f3
 
         // normalize by sum of v1 and v2 values
     let v11:f32 = v1.data.clone().into_keys().fold(0.,|acc,s| acc + v1.data.get(&s).unwrap().clone() as f32);
-    let mut v21:f32 = v2.data.clone().into_keys().fold(0.,|acc,s| acc + v2.data.get(&s).unwrap().clone() as f32);
+    let v21:f32 = v2.data.clone().into_keys().fold(0.,|acc,s| acc + v2.data.get(&s).unwrap().clone() as f32);
     let s1:f32 = d1s / ((v11 + v21) as f32);
 
     // existence

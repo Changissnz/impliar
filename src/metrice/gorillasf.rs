@@ -132,7 +132,6 @@ pub fn gorilla_touch_arr1_basic(s: Array1<i32>, existence_weight:f32) -> (Array1
 
     for i in 0..l {
         let h:HashSet<usize> = (0..l).into_iter().filter(|x| *x != i).collect();
-        let mut fm_:f32 = 0.;
         let hl = h.len();
 
         // collect all elements into c and a

@@ -22,7 +22,7 @@ pub fn label_intervals(l:usize) -> Array1<f32> {
     let mut s:f32 = k / 2.;
     sol.push(s);
 
-    for i in 1..l {
+    for _ in 1..l {
         s += k;
         sol.push(s);
     }
@@ -102,16 +102,18 @@ pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normal
 */
 pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
     wanted_normaln:Array1<usize>) -> Array1<f32> {
+//pub fn correction_for_bfgrule_approach_tailn__labels(approach_out:Array1<f32>,
+//    wanted_normaln:Array1<usize>) -> Array1<f32> {
 
     pub fn bounded_cheapest_add_target_i32__(v1:Array1<f32>,li:f32) -> Array1<f32> {
         // convert to i32 form
         let mut x: Vec<f32> = v1.clone().into_iter().collect();
         x.push(li);
-        let mut y:usize = x.into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
+        let y:usize = x.into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
         let x2: Array1<i32> = v1.clone().into_iter().map(|x1| (x1 * i32::pow(10,y as u32) as f32) as i32).collect();
         let li_:i32 = (li * f32::powf(10.,y as f32)) as i32;
-        let mut q = x2.clone() - li_;
-        let mut sol: Array1<f32> = q.into_iter().map(|x| (x as f32) / f32::powf(10.,y as f32)).collect();
+        let q = x2.clone() - li_;
+        let sol: Array1<f32> = q.into_iter().map(|x| (x as f32) / f32::powf(10.,y as f32)).collect();
 
         -sol
     }
@@ -140,7 +142,7 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
 /*
 */
 pub fn gorilla_improve_approach_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSelectionRule {
-    let mut fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
+    let fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
     let q = fgs.all_cache[0].clone();
     fgs.all_cache.into_iter().fold(q, |v1: bfngsrch::BFGSelectionRule,v2: bfngsrch::BFGSelectionRule| if v1.score.unwrap() < v2.score.unwrap() {v1} else {v2})
 }

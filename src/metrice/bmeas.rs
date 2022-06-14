@@ -130,7 +130,7 @@ vec. with elements that are all non-intersecting proper bounds?
 pub fn is_proper_bounds_vec(bv: Vec<(f32,f32)>) -> bool {
     let l = bv.len();
     for i in 0..l - 1 {
-        let mut q = bv[i].clone();
+        let q = bv[i].clone();
 
         for j in i + 1..l {
             if bounds_intersect(q.clone(),bv[j].clone()) {

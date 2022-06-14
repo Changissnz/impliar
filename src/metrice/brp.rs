@@ -92,8 +92,8 @@ impl RangePartitionGF2 {
         }
 
         // get the key wih the max value
-        let mut sol2: Vec<(usize,usize)> = sol.into_iter().collect();
-        let mut x = sol2[0].clone();
+        let sol2: Vec<(usize,usize)> = sol.into_iter().collect();
+        let x = sol2[0].clone();
         let sol3: (usize,usize) = sol2.iter().fold(x, |acc,s| if s.1 > acc.1 {s.clone()} else {acc.clone()});
         sol3.0
     }
@@ -148,7 +148,7 @@ impl RangePartitionGF2 {
             // iterate through all other bounds
         let blen = f.data.len();
         let obi: Vec<usize> = (0..blen).into_iter().filter(|x| *x != bi).collect();
-        let mut dl = f.indexvec_to_data_labels(obi);
+        let dl = f.indexvec_to_data_labels(obi);
 
             // get indices of all other bounds that do not intersect
         let ib = bmeas::intersecting_bounds_to_bound(dl.clone().into_iter().map(|x| x.0.clone()).collect(),sol.clone());// -> Vec<usize> {
@@ -178,7 +178,7 @@ impl RangePartitionGF2 {
 
             // mod the data and data_labels variables of f
             rem_data.push((nb.clone(),bestl));
-            let mut i2 = rem_data.len() - 1;
+            let i2 = rem_data.len() - 1;
             f.data = Vec::new();
             let mut fdl:Vec<usize> = Vec::new();
             for rd in rem_data.into_iter() {
@@ -243,9 +243,9 @@ impl RangePartitionGF2 {
         let mut new_cache: Vec<fs::FSelect> = Vec::new();
 
         while self.fs_cache.len() > 0 {
-            let mut f = self.fs_cache[0].clone();
+            let f = self.fs_cache[0].clone();
             self.fs_cache = self.fs_cache[1..].to_vec();
-            let mut cho = self.choices_at_index(f,i);
+            let cho = self.choices_at_index(f,i);
             new_cache.extend(cho);
         }
         self.fs_cache = new_cache;
@@ -371,7 +371,7 @@ impl RangePartitionGF2 {
         while self.fs_cache.len() > 0 {
             let f = self.fs_cache[0].clone();
             self.fs_cache = self.fs_cache[1..].to_vec();
-            let mut cho = self.choices_at_index(f,i);
+            let cho = self.choices_at_index(f,i);
             new_cache.extend(cho);
         }
 

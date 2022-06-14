@@ -100,8 +100,8 @@ impl PFOperator {
     pexpr := expression w/o parentheses, process from L->R
     */
     pub fn solve_pexpr_if_known(&mut self,pexpr:String) -> Option<f32> {
-        let mut x = setf::str_to_vec(pexpr.clone());
-        let mut unk:Vec<String> = x.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
+        let x = setf::str_to_vec(pexpr.clone());
+        let unk:Vec<String> = x.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
 
         if unk.len() > 0 {
             return None;
@@ -115,7 +115,7 @@ impl PFOperator {
         //println!("len of functions: {}",self.os.s.len());
         for i in 1..l {
             //println!("prev fv: {}",fv);
-            let mut fv2:f32 = self.fetch_value(x[i].clone()).unwrap();
+            let fv2:f32 = self.fetch_value(x[i].clone()).unwrap();
             //println!("next fv: {}",fv2);
             fv = self.os.s[0](fv,fv2);
             //println!("new fv: {}",fv);
@@ -132,12 +132,12 @@ impl PFOperator {
     */
     pub fn process_one_branch(&mut self) -> Option<f32> {
 
-        let mut cached_values:Vec<f32> = Vec::new();
-        let mut b = self.oo.branches[self.pi].clone();
-        let mut value: Option<f32> = None;
+        let cached_values:Vec<f32> = Vec::new();
+        let b = self.oo.branches[self.pi].clone();
+        let value: Option<f32> = None;
 
         // split into elmts
-        let mut es = setf::str_to_vec(b.clone());
+        let es = setf::str_to_vec(b.clone());
 
         // get all initial unknown vars (of branches)
         let mut unk:Vec<String> = es.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
@@ -150,8 +150,8 @@ impl PFOperator {
             unk = unk[1..].to_vec();
 
             // get unknown elements of unknown branch
-            let mut bi = self.oo.branch_identifiers.get_mut(&q).unwrap().clone();
-            let mut x = setf::str_to_vec(bi.clone());
+            let bi = self.oo.branch_identifiers.get_mut(&q).unwrap().clone();
+            let x = setf::str_to_vec(bi.clone());
             let mut unk2:Vec<String> = x.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
 
             // case: cannot be solved, missing var value
@@ -248,8 +248,8 @@ pub fn test_sample_PFOperator_1() -> PFOperator {
         }
     }
 
-    let mut os = build_operator_sequence(s);
-    let mut vars_to_value:HashMap<String,f32> = HashMap::from_iter([
+    let os = build_operator_sequence(s);
+    let vars_to_value:HashMap<String,f32> = HashMap::from_iter([
         ("1".to_string(),32.),
         ("2".to_string(),3.2),
         ("3".to_string(),0.32),
@@ -260,7 +260,7 @@ pub fn test_sample_PFOperator_1() -> PFOperator {
         ("8".to_string(),50.)]);
 
     // make a sequence of add and mult functions
-    let mut pfo = build_PFOperator(x,os,vars_to_value);
+    let pfo = build_PFOperator(x,os,vars_to_value);
     pfo
 }
 

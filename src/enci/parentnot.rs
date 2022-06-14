@@ -17,7 +17,7 @@ pub fn usize_to_choice_vector(v:usize) -> Vec<String> {
 c the ordered vector of elements comprising the string,
 q the indices of open ( and close ).
 */
-pub fn rangevec_to_parenthetical_string(c: Vec<usize>, mut q: Vec<(usize,usize)>) -> String {
+pub fn rangevec_to_parenthetical_string(c: Vec<usize>, q: Vec<(usize,usize)>) -> String {
 
 
     if c.len() == 0 {
@@ -70,7 +70,7 @@ pub fn decisionvec_to_rangevec(v:Vec<String>) -> Vec<(usize,usize)> {
 pub fn stringvec_to_usizevec(v:Vec<String>) -> Vec<usize> {
     let mut uv: Vec<usize> = Vec::new();
     for v_ in v.iter() {
-        let mut x_ = usize::from_str((*v_).as_str()).unwrap();
+        let x_ = usize::from_str((*v_).as_str()).unwrap();
         uv.push(x_);
     }
     uv

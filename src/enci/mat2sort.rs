@@ -8,7 +8,7 @@ use std::collections::HashSet;
 
 /////////////////////////////// start: methods for ordering binary error interpolator elements.
 
-pub fn apply_shuffle_map_arr1<T>(mut a: Array1<T>,mut s:Array1<usize>) -> Array1<T>
+pub fn apply_shuffle_map_arr1<T>(a: Array1<T>,s:Array1<usize>) -> Array1<T>
 where
 T: Clone
  {
@@ -23,13 +23,13 @@ T: Clone
     arr1(&sol)
 }
 
-pub fn apply_shuffle_map_arr2<T>(mut a: Array2<T>,mut s:Array1<usize>,mut is_row:bool) -> Array2<T>
+pub fn apply_shuffle_map_arr2<T>(a: Array2<T>,s:Array1<usize>,is_row:bool) -> Array2<T>
 where
 T: Clone + Default
  {
     let mut sol : Vec<Array1<T>> = Vec::new();
     for (i,s_) in s.into_iter().enumerate() {
-        let mut q:Array1<T> = if is_row {a.row(s_).to_owned()} else {a.column(s_).to_owned()};
+        let q:Array1<T> = if is_row {a.row(s_).to_owned()} else {a.column(s_).to_owned()};
         sol.push(q);
     }
     vec_to_arr2(sol).unwrap()
@@ -38,7 +38,7 @@ T: Clone + Default
 /*
 long approach; calculates index of each i'th element of a in a2
 */
-pub fn arr2_shuffle_map<T>(mut a:Array2<T>,mut a2:Array2<T>) -> Array1<usize>
+pub fn arr2_shuffle_map<T>(a:Array2<T>,a2:Array2<T>) -> Array1<usize>
 where
 T:Eq + Clone
 {
@@ -54,7 +54,7 @@ T:Eq + Clone
     sol
 }
 
-pub fn vec_in_arr2<T>(mut a:Array2<T>,mut a2: Array1<T>,is_row:bool) -> Option<usize>
+pub fn vec_in_arr2<T>(a:Array2<T>,a2: Array1<T>,is_row:bool) -> Option<usize>
 where
 T:Eq + Clone
  {
@@ -85,7 +85,7 @@ pub fn f32_cmp1(s1: &f32, s2: &f32) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
-pub fn sort_arr1(mut a: Array1<f32>,f: fn(&f32,&f32) -> std::cmp::Ordering) -> Array1<f32> {
+pub fn sort_arr1(a: Array1<f32>,f: fn(&f32,&f32) -> std::cmp::Ordering) -> Array1<f32> {
     let mut v: Vec<f32> = a.into_iter().collect();
     v.sort_by(f);
     v.into_iter().collect()
@@ -118,18 +118,18 @@ values, uses probability weights pr to determine ordering. A higher probability
 weight results in higher priority.
 Implementation of insertion sort.
 */
-pub fn sort_arr2_tie_breakers(mut a:Array2<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,
+pub fn sort_arr2_tie_breakers(a:Array2<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,
         f: fn(Array1<f32>) -> usize) -> (Array2<f32>,Array1<f32>) {
 
-    let mut a_: Array2<f32> = a.clone();
+    let a_: Array2<f32> = a.clone();
     let mut sol:Vec<Array1<f32>> = Vec::new();
     let l = a.dim().0;
     let mut prx : Vec<f32> = Vec::new();
     for i in 0..l {
-        let mut q = a.row(i).to_owned();
+        let q = a.row(i).to_owned();
         let pr_ = pr[i];
         //sort_insert_in_vec_tie_breakers()
-        let mut prx2 = arr1(&prx);
+        let prx2 = arr1(&prx);
         let j = sort_insert_in_vec_tie_breakers(&mut sol,q, ignore_col.clone(),prx2,pr_,f);
         prx.insert(j,pr_);
     }
@@ -159,7 +159,7 @@ T: Clone + Default
 /*
 helper method for `sort_arr2_tie_breakers`
 */
-pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32>,ignore_col: Option<HashSet<usize>>, mut pr:Array1<f32>,pra:f32,f: fn(Array1<f32>) -> usize) -> usize {//f: &dyn FnOnce(Array1<f32>) -> usize) -> usize {
+pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,a:Array1<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,pra:f32,f: fn(Array1<f32>) -> usize) -> usize {//f: &dyn FnOnce(Array1<f32>) -> usize) -> usize {
 
     assert_eq!((*v).len(),pr.len());
     if pr.len() > 0 {
@@ -167,9 +167,9 @@ pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,mut a:Array1<f32
     }
     let l = (*v).len();
     let mut j:usize = 0;
-    let mut q:usize = if ignore_col.is_none() {f(a.clone())} else {f(a.clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
+    let q:usize = if ignore_col.is_none() {f(a.clone())} else {f(a.clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
     while j < l {
-        let mut q2:usize = if ignore_col.is_none() {f((*v)[j].clone())} else {f((*v)[j].clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
+        let q2:usize = if ignore_col.is_none() {f((*v)[j].clone())} else {f((*v)[j].clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
 
         //let mut q2 = f((*v)[j].clone());
         if q < q2 {

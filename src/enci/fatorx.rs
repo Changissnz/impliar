@@ -56,9 +56,9 @@ pub fn factors_of_i32(v:i32) -> HashSet<i32> {
 }
 
 pub fn gcd_of_i32_pair(i1:i32,i2:i32) -> i32 {
-    let mut f1 = factors_of_i32(i1);
-    let mut f2 = factors_of_i32(i2);
-    let mut f3:HashSet<i32> = f1.intersection(&f2).into_iter().map(|x| *x).collect();
+    let f1 = factors_of_i32(i1);
+    let  f2 = factors_of_i32(i2);
+    let f3:HashSet<i32> = f1.intersection(&f2).into_iter().map(|x| *x).collect();
     *f3.iter().max().unwrap()
 }
 
@@ -113,7 +113,7 @@ pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
 }
 
 pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
-    let mut cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
+    let cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
     if cmv.len() == 0 {
         return 0;
     }
@@ -125,7 +125,7 @@ pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     let mut nearestDiff:f32 = (mean - nearest  as f32).abs();
 
     for i in 1..cmv.len() {
-        let mut nd2:f32 = (mean - cmv[i] as f32).abs();
+        let nd2:f32 = (mean - cmv[i] as f32).abs();
         if nd2 < nearestDiff {
             nearestDiff = nd2;
             nearest = cmv[i];
@@ -153,7 +153,7 @@ pub fn gcf_for_vec(v1:Vec<i32>) -> i32 {
 
     let mut minDiff:i32 = v2[v2.len() -1];
     for i in 1..v2.len() {
-        let mut d = v2[i] - v2[i - 1];
+        let d = v2[i] - v2[i - 1];
         if d < minDiff {
             minDiff = d;
         }
@@ -191,8 +191,8 @@ pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
 
 
 pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
-    let mut f1:f32 = v1.sum() as f32;
-    let mut f2:f32 = v2.sum() as f32;
+    let f1:f32 = v1.sum() as f32;
+    let f2:f32 = v2.sum() as f32;
     (f2 / f1).round() as i32
 }
 
@@ -285,9 +285,9 @@ pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
 /*
 */
 pub fn ranked_mult_additives_for_i32(v:i32,v2:i32) -> Vec<i32> {
-    let mut fv: Vec<usize> = factors_of_usize(v as usize).into_iter().collect();
-    let mut fv_ = neg_double_vec(fv);
-    let mut fv2 = sort_by_distance_to_median(fv_);
+    let fv: Vec<usize> = factors_of_usize(v as usize).into_iter().collect();
+    let fv_ = neg_double_vec(fv);
+    let fv2 = sort_by_distance_to_median(fv_);
     let fv3:Vec<i32> = fv2.into_iter().map(|x| x - v2).collect();
     fv3
 }
@@ -325,8 +325,8 @@ pub fn max_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32
 }
 
 pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
-    let mut m:i32 = v.clone().into_iter().map(|x| x as f32).collect::<Array1<f32>>().mean().unwrap().round() as i32;
-    let mut diff:Array1<usize> = v.clone().into_iter().map(|x| (x - m).abs() as usize).collect();
+    let m:i32 = v.clone().into_iter().map(|x| x as f32).collect::<Array1<f32>>().mean().unwrap().round() as i32;
+    let diff:Array1<usize> = v.clone().into_iter().map(|x| (x - m).abs() as usize).collect();
     let mn = diff.iter().fold(0, |min, &val| if val < min{ val } else{ min });
     let index = diff.iter().position(|&r| r == mn).unwrap();
     v[index]
@@ -336,7 +336,7 @@ pub fn closest_i32_to_median(v:Array1<i32>) -> i32 {
     let mut v_:Vec<i32> = v.clone().into_iter().collect();
     v_.sort();
     let (s1,_): (i32,Option<i32>) = median_of_iterable(v_);
-    let mut diff:Array1<usize> = v.clone().into_iter().map(|x| (x - s1).abs() as usize).collect();
+    let diff:Array1<usize> = v.clone().into_iter().map(|x| (x - s1).abs() as usize).collect();
     let mn = diff.iter().fold(0, |min, &val| if val < min{ val } else{ min });
 
     let index = diff.iter().position(|&r| r == mn).unwrap();
@@ -382,14 +382,14 @@ pub fn arr1_safe_divide(v1:Array1<f32>,v2:Array1<f32>,n:f32) -> Array1<f32> {
 //////////////////////////// start: test samples
 
 pub fn sample_arr1_pair_1() -> (Array1<i32>,Array1<i32>) {
-    let mut v1:Array1<i32> = arr1(&[2,4,15,19]);
-    let mut v2:Array1<i32> = arr1(&[8,12,55,190]);
+    let v1:Array1<i32> = arr1(&[2,4,15,19]);
+    let v2:Array1<i32> = arr1(&[8,12,55,190]);
     (v1,v2)
 }
 
 pub fn sample_arr1_pair_2() -> (Array1<i32>,Array1<i32>) {
-    let mut v1:Array1<i32> = arr1(&[2,4,2,4,20]);
-    let mut v2:Array1<i32> = arr1(&[4,8,4,8,200]);
+    let v1:Array1<i32> = arr1(&[2,4,2,4,20]);
+    let v2:Array1<i32> = arr1(&[4,8,4,8,200]);
     (v1,v2)
 }
 

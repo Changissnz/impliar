@@ -50,7 +50,7 @@ impl Sub for VectorCounter {
         let mut sol: HashMap<String,i32> = HashMap::new();
 
         // collect all keys
-        let mut k1:Vec<String> = self.data.clone().into_keys().into_iter().collect();
+        let k1:Vec<String> = self.data.clone().into_keys().into_iter().collect();
 
         for k in k1.into_iter() {
             let mut x:i32 = *(self.data.get(&k).unwrap());
