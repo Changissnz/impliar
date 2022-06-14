@@ -111,26 +111,9 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
         let x2: Array1<i32> = v1.clone().into_iter().map(|x1| (x1 * i32::pow(10,y as u32) as f32) as i32).collect();
         let li_:i32 = (li * f32::powf(10.,y as f32)) as i32;
         let mut q = x2.clone() - li_;
-        //println!("LI {}",li_);
-        //println!("Q {}",q);
-        //println!("X2 {}",x2);
         let mut sol: Array1<f32> = q.into_iter().map(|x| (x as f32) / f32::powf(10.,y as f32)).collect();
 
         -sol
-
-        //////// previous
-        /*
-        // find cheapest by
-        let b2:(i32,i32) = (0, i32::pow(10,y as u32));
-        let li2:i32 = (li * i32::pow(10,y as u32) as f32) as i32;
-        //let mut sol_ = bmeas::bounded_cheapest_add_target_i32_(x2,b2,li2);
-
-        // convert back to f32 form
-        let mut sol: Array1<f32> = sol_.into_iter().map(|x| (x as f32) / f32::powf(10.,y as f32)).collect();
-        sol
-        */
-        ////////
-
     }
 
     // re-call function
