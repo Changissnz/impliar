@@ -1,48 +1,229 @@
-use ndarray::Array1;
+use ndarray::{arr1,Array1};
 use crate::metrice::gorillasf;
+use crate::enci::skew;
+use crate::enci::skewf32;
+use crate::setti::dessi;
 
 /*
-implementation of vector reducer: a sequence of functions (arr1->arr1),and the last is
-(arr1->f32)|(arr1->arr1).
+cast for function
 */
-pub struct VRed {
-    s: Vec<fn(Array1<f32>) -> Array1<f32>>,
-    tail1: Option<fn(Array1<f32>) -> f32>,
-    tailn: Option<fn(Array1<f32>) -> Array1<f32>>,
+#[derive(Clone)]
+pub struct FCast {
+    pub f: fn(Array1<f32>) -> Array1<f32>
 }
 
-pub fn build_VRed(s:Vec<fn(Array1<f32>) -> Array1<f32>>,
-    tail1:Option<fn(Array1<f32>) -> f32>, tailn: Option<fn(Array1<f32>) -> Array1<f32>>) -> VRed {
-    VRed{s:s,tail1:tail1,tailn:tailn}
+#[derive(Clone)]
+pub struct FCastF32 {
+    pub f: fn(Array1<f32>) -> f32
+}
+
+impl FCast {
+
+    pub fn apply(&mut self,a:Array1<f32>) -> Array1<f32> {
+        (self.f)(a)
+    }
+}
+
+impl FCastF32 {
+
+    pub fn apply(&mut self,a:Array1<f32>) -> f32 {
+        (self.f)(a)
+    }
+}
+
+pub struct VRed  {
+    pub fvec: Vec<FCast>,
+    pub svec: Vec<skewf32::SkewF32>,
+
+    // binary vec
+    pub directions: Vec<usize>,
+    pub switch_f: usize,
+
+    pub fi:usize,
+    pub si:usize,
+
+    // tail is the skew
+    pub tail1: Option<FCastF32>,
+    pub tailn: Option<skewf32::SkewF32>
+}
+
+
+pub fn build_VRed(fv:Vec<FCast>,sv:Vec<skewf32::SkewF32>,
+    direction:Vec<usize>,switch_f:usize,
+    tail1:Option<FCastF32>, tailn: Option<skewf32::SkewF32>) -> VRed {
+    VRed{fvec:fv,svec:sv,directions:direction,switch_f:switch_f,
+    fi:0,si:0,tail1:tail1,tailn:tailn}
 }
 
 impl VRed {
 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {
+        let mut a2 = self.apply_body(a);
+
+        // tail1
+        if tail_type == 1 {
+            if self.tail1.is_none() {
+                return (None,Some(a2));
+            }
+            let mut a3 = (self.tail1.clone().unwrap()).apply(a2);
+            return (Some(a3),None);
+        }
+
+        // tailn
+        if self.tailn.is_none() {
+            return (None,Some(a2));
+        }
+        let mut a2 = (self.tailn.clone().unwrap()).skew_value(a2);
+        (None,Some(a2))
+    }
+
+    pub fn apply_body(&mut self,a:Array1<f32>) -> Array1<f32> {
+        self.reset_i();
+
+        let mut q = self.switch_f.clone();
+        let l = self.directions.len();
+
         let mut sol = a.clone();
 
-        for s_ in self.s.clone().into_iter() {
-            sol = s_(sol);
+        for i in 1..l {
+            // check off all indices prior: (prior,i)
+            let (x1,x2) = (self.directions[i - 1].clone(),self.directions[i].clone());
+            let d = x2 - x1;
+
+            // f
+            if q == 0 {
+                for j in 0..d {
+                    sol = self.fvec[self.fi].apply(sol);
+                    self.fi += 1;
+                }
+            } else {
+            // s
+                for j in 0..d {
+                    sol = self.svec[self.si].skew_value(sol);
+                    self.si += 1;
+                }
+            }
+
+            // switch
+            q = (q + 1) % 2;
         }
 
-        if tail_type == 0 {
-            return (Some((self.tail1.unwrap())(sol)),None);
+        // iterate through the end of svec or fvec
+        if q == 0 {
+            let l = self.fvec.len();
+            for i in self.fi..l {
+                sol = self.fvec[self.fi].apply(sol);
+                self.fi += 1;
+            }
+        } else {
+            let l = self.svec.len();
+            for i in self.si..l {
+                sol = self.svec[self.si].skew_value(sol);
+                self.si += 1;
+            }
+        }
+        sol
+    }
+
+    pub fn check_directions(&mut self) -> bool {
+        let mut q = self.switch_f.clone();
+        let l = self.directions.len();
+
+        let (lf,ls) = (self.fvec.len(),self.svec.len());
+        for i in 1..l {
+            // check off all indices prior: (prior,i)
+            let x2 = self.directions[i].clone();
+            let mut qr:usize = if q == 1 {ls.clone()} else {lf.clone()};
+
+            if x2 >= qr {
+                return false;
+            }
+
+            // switch
+            q = (q + 1) % 2;
+        }
+        true
+    }
+
+    pub fn reset_i(&mut self) {
+        self.fi = 0;
+        self.si = 0;
+    }
+
+    pub fn size_fs(&mut self) -> usize {
+        self.fvec.len() + self.svec.len()
+    }
+
+    pub fn current_switch(&mut self) -> usize {
+        let mut q = self.switch_f.clone();
+        (q + self.directions.len() - 1) % 2
+    }
+
+    pub fn add_f(&mut self,a: FCast) {
+        let cs = self.current_switch();
+
+        if cs != 0 {
+            let sz = self.size_fs();
+            self.directions.push(sz);
+        }
+        self.fvec.push(a);
+    }
+
+    pub fn add_s(&mut self,a: skewf32::SkewF32) {
+        let cs = self.current_switch();
+
+        if cs != 0 {
+            let sz = self.size_fs();
+            self.directions.push(sz);
         }
 
-        (None,Some( (self.tailn.unwrap())(sol)))
+        self.svec.push(a);
     }
 
-    pub fn add_one_body(&mut self,a:fn(Array1<f32>) -> Array1<f32>) {
-        self.s.push(a);
-    }
-
-    pub fn mod_tailn(&mut self,nt:fn(Array1<f32>) -> Array1<f32>) {
+    pub fn mod_tailn(&mut self,nt:skewf32::SkewF32) {
         self.tailn = Some(nt);
     }
 
-    pub fn mod_tail1(&mut self,nt:fn(Array1<f32>) -> f32) {
+    pub fn mod_tail1(&mut self,nt:FCastF32) {
         self.tail1 = Some(nt);
     }
+}
+
+pub fn sample_vred_adder_skew(a:Array1<f32>) -> skewf32::SkewF32 {
+
+    // get size
+    let mut y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
+    let mut v_:Array1<i32> = a.into_iter().map(|x1| (x1 * f32::powf(10.,y as f32)) as i32).collect();
+    let sk = skew::build_skew(None,None,Some(v_),None,vec![2],None);
+    skewf32::SkewF32{sk:sk,s:y}
+}
+
+pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
+
+    fn f1(x:Array1<f32>) -> Array1<f32> {
+        x / 2.
+    }
+
+    fn f2(x:Array1<f32>) -> Array1<f32> {
+        x + 2.
+    }
+
+    fn f3(x:Array1<f32>) -> Array1<f32> {
+        x * 2.
+    }
+
+    let mut fv: Vec<FCast> = Vec::new();
+    fv.push(FCast{f:f1});
+    fv.push(FCast{f:f2});
+    fv.push(FCast{f:f3});
+
+    let mut sv: Vec<skewf32::SkewF32> = Vec::new();
+    let mut m1:Array1<f32> = arr1(&[1.,3.134,54.12,60.11111,-55.2]);
+    let mut m2:Array1<f32> = arr1(&[3.134,1.,-55.2,60.11111,54.12]);
+    sv.push(sample_vred_adder_skew(m1));
+    sv.push(sample_vred_adder_skew(m2));
+
+    (fv,sv)
 }
 
 /*
@@ -52,4 +233,36 @@ pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
     let (mut g1,mut g2) = gorillasf::gorilla_touch_arr1_basic(s1,0.5);
     (g1 + g2) / 2.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_VRed__apply_body() {
+        let (f,s) = sample_fsvecs();
+        let mut vr = build_VRed(f,s,vec![0,2,4],0,None,None);
+
+        let s1:Array1<f32> = arr1(&[-5.,6.3,15.0,-20.34,2.31313]);
+        let xx = vr.apply_body(s1.clone());
+        assert_eq!(xx,arr1(&[7.268, 18.568, 16.84, 224.10445, 4.15312]));
+    }
+
+    #[test]
+    fn test_VRed__apply() {
+        let (f,s) = sample_fsvecs();
+        let mut vr = build_VRed(f,s,vec![0,2,4],0,None,None);
+
+        // add skew
+        let yx = arr1(&[-0.268, -0.568, -0.84, -0.10445, -0.15312]);
+        let rxx = sample_vred_adder_skew(yx);
+        vr.mod_tailn(rxx);
+
+
+        let s1:Array1<f32> = arr1(&[-5.,6.3,15.0,-20.34,2.31313]);
+        let x2 = vr.apply(s1.clone(),2);
+        assert_eq!(x2.1.unwrap(),arr1(&[7.0, 18.0, 16.0, 224.0, 4.0]));
+    }
+
 }

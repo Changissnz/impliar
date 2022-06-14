@@ -1,7 +1,10 @@
 use crate::metrice::brp;
 use crate::metrice::arp;
 use crate::metrice::vreducer;
+use crate::metrice::skewcorrctr;
 use crate::setti::fs;
+use crate::enci::skew;
+use crate::enci::skewf32;
 use ndarray::{arr1,Array1};
 
 /*
@@ -18,7 +21,7 @@ pub struct GorillaIns {
     sequence: Array1<f32>,
     approach: vreducer::VRed,
     app_out1: Option<f32>,
-    app_outn: Option<Array1<f32>>,
+    pub app_outn: Option<Array1<f32>>,
 
     // indices from S that are labelled "normal"
     wanted_normaln:Option<Array1<usize>>,
@@ -37,7 +40,8 @@ pub struct GorillaIns {
     */
     tail_mode:usize,
     szt:usize,
-    pub soln:Option<fs::FSelect>
+    pub soln:Option<fs::FSelect>,
+    pub corr:Option<Array1<f32>>
 }
 
 /*
@@ -46,7 +50,7 @@ pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_norm
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
     GorillaIns{sequence:sequence,approach:approach,app_out1:None,app_outn:None,
     wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
-    auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None}
+    auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None}
 }
 
 impl GorillaIns {
@@ -61,14 +65,16 @@ impl GorillaIns {
         if self.wanted_normaln.is_none() {
             let mut arp1 = arp::build_ArbitraryRangePartition(x1.clone().unwrap(),self.szt);
             arp1.brute_force_search__decision();
-            self.soln = arp1.fselect.clone();
+            self.auto_sol =  Some(arp1);
             return;
         }
 
         let mut rpgf2 = brp::build_range_partition_gf2(x1.clone().unwrap(),self.wanted_normaln.clone().unwrap(),
             self.szt,"basic".to_string());
         rpgf2.brute_force_search__decision();
-        self.soln = Some(rpgf2.fselect);
+
+        self.soln = Some(rpgf2.fselect.clone());
+        self.man_sol = Some(rpgf2);
         self.app_outn = x1.clone();
     }
 
@@ -76,8 +82,35 @@ impl GorillaIns {
     improves solution by the same size threshold t. uses struct<Skew> to
     modify values.
     */
-    pub fn improve_approach(&mut self) {
+    pub fn improve_approach__labels(&mut self,is_multi:bool) -> (Option<f32>,Option<Array1<f32>>) {
+
+        if !is_multi {
+            return (None,None);
+        }
+
+        // convert fselect to bfgselect
+        let bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
+        let corr = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
+
         // get skew
+        (None,Some(corr))
+    }
+
+    /*
+    improves approach by VRed on tailn
+    */
+    pub fn improve_vred__tailn(&mut self,v:Array1<f32>) {
+        self.corr = Some(v.clone());
+
+        // tail as last body
+        if !self.approach.tailn.is_none() {
+            let x = self.approach.tailn.clone().unwrap();//.unwrap();
+            self.approach.add_s(x);
+        }
+
+        // make skew
+        let sk = vreducer::sample_vred_adder_skew(v);
+        self.approach.mod_tailn(sk);
     }
 }
 
@@ -90,13 +123,36 @@ mod tests {
     pub fn test__GorillaIns__brute_process_tailn() {
         // case 1:
         let q:Array1<f32> = arr1(&[14.,18.,81131222.,75121.]);
-        let fx: Vec<fn(Array1<f32>) -> Array1<f32>> = Vec::new();
-        let mut r: vreducer::VRed = vreducer::build_VRed(fx,None,None);
-        r.mod_tailn(vreducer::std_euclids_reducer);
-        let normal:Array1<usize> = arr1(&[1,1,0,0]);
-        let mut gi = build_GorillaIns(q,r,Some(normal),None,1,3);
+        let normal:Array1<usize> = arr1(&[0,1,1,0]);
+        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
+        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
+                    0,None,None);
+        let mut gi = build_GorillaIns(q,vr21,Some(normal),None,0,3);
+
         gi.brute_process_tailn();
-        assert!(gi.soln.clone().unwrap().score.unwrap() <= 2., "got {} <= 2",gi.soln.unwrap().score.unwrap());
+        assert_eq!(gi.app_outn,Some(arr1(&[0.47728175, 0.75453043, 0.75, 0.86111116])));
+    }
+
+    #[test]
+    pub fn test__GorillaIns__improve_vred__tailn() {
+        let q:Array1<f32> = arr1(&[14.,18.,81131222.,75121.]);
+        let normal:Array1<usize> = arr1(&[1,1,0,0]);
+        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
+        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
+                    0,None,None);
+        let mut gi = build_GorillaIns(q,vr21,Some(normal),None,0,3);
+
+        // before improvement
+        gi.brute_process_tailn();
+        assert!(gi.soln.clone().unwrap().score.clone().unwrap() <= 2.);
+
+        // after improvement
+        let (_,qrx) = gi.improve_approach__labels(true);
+        gi.improve_vred__tailn(qrx.unwrap());
+        gi.brute_process_tailn();
+
+        assert_eq!(gi.app_outn,Some(arr1(&[0.75, 0.75, 0.25, 0.25001])));
+        assert_eq!(Some(0.), gi.soln.clone().unwrap().score);
     }
 
 }

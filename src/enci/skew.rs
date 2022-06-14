@@ -73,7 +73,6 @@ impl fmt::Display for Skew {
 impl Skew {
 
     pub fn skew_value(&mut self, mut v : Array1<i32>) -> Array1<i32> {
-
         let l = self.ordering.len();
         for i in 0..l {
             v = self.apply_at(v,i);
@@ -90,9 +89,11 @@ impl Skew {
         } else if self.ordering[i] == 1 {
             return v * self.multer.unwrap();
         } else if self.ordering[i] == 2 {
+            assert_eq!(v.len(),self.addit.clone().unwrap().len());
             let mut r:&Array1<i32> = self.addit.as_ref().unwrap();
             return v + r;
         } else {
+            assert_eq!(v.len(),self.multit.clone().unwrap().len());
             let mut r:&Array1<i32> = self.multit.as_ref().unwrap();
             return v * r;
         }

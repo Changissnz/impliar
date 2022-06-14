@@ -8,3 +8,4 @@ pub mod mat2sort;
 pub mod be_int;
 pub mod i_mem;
 pub mod pf_op;
+pub mod skewf32;
