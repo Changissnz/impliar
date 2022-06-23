@@ -36,6 +36,14 @@ pub fn arr1_f32_to_arr1_i32(v:Array1<f32>) -> Array1<i32> {
     v.into_iter().map(|x| (x * f32::powf(10.,xm as f32)) as i32).collect()
 }
 
+pub fn scale_arr1_f32_to_arr1_i32(v:Array1<f32>,s:usize) -> Array1<i32> {
+    if v.len() == 0 {
+        return Array1::zeros(0);
+    }
+
+    v.into_iter().map(|x| ((x * f32::powf(10.,s as f32))).round() as i32).collect()
+}
+
 
 #[cfg(test)]
 mod tests {

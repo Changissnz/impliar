@@ -25,7 +25,6 @@ use crate::setti::uvs;
 use crate::setti::ds_fob_c;
 use crate::setti::ds_fob_c::NE;
 use crate::enci::be_int;
-
 use crate::setti::disinc;
 
 use setti::selection_rule::std_collision_score;
@@ -42,4 +41,33 @@ use std::io::{Write, BufReader, BufRead, Error};
 use std::fs::OpenOptions;
 
 fn main() {
+    ///////
+    /*
+    let x = metrice::vcsv::csv_to_arr1_seq("src/data/f1_x.csv");
+    println!("{:?}",x);
+    */
+    ////////
+    /*
+    let x: Array1<i32> = arr1(&[1,2,3,4,6]);
+    let mut ifn = enci::seq_encoder::build_index_fraction_notation(x);
+    ifn.process();
+
+    for i in 0..20 {
+        println!("output {}: {}",i,ifn.output(i));
+    }
+    */
+    /////////
+    /*
+    let x: Array1<i32> = arr1(&[1,2,3,-4,6]);
+    let mut y : Skew = enci::skew::build_skew(None,None,Some(x),None,vec![2],None);
+    println!("SIZE: {:?}",y.skew_size);
+    let s = y.to_string();
+    println!("{}",s);
+    */
+    //////////
+    /*
+    let (x1,x2) = metrice::btchcorrctrc::mfactor_test_case_1();
+    let m = metrice::btchcorrctrc::best_multiple_for_skew_batch_type_a(x1,x2);
+    println!("{}",m);
+    */
 }

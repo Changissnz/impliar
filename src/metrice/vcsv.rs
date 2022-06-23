@@ -4,7 +4,7 @@ csv functions for reading/write vec<arr1>
 use ndarray::{Array1,arr1,Array2,arr2};
 use std::any::type_name;
 use std::fs::{File,OpenOptions};
-use std::io::{Write, BufReader, BufRead, Error};
+use std::io::{Write, BufReader, BufRead,Error};
 
 use crate::setti::setf;
 
@@ -63,4 +63,9 @@ pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Er
     }
 
     Ok(sol.into_iter().collect())
+}
+
+pub fn file_read_obj(filepath: &str) -> Result<BufReader<File>,Box<dyn std::error::Error>> {
+    let file = File::open(filepath)?;
+    Ok(BufReader::new(file))
 }

@@ -4,6 +4,7 @@ scaling of values from Skew
 */
 use ndarray::{arr1,Array1};
 use crate::enci::skew;
+use std::fmt;
 
 #[derive(Clone)]
 pub struct SkewF32 {
@@ -19,9 +20,21 @@ impl SkewF32 {
         let ans:Array1<i32> = self.sk.skew_value(v_);
         ans.into_iter().map(|x| (x as f32) / f32::powf(10.,self.s as f32)).collect()
     }
+
+    pub fn skew_size(&mut self) -> f32 {
+        let d = i32::pow(10,self.s as u32) as f32;
+        self.sk.skew_size as f32 / d
+    }
 }
 
+impl fmt::Display for SkewF32 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = format!("skalos {}",self.s);//String::from("skalos {}",self.s);
+        s.push_str(&(self.sk.to_string()));
+        write!(f, "{}", s)
+    }
 
+}
 
 #[cfg(test)]
 mod tests {

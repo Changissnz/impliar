@@ -37,7 +37,7 @@ pub struct OrderOfOperator {
 }
 
 pub fn build_order_of_operator(sr:String) -> OrderOfOperator {
-    let mut is1 = inc::Inc1String{value: default_branch_identifier_seed().to_string()};
+    let is1 = inc::Inc1String{value: default_branch_identifier_seed().to_string()};
     OrderOfOperator{str_repr:sr, branches: Vec::new(), branch_identifiers: HashMap::new(),
         incstring: is1}
 }
@@ -98,7 +98,7 @@ impl OrderOfOperator {
                 return self.new_branch(i);
             }
 
-            let mut m = next_element(self.str_repr.clone(),i);
+            let m = next_element(self.str_repr.clone(),i);
             if m.is_none() {
                 return None;
             }
@@ -110,7 +110,7 @@ impl OrderOfOperator {
     }
 
     pub fn add_to_last_branch(&mut self,s:String) {
-        let mut l2 = self.branches.len() - 1;
+        let l2 = self.branches.len() - 1;
         let mut q = self.branches[l2].to_owned();//clone();
         q = q + "_" + s.as_str();
         mem::replace(&mut self.branches[l2],q);
@@ -127,8 +127,8 @@ impl OrderOfOperator {
         if x.is_none() {
             return None;
         }
-        let mut q = &x.as_ref().unwrap().0;//.clone();
-        let mut q2 = x.as_ref().unwrap().1;//.clone();
+        let q = &x.as_ref().unwrap().0;//.clone();
+        let q2 = x.as_ref().unwrap().1;//.clone();
         self.branches.push(q.to_string());
         Some(q2)
     }
@@ -139,7 +139,7 @@ impl OrderOfOperator {
     */
     fn close_branch(&mut self, i: usize) -> Option<usize> {
         // make identifier for branch
-        let mut q = self.incstring.inc_();
+        let q = self.incstring.inc_();
 
         // locate the branch data: last element in branches
         let b:&str = self.branches[self.branches.len() - 1].as_str();//clone();

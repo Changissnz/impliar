@@ -8,3 +8,6 @@ pub mod gorillains;
 pub mod arp;
 pub mod skewcorrctr;
 //pub mod vred_;
+pub mod btchcorrctrc;
+pub mod btchcorrctr;
+pub mod gmem;

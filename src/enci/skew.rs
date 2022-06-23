@@ -1,5 +1,6 @@
 use ndarray::{Array,Array1,arr1};
 use std::fmt;
+use std::collections::HashSet;
 
 #[derive(Clone)]
 pub struct Skew {
@@ -25,19 +26,21 @@ pub fn build_skew(a: Option<i32>,m: Option<i32>,
     let mut ss: usize = 0;
 
     if !a.is_none() {
-        ss += 1;
+        ss += a.unwrap().abs() as usize;
     }
 
     if !m.is_none() {
-        ss += 1;
+        ss += m.unwrap().abs() as usize;
     }
 
     if !ad.is_none() {
-        ss += 1;
+        let q:Vec<i32> = ad.clone().unwrap().into_iter().map(|y| y.abs()).collect();
+        ss += q.into_iter().sum::<i32>() as usize;
     }
 
     if !am.is_none() {
-        ss += 1;
+        let q:Vec<i32> = am.clone().unwrap().into_iter().map(|y| y.abs()).collect();
+        ss += q.into_iter().sum::<i32>() as usize;
     }
 
     Skew {adder: a,multer: m,addit: ad, multit: am,skew_size: ss,ordering:o}
@@ -71,6 +74,27 @@ impl fmt::Display for Skew {
 }
 
 impl Skew {
+
+    pub fn active(&mut self) -> HashSet<usize> {
+        let mut hs:HashSet<usize> = HashSet::new();
+
+        if !self.adder.is_none() {
+            hs.insert(0);
+        }
+
+        if !self.multer.is_none() {
+            hs.insert(1);
+        }
+
+        if !self.addit.is_none() {
+            hs.insert(2);
+        }
+
+        if !self.multit.is_none() {
+            hs.insert(3);
+        }
+        hs
+    }
 
     pub fn skew_value(&mut self, mut v : Array1<i32>) -> Array1<i32> {
         let l = self.ordering.len();

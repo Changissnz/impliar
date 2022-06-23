@@ -134,7 +134,6 @@ impl PFOperator {
 
         let cached_values:Vec<f32> = Vec::new();
         let b = self.oo.branches[self.pi].clone();
-        let value: Option<f32> = None;
 
         // split into elmts
         let es = setf::str_to_vec(b.clone());

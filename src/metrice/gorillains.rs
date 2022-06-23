@@ -35,8 +35,6 @@ pub struct GorillaIns {
     /*
     (0) f32 for sequence
     (1) f32 for each value of sequence
-
-    recog_mode_seq := true -> (0)
     */
     tail_mode:usize,
     szt:usize,
