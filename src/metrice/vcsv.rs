@@ -8,7 +8,7 @@ use std::io::{Write, BufReader, BufRead,Error};
 
 use crate::setti::setf;
 
-fn print_type_of<T>(_: &T) {
+pub fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
@@ -59,6 +59,7 @@ pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Er
 
     for line in reader.lines() {
         let s: Vec<String> = setf::str_to_vec(line?);
+        assert!(s.len() == 1);
         sol.push(s[0].parse::<f32>().unwrap());
     }
 

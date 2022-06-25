@@ -43,9 +43,15 @@ pub struct GorillaIns {
 }
 
 /*
+CAUTION: wanted normal1 intended for gf2.
 */
 pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
+
+    if !wanted_normal1.is_none() {
+        assert!(wanted_normal1.clone().unwrap() < 2);
+    }
+
     GorillaIns{sequence:sequence,approach:approach,app_out1:None,app_outn:None,
     wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
     auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None}
@@ -57,7 +63,28 @@ impl GorillaIns {
         self.approach.apply(self.sequence.clone(),self.tail_mode)
     }
 
+    pub fn process_tail1(&mut self) -> (usize,Option<f32>) {
+        self.tail_mode = 0;
+        let x = self.approach_on_sequence().0.unwrap();
+        assert!(x >= 0. && x <= 1.);
+
+        let y:usize = if x < 0.5 {0} else {1};
+        if self.wanted_normal1.is_none() {
+            return (y,None);
+        }
+
+        let y2 = self.wanted_normal1.clone().unwrap();
+        if y2 != y {
+            if y2 == 0 {
+                return (0, Some(0.49 - x));
+            }
+            return (1,Some(0.5 - x));
+        }
+        (y,None)
+    }
+
     pub fn brute_process_tailn(&mut self) {
+        self.tail_mode = 1;
         let (_, x1) = self.approach_on_sequence();
 
         if self.wanted_normaln.is_none() {
@@ -83,7 +110,12 @@ impl GorillaIns {
     pub fn improve_approach__labels(&mut self,is_multi:bool) -> (Option<f32>,Option<Array1<f32>>) {
 
         if !is_multi {
-            return (None,None);
+            // get label
+            let (_,q2) = self.process_tail1();
+            if q2.is_none() {
+                return (Some(0.),None);
+            }
+            return (q2,None);
         }
 
         // convert fselect to bfgselect
@@ -102,12 +134,13 @@ impl GorillaIns {
 
         // tail as last body
         if !self.approach.tailn.is_none() {
-            let x = self.approach.tailn.clone().unwrap();//.unwrap();
+            let x = self.approach.tailn.clone().unwrap();
             self.approach.add_s(x);
         }
 
         // make skew
         let sk = vreducer::sample_vred_adder_skew(v);
+
         self.approach.mod_tailn(sk);
     }
 }

@@ -59,9 +59,8 @@ impl VRed {
 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {
         let a2 = self.apply_body(a);
-
         // tail1
-        if tail_type == 1 {
+        if tail_type == 0 {
             if self.tail1.is_none() {
                 return (None,Some(a2));
             }
@@ -242,11 +241,20 @@ mod tests {
     #[test]
     fn test_VRed__apply_body() {
         let (f,s) = sample_fsvecs();
-        let mut vr = build_VRed(f,s,vec![0,2,4],0,None,None);
+        let mut vr = build_VRed(f.clone(),s.clone(),vec![0,2,4],0,None,None);
 
         let s1:Array1<f32> = arr1(&[-5.,6.3,15.0,-20.34,2.31313]);
         let xx = vr.apply_body(s1.clone());
         assert_eq!(xx,arr1(&[7.268, 18.568, 16.84, 224.10445, 4.15312]));
+
+        let mut vr2 = build_VRed(f.clone(),s.clone(),vec![0],0,None,None);
+        let xx2 = vr2.apply_body(s1.clone());
+        assert_eq!(xx2,arr1(&[-1.0, 10.3, 19.0, -16.34, 6.31313]));
+
+        let mut vr3 = build_VRed(f.clone(),s.clone(),vec![0],1,None,None);
+        let xx3 = vr3.apply_body(s1);
+        assert_eq!(xx3,arr1(&[-0.866, 10.434, 13.92, 99.88222, 1.23312]));
+
     }
 
     #[test]
