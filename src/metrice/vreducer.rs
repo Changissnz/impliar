@@ -31,6 +31,7 @@ impl FCastF32 {
     }
 }
 
+#[derive(Clone)]
 pub struct VRed  {
     pub fvec: Vec<FCast>,
     pub svec: Vec<skewf32::SkewF32>,
@@ -62,6 +63,7 @@ impl VRed {
         // tail1
         if tail_type == 0 {
             if self.tail1.is_none() {
+                println!("[!] vred:: unintended output");
                 return (None,Some(a2));
             }
             let a3 = (self.tail1.clone().unwrap()).apply(a2);

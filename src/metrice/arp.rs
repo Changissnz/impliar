@@ -105,6 +105,8 @@ impl ArbitraryRangePartition {
             fm[i].meen = self.xstream.0 + fm[i].meen * (amm.1 - amm.0)
         }
         f.fm = Some(fm);
+
+        f.data_labels = (0..f.data.len()).into_iter().collect();
     }
 }
 

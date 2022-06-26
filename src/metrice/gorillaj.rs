@@ -61,14 +61,16 @@ impl GorillaJudge {
 
     outputs (score(GI),improvement_vec)
     */
-    pub fn gorilla_apply_vred(&mut self) -> (f32,Option<Vec<f32>>,Option<Vec<Array1<f32>>>) {
+    pub fn gorilla_apply_vred(&mut self) -> (f32,Option<Vec<f32>>,Option<Vec<skewf32::SkewF32>) {
         let l = self.data_load.unwrap().len();
         let mut soln:Vec<Array1<f32>> = Vec::new();
         let tm:usize = if self.filepath2.unwrap().1 {1} else {0};
         let mut sc:f32 = 0.;
 
-        let s1 : Vec<f32> = Vec::new();
-        let s2 : Vec<Array1<f32>> = Vec::new();
+        let mut s1 : Vec<f32> = Vec::new();
+        //let s2 : Vec<Array1<f32>> = Vec::new();
+        let mut s2 : Vec<skewf32::SkewF32> = Vec::new();
+
 
         for i in 0..l {
             let s = self.data_load[i].clone();
@@ -98,7 +100,8 @@ impl GorillaJudge {
             // calculate improvement
             let (x1,x2) = ts.improve_approach__labels(self.filepath2.unwrap().1);
             if !x2.is_none() {
-                s2.push(x2.unwrap());
+                //s2.push(x2.unwrap());
+                s2.push(vreducer::sample_vred_adder_skew(x2.unwrap()));
             } else {
                 s1.push(x1.unwrap());
                 sc += x1.unwrap();
@@ -108,6 +111,7 @@ impl GorillaJudge {
         if self.filepath2.unwrap().1 {(sc,None,Some(s2))} else {(ax,Some(s1),None)}
     }
 
-    pub fn correct_batch(&mut self) {
+    pub fn refactor_batch(&mut self) {
+        
     }
 }

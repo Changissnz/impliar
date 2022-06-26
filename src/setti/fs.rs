@@ -75,6 +75,8 @@ impl fmt::Display for FSelect {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut q = "* fselect ".to_string();
         q.push_str(&format!("** data\n{:?}\n", self.data.clone()));
+        q.push_str(&format!("** labels\n{:?}\n", self.data_labels.clone()));
+
         if !self.score.is_none() {
             q.push_str(&format!("** score {}",self.score.unwrap()));
         } else {
@@ -128,6 +130,7 @@ impl FSelect {
 
     //// fselect selectors
     pub fn index_of_f32(&mut self, f:f32) -> Option<usize> {
+
         if !bmeas::in_bounds(self.bounds.clone(),f) {
             return None;
         }
