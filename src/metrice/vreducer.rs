@@ -14,7 +14,8 @@ pub struct FCast {
 
 #[derive(Clone)]
 pub struct FCastF32 {
-    pub f: fn(Array1<f32>) -> f32
+    pub f: fn(Array1<f32>) -> f32,
+    pub ai: f32 // spare adder
 }
 
 impl FCast {
@@ -27,7 +28,7 @@ impl FCast {
 impl FCastF32 {
 
     pub fn apply(&mut self,a:Array1<f32>) -> f32 {
-        (self.f)(a)
+        (self.f)(a) + self.ai
     }
 }
 
@@ -190,13 +191,13 @@ impl VRed {
     }
 }
 
-pub fn sample_vred_adder_skew(a:Array1<f32>) -> skewf32::SkewF32 {
+pub fn sample_vred_adder_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
 
     // get size
-    let y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
-    let v_:Array1<i32> = a.into_iter().map(|x1| (x1 * f32::powf(10.,y as f32)) as i32).collect();
+    //let y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(t))).into_iter().max().unwrap();
+    let v_:Array1<i32> = a.into_iter().map(|x1| ((x1 * f32::powf(10.,t as f32))).round() as i32).collect();
     let sk = skew::build_skew(None,None,Some(v_),None,vec![2],None);
-    skewf32::SkewF32{sk:sk,s:y}
+    skewf32::SkewF32{sk:sk,s:t}
 }
 
 pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
@@ -221,8 +222,8 @@ pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
     let mut sv: Vec<skewf32::SkewF32> = Vec::new();
     let m1:Array1<f32> = arr1(&[1.,3.134,54.12,60.11111,-55.2]);
     let m2:Array1<f32> = arr1(&[3.134,1.,-55.2,60.11111,54.12]);
-    sv.push(sample_vred_adder_skew(m1));
-    sv.push(sample_vred_adder_skew(m2));
+    sv.push(sample_vred_adder_skew(m1,5));
+    sv.push(sample_vred_adder_skew(m2,5));
 
     (fv,sv)
 }
@@ -266,7 +267,7 @@ mod tests {
 
         // add skew
         let yx = arr1(&[-0.268, -0.568, -0.84, -0.10445, -0.15312]);
-        let rxx = sample_vred_adder_skew(yx);
+        let rxx = sample_vred_adder_skew(yx,5);
         vr.mod_tailn(rxx);
 
 

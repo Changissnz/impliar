@@ -11,3 +11,5 @@ pub mod skewcorrctr;
 pub mod btchcorrctrc;
 pub mod btchcorrctr;
 pub mod gmem;
+pub mod gorillaj;
+pub mod gessir;

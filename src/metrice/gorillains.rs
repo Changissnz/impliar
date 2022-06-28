@@ -28,6 +28,7 @@ GorillaIns can proceed by one of the following:
 */
 pub struct GorillaIns {
     sequence: Array1<f32>,
+    k:usize,
     approach: vreducer::VRed,
     app_out1: Option<f32>,
     pub app_outn: Option<Array1<f32>>,
@@ -59,14 +60,14 @@ pub struct GorillaIns {
 /*
 CAUTION: wanted normal1 intended for gf2.
 */
-pub fn build_GorillaIns(sequence:Array1<f32>,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
+pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
 
     if !wanted_normal1.is_none() {
         assert!(wanted_normal1.clone().unwrap() < 2);
     }
 
-    GorillaIns{sequence:sequence,approach:approach,app_out1:None,app_outn:None,
+    GorillaIns{sequence:sequence,k:k,approach:approach,app_out1:None,app_outn:None,
     wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
     auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None,corr2:None}
 }
@@ -131,8 +132,8 @@ impl GorillaIns {
         if self.tail_mode == 0 {
             return;
         }
-        //self.tail_mode = 1;
         let (_, x1) = self.approach_on_sequence();
+        self.app_outn = x1.clone();
 
         if self.wanted_normaln.is_none() {
             let mut arp1 = arp::build_ArbitraryRangePartition(x1.clone().unwrap(),self.szt);
@@ -149,7 +150,6 @@ impl GorillaIns {
 
         self.soln = Some(rpgf2.fselect.clone());
         self.man_sol = Some(rpgf2);
-        self.app_outn = x1.clone();
     }
 
     /*
@@ -188,8 +188,7 @@ impl GorillaIns {
         }
 
         // make skew
-        let sk = vreducer::sample_vred_adder_skew(v);
-
+        let sk = vreducer::sample_vred_adder_skew(v,self.k);
         self.approach.mod_tailn(sk);
     }
 }
@@ -207,7 +206,7 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
-        let mut gi = build_GorillaIns(q,vr21,Some(normal),None,1,3);
+        let mut gi = build_GorillaIns(q,5,vr21,Some(normal),None,1,3);
 
         gi.brute_process_tailn();
         assert_eq!(gi.app_outn,Some(arr1(&[0.47728175, 0.75453043, 0.75, 0.86111116])));
@@ -220,7 +219,7 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
-        let mut gi = build_GorillaIns(q,vr21,Some(normal),None,1,3);
+        let mut gi = build_GorillaIns(q,5,vr21,Some(normal),None,1,3);
 
         // before improvement
         gi.brute_process_tailn();
@@ -250,9 +249,9 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
 
         let vr21 = vreducer::build_VRed(sv1.clone(),Vec::new(),vec![0,1],
-                    0,Some(vreducer::FCastF32{f:f9}),None);
+                    0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
 
-        let mut gi = build_GorillaIns(t0.clone(),vr21.clone(),None,Some(t1),0,3);
+        let mut gi = build_GorillaIns(t0.clone(),5,vr21.clone(),None,Some(t1),0,3);
 
         let (u,o) = gi.process_tail1();
 
@@ -275,7 +274,7 @@ mod tests {
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
 
-        let mut gi = build_GorillaIns(t0.clone(),vr21,None,None,1,5);
+        let mut gi = build_GorillaIns(t0.clone(),5,vr21,None,None,1,5);
         gi.brute_process_tailn();
         let (_,u2) = gi.predict_sequence(x0[0].clone());
         assert_eq!(Some(arr1(&[0, 1, 2, 3, 0])),u2);
@@ -296,9 +295,9 @@ mod tests {
 
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
-                    0,Some(vreducer::FCastF32{f:f9}),None);
+                    0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
 
-        let mut gi = build_GorillaIns(t0.clone(),vr21,None,Some(t1),0,5);
+        let mut gi = build_GorillaIns(t0.clone(),5,vr21,None,Some(t1),0,5);
 
         let (u,o) = gi.process_tail1();
         let (u2,_) = gi.predict_sequence(x0[4].clone());

@@ -258,9 +258,9 @@ pub fn batch_1() -> (Vec<skewf32::SkewF32>,Vec<Array1<f32>>) {
                    None,vec![2],None);
     let sk3 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s3,k)),
                   None,vec![2],None);
-                  let s1k = skewf32::SkewF32{sk:sk1,s:k};
-                  let s2k = skewf32::SkewF32{sk:sk2,s:k};
-                  let s3k = skewf32::SkewF32{sk:sk3,s:k};
+    let s1k = skewf32::SkewF32{sk:sk1,s:k};
+    let s2k = skewf32::SkewF32{sk:sk2,s:k};
+    let s3k = skewf32::SkewF32{sk:sk3,s:k};
 
      (vec![s1k,s2k,s3k],vec![r1,r2,r3])
 }

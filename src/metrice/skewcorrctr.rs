@@ -42,7 +42,18 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
         return;
     }
     let c = sr.sr.choice[l - 1];
-    let iv = im.get_mut(&c).unwrap().clone();
+    /*
+    println!("CHOICE {}",c);
+    println!("IMMM");
+    println!("{:?}",im);
+    */
+
+    let mut iv:Vec<usize> = Vec::new();
+    if im.contains_key(&c) {
+        iv = im.get_mut(&c).unwrap().clone();
+    } else {
+        println!("[!] CAUTION: no key for gorilla-update on selection rule");
+    }
 
     // calculate the cumulative distance of li to each of the iv elements
     let mut s:f32 = 0.;
@@ -125,6 +136,9 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
 
     // iterate through interval points
     for (i,l) in li.into_iter().enumerate() {
+        if !hm.contains_key(&i) {
+            continue;
+        }
         // get iset for t=i
         let ist = hm.get_mut(&i).unwrap().clone();
         let sv:Array1<f32> = ist.clone().into_iter().map(|i2| approach_out[i2].clone()).collect();
@@ -143,6 +157,7 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
 */
 pub fn gorilla_improve_approach_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSelectionRule {
     let fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
+    //println!("{} RESULTS",fgs.all_cache.len());
     let q = fgs.all_cache[0].clone();
     fgs.all_cache.into_iter().fold(q, |v1: bfngsrch::BFGSelectionRule,v2: bfngsrch::BFGSelectionRule| if v1.score.unwrap() < v2.score.unwrap() {v1} else {v2})
 }
