@@ -3,6 +3,7 @@ use crate::metrice::gorillasf;
 use crate::enci::skew;
 use crate::enci::skewf32;
 use crate::setti::dessi;
+use std::fmt;
 
 /*
 cast for function
@@ -57,6 +58,16 @@ pub fn build_VRed(fv:Vec<FCast>,sv:Vec<skewf32::SkewF32>,
     fi:0,si:0,tail1:tail1,tailn:tailn}
 }
 
+
+impl fmt::Display for VRed {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = format!("fsz {} ssz {}",self.fvec.len(),self.svec.len());//String::from("skalos {}",self.s);
+        s += &format!("tail1 {} tailn {}",!self.tail1.is_none(),!self.tailn.is_none());
+        write!(f, "{}", s)
+    }
+
+}
+
 impl VRed {
 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {
@@ -75,8 +86,9 @@ impl VRed {
         if self.tailn.is_none() {
             return (None,Some(a2));
         }
-        let a2 = (self.tailn.clone().unwrap()).skew_value(a2);
-        (None,Some(a2))
+
+        let a3 = (self.tailn.clone().unwrap()).skew_value(a2);
+        (None,Some(a3))
     }
 
     pub fn apply_body(&mut self,a:Array1<f32>) -> Array1<f32> {
@@ -186,6 +198,16 @@ impl VRed {
         self.tailn = Some(nt);
     }
 
+    pub fn mod_tailn_(&mut self,nt:skewf32::SkewF32) {
+
+        if !self.tailn.is_none() {
+            self.add_s(self.tailn.clone().unwrap());
+        }
+
+        self.mod_tailn(nt);
+
+    }
+
     pub fn mod_tail1(&mut self,nt:FCastF32) {
         self.tail1 = Some(nt);
     }
@@ -235,6 +257,11 @@ pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
     let (g1,g2) = gorillasf::gorilla_touch_arr1_basic(s1,0.5);
     (g1 + g2) / 2.0
+}
+
+pub fn std_gcd_reducer(s:Array1<f32>) -> Array1<f32> {
+    let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
+    gorillasf::gorilla_touch_arr1_gcd(s1,0.5)
 }
 
 #[cfg(test)]

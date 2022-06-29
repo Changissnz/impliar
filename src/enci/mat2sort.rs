@@ -261,6 +261,11 @@ pub fn arr1_cmp1(v:&Array1<f32>,v2:&Array1<f32>) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+pub fn abs_sum_arr1_f32(v:Array1<f32>) -> f32 {
+    let v2:Array1<f32> = v.into_iter().map(|x| x.abs()).collect();
+    v2.sum()
+}
+
 ////////////////////////////////////////////////////
 
 pub fn sample_arr2_sort1() -> Array2<f32> {

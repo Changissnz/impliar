@@ -130,7 +130,6 @@ impl FSelect {
 
     //// fselect selectors
     pub fn index_of_f32(&mut self, f:f32) -> Option<usize> {
-
         if !bmeas::in_bounds(self.bounds.clone(),f) {
             return None;
         }

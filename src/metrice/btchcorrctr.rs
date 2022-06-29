@@ -41,6 +41,7 @@ impl GBatchCorrector {
     pub fn load_next_batch(&mut self,sb: Vec<skewf32::SkewF32>,refn: Vec<Array1<f32>>) {
         self.b = sb;
         self.refn1 = refn;
+        assert!(self.is_proper_batch());
     }
 
     // check that all .s is equal for sb
@@ -125,6 +126,7 @@ impl GBatchCorrector {
     outputs score for multer candidate
     */
     pub fn process_candidate_multer(&mut self,v1_:HashMap<i32,f32>,c:i32) -> f32 {
+        let c_:f32 = c as f32 / f32::powf(10.,self.k as f32);
 
         if self.m_candidate_scores.contains_key(&c) {
             // process c on self.b
@@ -141,6 +143,7 @@ impl GBatchCorrector {
             let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>() + h1.skew_size as i32;
             self.m_candidate_scores.insert(c,v1_.get(&c).unwrap() + s12 as f32 / f32::powf(10.,self.k as f32));
         }
+        *self.m_candidate_scores.get_mut(&c).unwrap() += c_;
         *(self.m_candidate_scores.get(&c).clone().unwrap())
     }
 
@@ -153,9 +156,14 @@ impl GBatchCorrector {
 
         // get scores on batch
         let (skv,av) = self.scale_data(Some(self.k),true);
-        let csvec = btchcorrctrc::multiple_score_pair_vec_on_skew_batch_type_a(skv,av);
 
-        let v1:HashMap<i32,f32> = HashMap::from_iter(csvec.into_iter().map(|x| (x.0,x.1 as f32 / f32::powf(10.,self.k as f32))).into_iter());
+        let mx:i32 = i32::pow(10,self.k as u32);
+        let csvec = btchcorrctrc::multiple_score_pair_vec_on_skew_batch_type_a(skv,av,Some(mx));
+        let mut v1:HashMap<i32,f32> = HashMap::from_iter(csvec.into_iter().map(|x| (x.0,x.1 as f32 / f32::powf(10.,self.k as f32))).into_iter());
+
+        // remove 1
+        v1.remove(&1);
+
         let mut candidates:HashSet<i32> = self.m_candidate_scores.clone().into_keys().collect();
         let v1_:HashSet<i32> = v1.clone().into_keys().collect();
         candidates.extend(&v1_);
@@ -165,6 +173,7 @@ impl GBatchCorrector {
             let x = self.process_candidate_multer(v1.clone(),c);
             if verbose {println!("* {} --> {}",c,x)};
 
+            // check that multiplication does not exceed
             if x < y2.unwrap() {
                 y2 = Some(x);
                 y = Some(c);
@@ -304,6 +313,8 @@ mod tests {
     #[test]
     pub fn test__GBatchCorrector__process_batch_AND_refactor() {
         let (b1,b2) = batch_1();
+        let sb1:f32 = b1.clone().into_iter().map(|mut x| x.skew_size()).into_iter().sum::<f32>();
+
         let mut gbc = empty_GBatchCorrector(5);
         gbc.load_next_batch(b1,b2);
         gbc.process_batch(false);
@@ -320,7 +331,7 @@ mod tests {
         //println!("{} {}",s11.unwrap(),s13);
         let s4 = (s13 - s.unwrap()).abs();
         //println!("{:?}",s4);
-        assert!(s4 < 0.0001);
+        assert!(s4 < sb1,"{}",s4);
     }
 
 }

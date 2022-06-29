@@ -38,7 +38,7 @@ pub struct GorillaIns {
     wanted_normal1:Option<usize>,
 
     /// two approaches to getting soln for normal: manual | auto
-    man_sol: Option<brp::RangePartitionGF2>,
+    pub man_sol: Option<brp::RangePartitionGF2>,
     auto_sol: Option<arp::ArbitraryRangePartition>,
 
     // two recognition modes:
@@ -81,15 +81,12 @@ impl GorillaIns {
         if self.tail_mode == 1 {
             assert!(!self.soln.is_none(), "DESTRAUUUUUUUGHT");
             let mut x1 = self.approach.apply(v.clone(),self.tail_mode).1.unwrap();
-
-            let mut fsa = self.soln.clone().unwrap(); //= Some(rpgf2.fselect.clone());
+            let mut fsa = self.soln.clone().unwrap();
 
             // iterate through and get index and label
             let mut ls : Vec<usize> = Vec::new();
             for v_ in x1.into_iter() {
-                ////println!("{}: i {:?}  l {:?}",v_,fsa.index_of_f32(v_),fsa.label_of_f32(v_));
                 let l = fsa.label_of_f32(v_);
-
                 ls.push(if l.is_none() {0} else {l.unwrap()});
             }
             return (None,Some(ls.into_iter().collect()));
@@ -230,7 +227,7 @@ mod tests {
         gi.improve_vred__tailn(qrx.unwrap());
         gi.brute_process_tailn();
 
-        assert_eq!(gi.app_outn,Some(arr1(&[0.75, 0.75, 0.25, 0.25001])));
+        assert_eq!(gi.app_outn,Some(arr1(&[0.75, 0.75, 0.25, 0.25])));
         assert_eq!(Some(0.), gi.soln.clone().unwrap().score);
     }
 

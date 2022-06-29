@@ -27,7 +27,7 @@ pub struct RangePartitionGF2 {
 
     // solution
     pub fselect: fs::FSelect,
-    score:usize,
+    pub score:usize,
     // solution attrib.
 
     // for each indice, flip solution from FSelect
@@ -130,7 +130,9 @@ impl RangePartitionGF2 {
 
         // get bounds to modify and mod distance
         let b = f.index_to_data(bi);
+        //let d2 = if 1. > b.1 {1.} else {b.1.clone()};
         let d = bmeas::closest_distance_to_subbound((0.,1.),b.clone(),f2);
+
         let mut sol:(f32,f32) = b.clone();
 
         //// approach 2: relative to each end of bound b

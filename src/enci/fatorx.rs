@@ -17,7 +17,7 @@ use std::str::FromStr;
 pub fn factors_of_usize(v:usize) -> HashSet<usize> {
     let mut cap = v / 2;
     let mut sol: HashSet<usize> = HashSet::new();
-    for i in 1..cap + 1 {
+    for i in 1..cap + 2 {
         if v % i == 0 {
             if sol.contains(&i) {
                 break;

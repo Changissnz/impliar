@@ -28,11 +28,26 @@ pub fn i32_pair_cmp1(s1: &(i32,i32),s2: &(i32,i32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+/*
+[!] method is required for batch correction on range (x0,x1) and applying multiple
+to arr1 should be exceed mx
+*/
+pub fn multiple_on_reference_at_capacity(reference:Vec<Array1<i32>>,mult:i32,mx:i32) -> bool {
+    for r in reference.into_iter() {
+        let x = r * mult;
+        if x.iter().any(|&x_| x_ > mx) {
+            return true;
+        }
+    }
+    false
+}
+
 // option (best multiple,score), (multiples,scores)
-pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>) -> Vec<(i32,i32)> {
+pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>,mx:Option<i32>) -> Vec<(i32,i32)> {
     let l = reference.len();
     assert_eq!(l,sb.len());
 
+    // calculate all multiples
     let mut vm_: HashSet<i32> = HashSet::new();
     for i in 0..l {
         let y2 = fatorx::cheapest_multiple_vec(reference[i].clone(),sb[i].addit.clone().unwrap());
@@ -47,6 +62,12 @@ pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,referenc
 
     let mut vm2: Vec<(i32,i32)> = Vec::new();
     for v in vm.into_iter() {
+        if !mx.is_none() {
+            if multiple_on_reference_at_capacity(reference.clone(),v,mx.clone().unwrap()) {
+                continue;
+            }
+        }
+
         vm2.push((v, (v - mn).abs()));
     }
     vm2.sort_by(i32_pair_cmp1);
@@ -64,7 +85,7 @@ pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,referenc
 
 pub fn best_multiple_for_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>) -> (i32,i32) {
     // multiples,scores
-    let smms = multiple_score_pair_vec_on_skew_batch_type_a(sb,reference);
+    let smms = multiple_score_pair_vec_on_skew_batch_type_a(sb,reference,None);
     let l = smms.len();
     let i:usize = (0..l).into_iter().fold(0,|b,b2| if smms[b].1 < smms[b2].1 {b} else {b2});
     smms[i]
@@ -82,7 +103,7 @@ pub fn m_refactor_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32
     let mut sol: Vec<skew::Skew> = Vec::new();
     let l = sb.len();
     for i in 0..l {
-        let r2 = reference[i].clone() * m;
+        let r2 = reference[i].clone() * m - reference[i].clone();
         let a2 = sb[i].addit.clone().unwrap() - r2;
         let sk = skew::build_skew(None,None,Some(a2),None,vec![2],None);
         sol.push(sk);
