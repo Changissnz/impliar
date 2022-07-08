@@ -151,6 +151,39 @@ where
     h
 }
 
+
+pub fn one_index_to_two_index(i:usize,x:usize,y:usize) -> (usize,usize) {
+    assert!(i < x * y);
+
+    let oi = i / y;
+    let oi2 = i % y;
+    (oi,oi2)
+}
+
+pub fn two_index_to_one_index(i2:(usize,usize),x:usize,y:usize) -> usize {
+    assert!(i2.0 < x && i2.1 < y);
+    let mut i:usize = 0;
+    for x in 0..i2.0 {
+        i += x;
+    }
+    i + i2.1
+}
+
+/*
+slides arr1 by k spots to the right
+*/
+pub fn slide_arr1<T>(a: Array1<T>,k:usize) -> Array1<T>
+where T:Clone + Default
+{
+    let l = a.len();
+    //assert!(k < l);
+    let k_ = k % l;
+    // first segment [:l -k]
+    let mut a2:Vec<T> = a.slice(s![l -k_..l]).to_owned().into_iter().collect();
+    a2.extend(a.slice(s![0..l-k_]).to_owned());
+    a2.into_iter().collect()
+}
+
 /////////////////////////////////////////////////////////////////////////
 
 pub fn test_d() -> Array2<i32> {

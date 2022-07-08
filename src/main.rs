@@ -41,7 +41,8 @@ use std::io::{Write, BufReader, BufRead, Error};
 use std::fs::OpenOptions;
 use std::sync::{Arc, Mutex, Once};
 use std::env;
+use rand::prelude::*;
+use crate::enci::ns::RN;
 
 fn main() {
-    
 }

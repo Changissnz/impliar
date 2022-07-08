@@ -11,7 +11,6 @@ use crate::setti::setf;
 use crate::setti::strng_srt;
 use crate::setti::selection_rule;
 use selection_rule::SelectionRule;
-
 use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 
 /*

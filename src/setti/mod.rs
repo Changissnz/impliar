@@ -19,3 +19,4 @@ pub mod disinc_bh;
 pub mod fs;
 pub mod bfngsrch;
 pub mod dessi;
+pub mod ssi;

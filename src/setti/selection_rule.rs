@@ -326,15 +326,6 @@ pub fn collision_score(res_req: Array2<i32>,f: fn(&(usize,&i32))->bool) ->i32 {
     x2.len() as i32
 }
 
-
-pub fn one_index_to_two_index(i:usize,x:usize,y:usize) -> (usize,usize) {
-    assert!(i < x * y);
-
-    let oi = i / y;
-    let oi2 = i % y;
-    (oi,oi2)
-}
-
 /*
 fixes collisions between restricted and required by
 flipping a colliding element from either `restricted`
@@ -352,7 +343,7 @@ pub fn fix_rule_contents_1(restricted: &mut Restriction,
 
     let (rs,cs) = (restricted.data.raw_dim()[0],restricted.data.raw_dim()[1]);
     for x2_ in x2.iter() {
-        let g = one_index_to_two_index(*x2_,rs,cs);
+        let g = matrixf::one_index_to_two_index(*x2_,rs,cs);
         // flip restricted
         if preference[*x2_] == 1 {
             (*restricted).data[Dim([g.0,g.1])] = 0;

@@ -43,7 +43,7 @@ pub fn cmp_arr1_pair_1(a1:Array1<i32>,a2:Array1<i32>,existence_weight:f32) -> f3
 pub fn std_dev_arr1_f32(a1:Array1<f32>) -> f32 {
     if a1.len() == 0 {return 0.};
     let m = a1.clone().mean().unwrap();
-    let a2:Array1<f32> = a1.into_iter().map(|x| x - m).collect();
+    let a2:Array1<f32> = a1.into_iter().map(|x| (x - m).abs()).collect();
     a2.mean().unwrap() / a2.len() as f32
 }
 
