@@ -73,7 +73,6 @@ pub fn number_of_m_intersections(n: usize,m:usize) -> usize {
     let mut s = 0 as usize;
     let maxxy = n - (m - 1);
     for i in 1..(maxxy + 1) {
-        //println!("@ I={},(n,m)={},{}",i,n-i,m-1);
         let c = nCr(n - i,m - 1);
         s += c;
     }
@@ -85,8 +84,6 @@ pub fn unique_object_frequency_requirement(n: usize,m:usize) -> usize {
 }
 
 /*
-TODO: uses hashfit
-
 determine the best subsets S' for S in which S' contains
 elements e1,e2,... from S' that have "merged".
 */

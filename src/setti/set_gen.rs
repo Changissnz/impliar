@@ -51,6 +51,9 @@ pub struct SGen {
     pub next: Vec<HashSet<String>>,
 }
 
+/*
+generates all sub-vectors of length k given value (Vec<String>)
+*/
 impl SGen {
 
     pub fn fcollect_all(&mut self,k : usize) {
@@ -58,7 +61,7 @@ impl SGen {
         let l = self.value.len();
         while x < l {
             self.next = fcollect(self.value.clone(), x,k as usize);
-            self.add_next();
+            self.add_next(k);
 
             if self.next.len() == 0 {
                 break;
@@ -69,9 +72,12 @@ impl SGen {
         self.next = Vec::new();
     }
 
-    pub fn add_next(&mut self) {
+    pub fn add_next(&mut self,k:usize) {
         for x in self.next.iter() {
             let h: HashSet<String> = x.clone();
+            if h.len() != k {
+                continue; 
+            }
             self.data.push(h);
         }
     }
@@ -407,20 +413,18 @@ mod tests {
 
     #[test]
     fn test_fcollect() {
+        let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string(),
+            "d".to_string(), "dr".to_string(), "dxx".to_string()];
 
-            let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string(),
-                "d".to_string(), "dr".to_string(), "dxx".to_string()];
-
-            let mut y = strng_srt::stringized_srted_vec(&mut x);
-            let mut s = fcollect(x,0,3);
-            assert_eq!(s.len(),10);
-
+        let mut y = strng_srt::stringized_srted_vec(&mut x);
+        let mut s = fcollect(x,0,3);
+        assert_eq!(s.len(),10);
     }
 
 
     #[test]
     fn test_SGen_fcollect() {
-
+        // case 1
         let mut value = vec!["arbitrox".to_string(), "bartinuell".to_string(),
             "radinox".to_string(), "reskeyiazam".to_string(),"garbitol".to_string(),
             "weinfarsitol".to_string()];
@@ -435,6 +439,14 @@ mod tests {
             println!("");
         }
         assert_eq!(20,sg.data.len());
+
+        // case 2
+        let q = vec!["a".to_string(),"b".to_string(),"a".to_string(),
+        "b".to_string()];
+        let mut sg = SGen{value:q,data:Vec::new(),next:Vec::new()};
+
+        sg.fcollect_all(3);
+        assert!(sg.data.len() == 0);
     }
 
     #[test]
