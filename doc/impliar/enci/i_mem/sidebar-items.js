@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_contrastruct",""],["build_one_imem",""]],"struct":[["ContraStruct","Contradiction struct "],["IMem",""]]};

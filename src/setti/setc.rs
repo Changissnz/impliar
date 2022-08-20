@@ -9,8 +9,9 @@ use std::collections::HashSet;
 use std::collections::HashMap;
 use factorial::Factorial;
 
-/*
-*/
+/// determines if a vector of sets comprises a closed implication
+/// in which k is the number of unique elements that all of those sets
+/// contain. 
 pub fn is_closed_implication(s:Vec<HashSet<String>>, k:usize) -> bool {
     let mut vc = setf::build_VectorCounter();
     let mut unique = HashSet::new();
@@ -83,16 +84,6 @@ pub fn unique_object_frequency_requirement(n: usize,m:usize) -> usize {
     nCr(n-1,m-1)
 }
 
-/*
-determine the best subsets S' for S in which S' contains
-elements e1,e2,... from S' that have "merged".
-*/
-/*
-pub fn best_subsets_for_merge() {
-}
-*/
-
-
 #[cfg(test)]
 mod tests {
 
@@ -122,5 +113,4 @@ mod tests {
             sg.next = Vec::new();
         }
     }
-
 }

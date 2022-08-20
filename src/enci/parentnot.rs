@@ -1,10 +1,9 @@
-/*
-methods for parenthetical notation
-*/
-
+//! methods for parenthetical notation
 use std::str::FromStr;
 use substring::Substring;
 
+/// # return
+/// stringized range [0..v -1]
 pub fn usize_to_choice_vector(v:usize) -> Vec<String> {
     let mut sol: Vec<String> = Vec::new();
     for i in 0..v {
@@ -13,10 +12,12 @@ pub fn usize_to_choice_vector(v:usize) -> Vec<String> {
     sol
 }
 
-/*
-c the ordered vector of elements comprising the string,
-q the indices of open ( and close ).
-*/
+/// # arguments 
+/// `c` := ordered vector of elements comprising the string
+/// `q` := the indices of open ( and close )
+/// 
+/// # return
+/// parenthetical string based on open-close indices of `q`
 pub fn rangevec_to_parenthetical_string(c: Vec<usize>, q: Vec<(usize,usize)>) -> String {
 
 
@@ -56,10 +57,9 @@ pub fn rangevec_to_parenthetical_string(c: Vec<usize>, q: Vec<(usize,usize)>) ->
     p.substring(0,l2).to_owned().to_string()
 }
 
-/*
-decision vector := vec<usize as str>
-range vector := reformat of decision vector, ordered longest contiguous indices
-*/
+/// # return
+/// converted decision vector, <Vec\<usize as str\>> into a range vector, 
+/// a sequence of ordered longest contiguous indices
 pub fn decisionvec_to_rangevec(v:Vec<String>) -> Vec<(usize,usize)> {
     // determine longest contiguous
     let uv = stringvec_to_usizevec(v.clone());
@@ -67,6 +67,8 @@ pub fn decisionvec_to_rangevec(v:Vec<String>) -> Vec<(usize,usize)> {
     csv
 }
 
+/// # return
+/// converts vector of stringized usize into vector of usizes
 pub fn stringvec_to_usizevec(v:Vec<String>) -> Vec<usize> {
     let mut uv: Vec<usize> = Vec::new();
     for v_ in v.iter() {
@@ -76,10 +78,11 @@ pub fn stringvec_to_usizevec(v:Vec<String>) -> Vec<usize> {
     uv
 }
 
-/*
-outputs all continuous subvectors of size >= 2.
-*/
-// CAUTION: v assumed to be ordered.
+/// # return
+/// outputs all continuous subvectors of size >= 2.
+///
+/// # caution
+/// v assumed to be ordered.
 pub fn continuous_subvectors(v:Vec<usize>) -> Vec<(usize,usize)> {
     let l = v.len();
     let mut i:usize = 0;
@@ -97,6 +100,8 @@ pub fn continuous_subvectors(v:Vec<usize>) -> Vec<(usize,usize)> {
     sol
 }
 
+/// # return
+/// if element at v\[i\] is distance 1 to v\[i -1\]?
 pub fn is_contiguous(v:Vec<usize>,i:usize) -> bool {
     assert!(i < v.len());
     if i == 0 {
@@ -108,9 +113,8 @@ pub fn is_contiguous(v:Vec<usize>,i:usize) -> bool {
     b2 - b1 == 1
 }
 
-/*
-all elements of subvector output true from function f
-*/
+/// # description
+/// determines the highest index j in v\[i + 1..\] such that x(v\[i\],v\[j\])
 pub fn longest_continuous_f_subvector_from_index<T>(v:Vec<T>,i:usize,x:fn(Vec<T>,usize) -> bool) -> (Vec<T>,usize)
 where
 T: Clone
@@ -130,8 +134,6 @@ T: Clone
 
     (sol,j_ + 1)
 }
-
-
 
 /////////////////////////////////////// test methods
 

@@ -1,6 +1,4 @@
-/*
-skew corrector contains functions for improving approach by GorillaIns
-*/
+///skew corrector contains functions for improving approach by GorillaIns
 use crate::setti::matrixf;
 use crate::setti::bfngsrch;
 use crate::metrice::bmeas;
@@ -9,9 +7,9 @@ use std::collections::{HashSet,HashMap};
 use ndarray::{arr1,Array1};
 use round::round;
 
-/*
-outputs interval points on [0,1] given l labels.
-*/
+/// outputs interval points in \[0,1\] given l labels.
+/// EX: l = 4 -> 
+/// [0.125,0.375,0.625,0.875] 
 pub fn label_intervals(l:usize) -> Array1<f32> {
     if l == 0 {
         return Array1::zeros(0);
@@ -41,13 +39,8 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
     if l == 0 {
         return;
     }
-    let c = sr.sr.choice[l - 1];
-    /*
-    println!("CHOICE {}",c);
-    println!("IMMM");
-    println!("{:?}",im);
-    */
 
+    let c = sr.sr.choice[l - 1];
     let mut iv:Vec<usize> = Vec::new();
     if im.contains_key(&c) {
         iv = im.get_mut(&c).unwrap().clone();
@@ -69,9 +62,7 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
     }
 }
 
-/*
-iterates through and scores
-*/
+/// iterate through and scores
 pub fn score_bfgs_tmpcache(bs: &mut bfngsrch::BFGSearcher,approach_out: Array1<f32>,
     im: HashMap<usize,Vec<usize>>,li:Array1<f32>) {
 

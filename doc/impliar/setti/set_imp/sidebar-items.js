@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_set_imp",""]],"struct":[["SetImp","SetImp is a struct that can generate vectors of strings using the generator `selection_rule::next_available_forward`."]]};

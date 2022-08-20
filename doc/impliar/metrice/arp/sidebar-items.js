@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["arr1_01_to_arr1_f32","description"],["arr1_f32_to_arr1_01","description"],["arr1_minmax",""],["build_ArbitraryRangePartition",""]],"struct":[["ArbitraryRangePartition","struct labels a sequence of values similar to brp::RangePartitionGF2 difference w/ RangePartitionGF2 rests on auto-labelling"]]};

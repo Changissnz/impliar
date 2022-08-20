@@ -1,10 +1,7 @@
-/*
-batch correcting algorithm used for factorization
-of skews
-*/
+//! skew re-factorization algorithms for cost efficiency
+//! type-a skew is addit only, type-m skew is multi only.
 extern crate round;
 use round::round;
-
 use crate::setti::dessi;
 use crate::enci::skewf32;
 use crate::enci::skew;
@@ -12,15 +9,10 @@ use crate::enci::fatorx;
 use ndarray::{arr1,Array1};
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use crate::metrice::btchcorrctr_tc;
 
-
-/////////////////////////////////////////////// multiplication
-/*
-pub fn best_mfactor_for_skew_batch_type_a(sb: Vec<skewf32::SkewF32>,reference:Vec<Array1<f32>>) {
-    // scale values first
-}
-*/
-
+/// # description
+/// i32 pair comparator 1, used for sorting
 pub fn i32_pair_cmp1(s1: &(i32,i32),s2: &(i32,i32)) -> std::cmp::Ordering {
     if (*s1).1 <= (*s2).1 {
         return Ordering::Less;
@@ -28,10 +20,9 @@ pub fn i32_pair_cmp1(s1: &(i32,i32),s2: &(i32,i32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
-/*
-[!] method is required for batch correction on range (x0,x1) and applying multiple
-to arr1 should be exceed mx
-*/
+/// # return
+/// if the multiplier `mult` applied to any <arr1<i32>> results in any value greater
+/// than `mx`. 
 pub fn multiple_on_reference_at_capacity(reference:Vec<Array1<i32>>,mult:i32,mx:i32) -> bool {
     for r in reference.into_iter() {
         let x = r * mult;
@@ -42,7 +33,17 @@ pub fn multiple_on_reference_at_capacity(reference:Vec<Array1<i32>>,mult:i32,mx:
     false
 }
 
-// option (best multiple,score), (multiples,scores)
+/// # description
+/// given a sequence `sb` of skews (type-a is addit), and a sequence of <arr1<i32>>, 
+/// calculates a (multer, refactored batch score) for each possible multiple of the type-a
+/// skews.
+///
+/// # return
+/// sequence of (multer,refactored batch score) pairs
+/// 
+/// # caution
+/// - multiple scores consider only refactored batch and not the multer skew
+/// - not fully checked
 pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>,mx:Option<i32>) -> Vec<(i32,i32)> {
     let l = reference.len();
     assert_eq!(l,sb.len());
@@ -53,7 +54,7 @@ pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,referenc
         let y2 = fatorx::cheapest_multiple_vec(reference[i].clone(),sb[i].addit.clone().unwrap());
         vm_.extend(y2.into_iter());
     }
-    vm_.insert(0);
+    //vm_.insert(0);
     let mut vm: Vec<i32> = vm_.into_iter().collect();
 
     // sort vm by distance to mean
@@ -70,19 +71,23 @@ pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,referenc
 
         vm2.push((v, (v - mn).abs()));
     }
-    vm2.sort_by(i32_pair_cmp1);
 
-    // iterate through and get the one with the best score
+    vm2.sort_by(i32_pair_cmp1);
+    
+    // iterate through and get the one with the best m-refactor score
     let mut bms:Vec<(i32,i32)> = Vec::new();
     for (m,_) in vm2.into_iter() {
         let (v1,v2) = m_refactor_skew_batch_type_a(sb.clone(),reference.clone(),m);
-        let s12:i32 = v2.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>() + m;
+        let s12:i32 = v2.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>();
         bms.push((m,s12));
     }
     bms
 }
 
-
+/// # description
+/// retrieves the sequence S of (multer,refactored batch score) on `sb` and `reference`
+/// using <batchcorrctrc::multiple_score_pair_vec_on_skew_batch_type_a>. Then outputs
+/// the (best multer, refactored batch score)
 pub fn best_multiple_for_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>) -> (i32,i32) {
     // multiples,scores
     let smms = multiple_score_pair_vec_on_skew_batch_type_a(sb,reference,None);
@@ -91,12 +96,15 @@ pub fn best_multiple_for_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Arr
     smms[i]
 }
 
-/*
-m-refactor of a skew batch
-
-outputs
-(Skew{multer},Vec<Skew{addit}>)
-*/
+/// # description
+/// m-refactor of an a-type skew batch `sb` using multer `m`. 
+/// Multer `m` is made into a m-type skew `M` (skew has only a multer). 
+/// And all a-type skews of `sb` are adjusted into a new batch `sb2` 
+/// of equal size. For each i'th element `s` of `sb`, the total value of the 
+/// skew `s` equals that of `M + i'th element of `sb2`.
+///
+/// # return
+/// (Skew{multer},Vec<Skew{addit}>)
 pub fn m_refactor_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32>>,m:i32) ->
     (skew::Skew, Vec<skew::Skew>) {
 
@@ -112,8 +120,16 @@ pub fn m_refactor_skew_batch_type_a(sb: Vec<skew::Skew>,reference:Vec<Array1<i32
     (sk1,sol)
 }
 
-////////////////////////////////////////////// addition
-
+/// # description
+/// given a sequence `sb` of skews (type-a is addit), calculates four possible
+/// adder refactorizations:
+/// - 0-adder
+/// - min-adder
+/// - max-adder
+/// - mean-adder 
+///
+/// # return
+/// sequence of (adder,refactored batch score) pairs
 pub fn adder_score_pair_vec_on_skew_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Vec<(i32,f32)>,usize) {
     let (mut ta2,mut k) = scale_skewf32_batch_type_a(sb.clone());
     let (m1,m4,mn) = min_max_mean_of_skew_batch_type_a(ta2.clone());
@@ -129,10 +145,9 @@ pub fn adder_score_pair_vec_on_skew_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (
     (vec![(0,ins),(m1,s1),(m4,s2),(mn,s3)],k)
 }
 
-/*
-determines if  1|min|max|mean will reduce the cumulative score,
-then outputs an a-factor and the refactored skews of sb.
-*/
+/// # description
+/// chooses the additive factor a out of the  options 1|min|max|mean that produces
+/// the lowest type-a skew batch cost, then it outputs an a-factor and the refactored skews of sb.
 pub fn best_afactor_for_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Option<skewf32::SkewF32>,Vec<skewf32::SkewF32>,f32) {
 
     let (q,k) = adder_score_pair_vec_on_skew_batch_type_a(sb.clone());
@@ -146,7 +161,14 @@ pub fn best_afactor_for_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Opti
     (if m != 0 {Some(s1)} else {None},s2,s3)
 }
 
+/// # description
+/// refactors the type-a skew batch `vs` with adder `head`.
+/// 
+/// # return 
+/// (adder skew, refactored type-a skew batch,score)
 pub fn a_refactor_skewf32_batch_type_a(vs: Vec<skew::Skew>, k:usize,head: i32) -> (skewf32::SkewF32,Vec<skewf32::SkewF32>,f32)  {
+    //println!("HEAD: {} {}",head,k);
+    //let shead = head * i32::pow(10,k as u32) as i32;
     let h1_ = skew::build_skew(Some(head),None,None,None,vec![0],None);
     let mut h1 = skewf32::SkewF32{sk:h1_.clone(),s:k};
     let (vsk,_) = refactor_skew_batch_type_a(h1_.clone(), vs.clone());
@@ -155,6 +177,8 @@ pub fn a_refactor_skewf32_batch_type_a(vs: Vec<skew::Skew>, k:usize,head: i32) -
     (h1,sfv,score)
 }
 
+/// # return
+/// converted skew batch `sk` into its <skewf32::SkewF32> form by decimal place `bs`. 
 pub fn skew_to_skewf32_batch_type_a(sk: Vec<skew::Skew>, bs: usize) -> Vec<skewf32::SkewF32> {
     let mut sol: Vec<skewf32::SkewF32> = Vec::new();
     for (i,s) in sk.into_iter().enumerate() {
@@ -164,7 +188,12 @@ pub fn skew_to_skewf32_batch_type_a(sk: Vec<skew::Skew>, bs: usize) -> Vec<skewf
     sol
 }
 
-
+/// # description 
+/// for each element `e` of `sb`, refactors `e` by 
+///             (adder head, remainder of `e`). 
+/// 
+/// # return 
+/// (refactored batch of `sb`, score of refactored batch)
 pub fn refactor_skew_batch_type_a(head: skew::Skew, sb: Vec<skew::Skew>) -> (Vec<skew::Skew>,usize) {
     let mut sol:Vec<skew::Skew> = Vec::new();
     let mut score:usize = 0;
@@ -179,6 +208,12 @@ pub fn refactor_skew_batch_type_a(head: skew::Skew, sb: Vec<skew::Skew>) -> (Vec
     (sol,score)
 }
 
+/// # description
+/// scales every <skewf32::SkewF32> in `sb` into its <skew::Skew> form with the 
+/// largest decimal place `d` in `sb`.
+/// 
+/// # return
+/// (scaled <skew::Skew> batch,`d`) 
 pub fn scale_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Vec<skew::Skew>,usize) {
 
     let l = sb.len();
@@ -199,15 +234,20 @@ pub fn scale_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Vec<skew::Skew>
     (sol,k)
 }
 
+/// # arguments
+/// sb := skew batch type-a
+/// 
+/// # return 
+/// (min,max,mean) of `sb`
 pub fn min_max_mean_of_skew_batch_type_a(sb: Vec<skew::Skew>) -> (i32,i32,i32) {
-    let l = sb.len();
-    assert!(l > 0);
+    assert!(sb.len() > 0);
 
     // iterate through and collect all addit values
     let mut coll: Vec<i32> = Vec::new();
     for s in sb.into_iter() {
         coll.extend(s.addit.clone().unwrap().into_iter());
     }
+    let l = coll.len(); 
 
     // calculate values
     let m1 = coll.clone().iter().fold(i32::MAX, |ans,&x| if ans.abs() < x.abs() {ans} else {x});//min().unwrap();
@@ -216,6 +256,9 @@ pub fn min_max_mean_of_skew_batch_type_a(sb: Vec<skew::Skew>) -> (i32,i32,i32) {
     (m1,m4,mn)
 }
 
+/// # return
+/// the largest decimal place `l` of the values of `va` or `opt_max`
+/// if `opt_max != None and opt_max < l`. 
 pub fn k_scale_of_arr1f32_vec(va: Vec<Array1<f32>>,opt_max: Option<usize>) -> usize {
     let mut q: usize = 0;
     for v in va.into_iter() {
@@ -263,6 +306,16 @@ pub fn mfactor_test_case_1() -> (Vec<skew::Skew>,Vec<Array1<i32>>) {
     (vec![s1,s2,s3,s4], vec![v1,v2,v3,v4])
 }
 
+/// # description
+/// (a=10)-factor solution for <btchcorrctr_tc::batch_5>
+pub fn batch_5_a_refactor__10__soln() -> Vec<skewf32::SkewF32> {
+
+    let s1 = skew::build_skew(None,None,Some(arr1(&[0,200000,0,200000,0])),None,vec![2],None);
+    let s2 = skew::build_skew(None,None,Some(arr1(&[0,200000,800000,1100000,0])),None,vec![2],None);
+    let s3 = skew::build_skew(None,None,Some(arr1(&[0,2000000,600000,200000,400000])),None,vec![2],None);
+    vec![skewf32::SkewF32{sk:s1,s:5},skewf32::SkewF32{sk:s2,s:5},skewf32::SkewF32{sk:s3,s:5}]    
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -293,6 +346,7 @@ mod tests {
         assert!(ps2 < ps);
     }
 
+    
     #[test]
     pub fn test__best_afactor_for_skewf32_batch_type_a() {
         let ta = afactor_test_case_1();
@@ -300,12 +354,24 @@ mod tests {
 
         assert!(!h.is_none());
         assert_eq!(h.unwrap().to_string(),"skalos 5+23".to_string());
-    }
+    } 
 
     #[test]
     pub fn test__best_multiple_for_skew_batch_type_a() {
         let (x1,x2) = mfactor_test_case_1();
         let (m,_) = best_multiple_for_skew_batch_type_a(x1,x2);
-        assert_eq!(m,2);
+        assert_eq!(m,4);
     }
+
+    #[test]
+    pub fn test__a_refactor_skewf32_batch_type_a__batch_5_factor_10() {
+
+        let (b1,b2) = btchcorrctr_tc::batch_5();
+        let (x1,k) = scale_skewf32_batch_type_a(b1);
+        let af = a_refactor_skewf32_batch_type_a(x1,k,1000000);
+        assert_eq!(af.1,batch_5_a_refactor__10__soln());
+        assert_eq!(af.2,67.);
+    
+    }
+
 }

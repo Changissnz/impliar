@@ -1,11 +1,10 @@
+//! an encoder for an i32 sequence
 use ndarray::Array1;
 use ndarray::arr1;
 use ndarray::Dim;
 use std::fmt;
 
-/*
-element of IndexFractionNotation
-*/
+/// element of IndexFractionNotation
 #[derive(Clone)]
 pub struct FloorDiv {
     pub t: Option<i32>,
@@ -15,10 +14,9 @@ pub struct FloorDiv {
 
 impl FloorDiv {
 
-    /*
-    if t is not none, t/b * m
-    else, i/b * m
-    */
+    /// # description
+    /// if t is not none, t/b * m
+    /// else, i/b * m
     pub fn value(&mut self, i: i32) ->i32 {
         if self.t.is_none() {
             let x: f64 = (i as f64) / (self.b as f64);
@@ -45,11 +43,12 @@ impl fmt::Display for FloorDiv {
     }
 }
 
-/*
-A sequence encoder that encodes all values of an Array1<i32>
-by a Vec<FloorDiv> of equal length.
-*/
+/// A sequence encoder that encodes all values of an Array1<i32>
+/// by a <Vec<FloorDiv>> of equal length. Resultant is then able to
+/// replicate all indices of the reference sequence and produce an
+/// output for any usize. 
 pub struct IndexFractionNotation {
+    /// the reference sequence
     pub v: Array1<i32>,
     pub divs: Vec<FloorDiv>
 }
@@ -60,6 +59,8 @@ pub fn build_index_fraction_notation(v_: Array1<i32>) -> IndexFractionNotation {
 
 impl IndexFractionNotation {
 
+    /// # description
+    /// processes the reference sequence `v` into its floor-div notation
     pub fn process(&mut self) {
         for i in 0..self.v.len() {
             let i2:i32 = i.clone() as i32;
@@ -75,8 +76,12 @@ impl IndexFractionNotation {
         }
     }
 
-    /*
-    */
+    /// # description
+    /// calculates the floor-div for i'th element
+    ///
+    /// # arguments
+    /// i := index of `v`
+    /// y := change from value at previous index
     pub fn get_floordiv(&mut self, i:i32,y:i32) -> Option<FloorDiv> {
 
         if i == 0 {
@@ -91,9 +96,8 @@ impl IndexFractionNotation {
         Some(FloorDiv{t:None,b:i,m:y})
     }
 
-    /*
-    outputs the value for
-    */
+    /// # description
+    /// outputs the value for the i'th index of the reference sequence
     pub fn output(&mut self, i: i32) -> i32 {
         if self.divs.len() == 0 {
             return i;

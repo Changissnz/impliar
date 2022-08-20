@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["correction_for_bfgrule_approach_tailn__labels",""],["gorilla_improve_approach_tailn__labels",""],["gorilla_update_selection_rule",""],["label_intervals","outputs interval points in [0,1] given l labels. EX: l = 4 ->  [0.125,0.375,0.625,0.875] "],["process_bfgsearcher_tailn__labels",""],["score_bfgs_tmpcache","iterate through and scores"]]};

@@ -1,3 +1,4 @@
+//! Contains a "normal"-detection algorithm. 
 use crate::metrice::brp;
 use crate::metrice::arp;
 use crate::metrice::vreducer;
@@ -6,60 +7,67 @@ use crate::metrice::vcsv;
 use crate::setti::fs;
 use crate::enci::skew;
 use crate::enci::skewf32;
+#[doc(hidden)]
 use ndarray::{arr1,Array1};
 
-/*
-default for tail-1
-*/
+/// # description
+/// standard reducer for tail-1
 pub fn f9(x:Array1<f32>) -> f32 {
     let l = x.len() as f32;
     x.into_iter().sum::<f32>() / l
 }
 
-/*
-Gorilla instructor GorillaIns is a "normal"-detection algorithm
-that is given a sequence S of f32, and determines a mapping
-                f: s in S --> {0,1}^|S| OR (0|1),
-based on user arg. (vector of boolean values denoting normal).
-
-GorillaIns can proceed by one of the following:
-- pre-labelled data (normal values) for sequence S using data struct RangePartitionGF2
-- non-labelled data, hypothesis computed by ArbitraryRangePartition
-*/
+/// Gorilla instructor GorillaIns is a "normal"-detection algorithm that determines
+/// if attribute "sequence" (arr1\<f32\>) is normal. 
+/// 
+/// For a sequence S, applies the approach A, a <vreducer::VRed>  
+///     pub man_sol: Option<brp::RangePartitionGF2>,
+/// auto_sol: Option<arp::ArbitraryRangePartition>, 
+///
+///
+///
+/// Given a sequence S of f32, and determines a mapping
+///
+///                f: s in S --> {0,1}^|S| OR (0|1),
+/// based on user arg. (vector of boolean values denoting normal).
+/// .....
+/// GorillaIns can proceed by one of the following:
+/// pre-labelled data (normal values) for sequence S using data struct RangePartitionGF2
+/// non-labelled data, hypothesis computed by ArbitraryRangePartition
+/// ...
 pub struct GorillaIns {
+    /// target of "normal"-analysis
     sequence: Array1<f32>,
+    /// number of decimal places considered
     k:usize,
+    /// the chained function used to "translate" sequence
     approach: vreducer::VRed,
+    /// tail-1 case output 
     app_out1: Option<f32>,
+    /// tail-n case output 
     pub app_outn: Option<Array1<f32>>,
-
-    // indices from S that are labelled "normal"
+    /// tail-n case wanted normal 
     wanted_normaln:Option<Array1<usize>>,
+    /// tail-1 case wanted normal 
     wanted_normal1:Option<usize>,
-
-    /// two approaches to getting soln for normal: manual | auto
+    /// solution for manual approach (provided "wanted")
     pub man_sol: Option<brp::RangePartitionGF2>,
+    /// solution for automatic approach (not provided "wanted") 
     auto_sol: Option<arp::ArbitraryRangePartition>,
-
-    // two recognition modes:
-    /*
-    (0) f32 for sequence
-    (1) f32 for each value of sequence
-    */
+    /// 0 for tai1-1 (output is f32) or 1 for tail-n (output is n-vector)
     tail_mode:usize,
-
-        // variables used for tail-n mode.
+    /// partition variable 
     szt:usize,
+    /// soln from manual or automatic approach
     pub soln:Option<fs::FSelect>,
+    /// corrector vector for tail-n mode 
     pub corr:Option<Array1<f32>>,
-
-        // variables used for tail-1 mode.
+    /// corrector vector for tail-1 mode 
     pub corr2: Option<f32>
 }
 
-/*
-CAUTION: wanted normal1 intended for gf2.
-*/
+/// # caution
+/// wanted normal1 intended for gf2.
 pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
 
@@ -74,9 +82,13 @@ pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,approach:vreducer::VRed,wan
 
 impl GorillaIns {
 
-    /*
-    using the given soln, determine the normal values
-    */
+    /// # description
+    /// Predicts the normality of a sequence v by one of the tail
+    /// approaches, singleton or tail-n (vector). 
+    ///
+    /// return: 
+    /// If tail_mode == 0: \[0\] is solution 
+    /// If tail_mode == 1: \[1\] is solution
     pub fn predict_sequence(&mut self,v: Array1<f32>) -> (Option<usize>,Option<Array1<usize>>)  {
         if self.tail_mode == 1 {
             assert!(!self.soln.is_none(), "DESTRAUUUUUUUGHT");
@@ -101,15 +113,24 @@ impl GorillaIns {
 
     }
 
+    /// # description
+    /// runs <vred::VReducer> by `tail_mode` on `sequence` 
+    /// 
+    /// # return
+    /// tail-1 output or tail-n output
     pub fn approach_on_sequence(&mut self) -> (Option<f32>,Option<Array1<f32>>) {
         self.approach.apply(self.sequence.clone(),self.tail_mode)
     }
 
+    /// # description
+    /// runs `approach_on_sequence` and calculates the error-score
+    ///
+    /// # return
+    /// (label 0|1 of sample,error-cost)
     pub fn process_tail1(&mut self) -> (usize,Option<f32>) {
         assert!(!(self.tail_mode == 1));
 
         let x = self.approach_on_sequence().0.unwrap();
-        //let x:f32 = x_.unwrap();
         assert!(x >= 0. && x <= 1.);
 
         let y:usize = if x < 0.5 {0} else {1};
@@ -125,6 +146,8 @@ impl GorillaIns {
         (y2,self.corr2.clone())
     }
 
+    /// # description
+    /// processes tail-n approach by brute-force approach using `arp::ArbitraryRangePartition`
     pub fn brute_process_tailn(&mut self) {
         if self.tail_mode == 0 {
             return;
@@ -149,10 +172,9 @@ impl GorillaIns {
         self.man_sol = Some(rpgf2);
     }
 
-    /*
-    improves solution by the same size threshold t. uses struct<Skew> to
-    modify values.
-    */
+    /// # description
+    /// improves solution by the same size threshold t. uses struct<Skew> to
+    /// modify values.
     pub fn improve_approach__labels(&mut self,is_multi:bool) -> (Option<f32>,Option<Array1<f32>>) {
 
         if !is_multi {
@@ -172,9 +194,8 @@ impl GorillaIns {
         (None,Some(corr))
     }
 
-    /*
-    improves approach by VRed on tailn
-    */
+    /// # description
+    /// improves approach by VRed on tailn
     pub fn improve_vred__tailn(&mut self,v:Array1<f32>) {
         self.corr = Some(v.clone());
 

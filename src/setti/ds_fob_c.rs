@@ -1,12 +1,4 @@
-/*
-implementation of ds(f|b)c:
-distance-size (forward|binary) collector; greedy solution.
-
-For the arguments
-`selection`:Vec<(usize,usize)>, the parameters
->= `distance`
-== `size`
-*/
+//! implementation of distance-size (forward|binary) collector
 
 use crate::setti::vs;
 use crate::setti::vs::VSelect;
@@ -24,10 +16,9 @@ pub trait NE<T> {
     fn next_element(&mut self) -> Option<T>;
 }
 
-/*
-Calculates the vector of range options for a ds-forward element of size `wanted_size` and distance
-`distance`.
-*/
+/// Calculates the vector of range options for a ds-forward element of 
+/// - size `wanted_size` and 
+/// - >= `distance`.
 pub fn options_for_dsf_element(mut vs:VSelect, n:usize, k:usize, d:usize,s:usize, ws:usize) -> Vec<(usize,usize)> {
     assert!(d > 0);
     if ws < s {
@@ -77,19 +68,26 @@ pub fn options_for_dsf_element(mut vs:VSelect, n:usize, k:usize, d:usize,s:usize
     sol
 }
 
-// each element is VSelect of size k
-/*
-distance-size forward generator
-*/
+/// each element is <vs::VSelect> of size k.
+/// distance-size forward generator that collects qualifying elements
+/// in the form of <vs::VSelect> according to its attributes
 #[derive(Clone)]
 pub struct DSFGen {
+    /// total options
     n: usize,
+    /// size of each <vs::VSelect>
     k: usize,
+    /// minumum distance between each contiguous chunk of options
     d: usize,
+    /// size of each contiguous chunk of options
     s: usize,
+    /// elements to be considered
     pub cache: Vec<VSelect>,
+    /// output
     pub results: Vec<VSelect>,
-    pub stat: bool, // more vars?
+    /// more vars to be considered? 
+    pub stat: bool,
+    /// index during forward search
     pub c:usize
 }
 
@@ -105,6 +103,7 @@ pub fn build_DSFGen(n: usize,k: usize,d: usize,s: usize) -> DSFGen {
     DSFGen{n:n,k: k,d:d,s: s,cache: cache,results: Vec::new(),stat: true,c:0}
 }
 
+/// `next_element` implementation for distance-size forward generator
 impl NE<VSelect> for DSFGen {
 
     fn next_element(&mut self) -> Option<VSelect> {
@@ -149,6 +148,8 @@ impl NE<VSelect> for DSFGen {
 
 impl DSFGen {
 
+    /// # return
+    /// next possible VSelect of size <= k
     pub fn next(&mut self) -> Option<VSelect> {
 
         while self.stat {
@@ -163,9 +164,8 @@ impl DSFGen {
         None
     }
 
-    /*
-    processes by bfs on each additional chunk of size [d,k];
-    */
+    /// # description 
+    /// processes by bfs on each additional chunk of size \[d,k\]
     pub fn process_cache_element(&mut self,mut vs:VSelect) -> bool {
         let mut stat: bool = true;
         let mut r = self.k - vs.size();
@@ -177,12 +177,11 @@ impl DSFGen {
         stat
     }
 
-    /*
-    collects k_-sized possibilities for a pre VSelect into cache
-
-    return:
-    - any new pre-VSelects?
-    */
+    /// # description 
+    /// collects `k_`-sized possibilities for a pre VSelect into cache
+    /// 
+    /// # return
+    ///  any new pre-VSelects?
     pub fn collect_for_pre(&mut self,mut vs:VSelect, k_ : usize) -> bool {
         if vs.size() >= self.k {
             return false;
@@ -219,6 +218,12 @@ impl DSFGen {
     }
 }
 
+/// # description
+/// iterates through <ds_fob_c::DSFGen> and displays each element if
+/// `display` mode is true
+///
+/// # return
+/// number of elements from generator
 pub fn iterate_DSFGen(mut dsfg: DSFGen,display:bool) -> usize
  {
     let mut j:usize = 0;
@@ -242,19 +247,31 @@ pub fn iterate_DSFGen(mut dsfg: DSFGen,display:bool) -> usize
     j
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-
+// each element is <uvs::UVSelect> of size k.
+/// distance-size forward generator that collects qualifying elements
+/// in the form of <uvs::UVSelect> according to its attributes
 #[derive(Clone)]
 pub struct DSBGen {
+    /// total options
     n: usize,
+    /// size of each <vs::VSelect>
     k: usize,
+    /// minumum distance between each contiguous chunk of options
     d: usize,
+    /// size of each contiguous chunk of options
     s: usize,
-    o:Vec<usize>,
+    /// ordering of selection
+    o : Vec<usize>,
+    /// elements to be considered
     pub cache: Vec<UVSelect>,
+    /// output
     pub results: Vec<UVSelect>,
-    pub stat: bool, // more vars?
-    pub c: usize
+    /// more vars to be considered? 
+    pub stat: bool,
+    /// index during forward search
+    pub c:usize
+
+
 }
 
 pub fn build_DSBGen(n: usize,k: usize,d: usize,s: usize,o:Vec<usize>) -> DSBGen {
@@ -268,7 +285,7 @@ pub fn build_DSBGen(n: usize,k: usize,d: usize,s: usize,o:Vec<usize>) -> DSBGen 
     DSBGen{n:n,k:k,d:d,s:s,o:o,cache:vec![uvs],results: Vec::new(),stat:true,c:0}
 }
 
-
+/// `next_element` implementation for distance-size binary generator
 impl NE<UVSelect> for DSBGen {
 
     fn next_element(&mut self) -> Option<UVSelect> {
@@ -294,11 +311,10 @@ impl NE<UVSelect> for DSBGen {
 
 }
 
-/*
-*/
 impl DSBGen {
 
-
+    /// # return
+    /// next possible <uvs::UVSelect> of size <= k
     pub fn next(&mut self) -> Option<UVSelect> {
 
         while self.stat {
@@ -313,6 +329,8 @@ impl DSBGen {
         None
     }
 
+    /// # description 
+    /// processes by bfs on each additional chunk of size \[d,k\]
     fn process_cache_element(&mut self, mut c: UVSelect) {
 
         // process cache element in size range s,n
@@ -322,10 +340,9 @@ impl DSBGen {
         }
     }
 
-    /*
-    processes a cache element, UVSelect, by extending it with available ranges
-    of minumum size s_
-    */
+    /// # description 
+    /// processes a cache \<UVSelect\> element `c` by extending it with available ranges
+    /// of minumum size `s_`
     fn process_cache_element_(&mut self, mut c: UVSelect, s_:usize) {
         assert!(!(s_ > self.n));
         let vus = c.available_binaries(self.n,s_,self.d);
@@ -350,10 +367,6 @@ impl DSBGen {
     }
 
 }
-
-
-
-///////////////////////////////////////////////////////////////////////////////////
 
 pub fn sol_dsbg_case1() -> Vec<Vec<(usize,usize)>> {
 

@@ -3,11 +3,8 @@ use crate::setti::vs::VSelect;
 use ndarray::{Array1,arr1,Axis};
 use std::fmt;
 
-/*
-a variant of the VSelect: the unordered vector of ranges
-
-`index_order` is the ordering of the ranges
-*/
+/// a variant of the VSelect: the unordered vector of ranges
+/// `index_order` is the ordering of the ranges
 #[derive(Clone,Debug)]
 pub struct UVSelect {
     pub v: VSelect,

@@ -4,6 +4,7 @@ use std::string::String;
 use std::cmp::Ordering;
 use std::cmp::PartialEq;
 
+/// outputs (index of `t` in `v`, if element `t` in vector `v`) 
 pub fn is_in_vector<T>(v:Vec<T>,t:T) -> (usize,bool)
 where
 T: PartialEq + Clone

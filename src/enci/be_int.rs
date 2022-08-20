@@ -1,13 +1,4 @@
-/*
-generalization of algorithm
-===========================
-
-loop
-----
-accumulate
-substitute
-solve
-*/
+//! contains interpolator over sequence of vectors 
 #[allow(non_snake_case)]
 use crate::enci::mat2sort;
 use crate::enci::i_mem;
@@ -18,13 +9,15 @@ use ndarray::{Array,Array1,Array2,arr1,arr2,s};
 use std::collections::{HashMap,HashSet};
 use std::hash::Hash;
 
-
-
-/*
-calculates a soln for vector bv of active variables to equal float f32.
-
-bv := binary vector containing active variables.
-*/
+/// # description 
+/// calculates a soln for vector `bv` of active variables to equal `f`
+/// 
+/// # arguments 
+/// bv := binary vector containing active variables.
+/// f := target value 
+///
+/// # return
+/// <arr1\<f32\>> `a` such that `a * bv = f` 
 pub fn equal_dist_soln_for_f32(bv:Array1<f32>, f:f32) -> Array1<f32> {
     let l = bv.len();
     let sz = mat2sort::active_size_of_vec(bv.clone());
@@ -44,12 +37,14 @@ pub fn equal_dist_soln_for_f32(bv:Array1<f32>, f:f32) -> Array1<f32> {
     sol
 }
 
-/*
-*/
+/// # return
+/// number of unknowns in  `v`
 pub fn unknown_size_of_vec(v: Array1<Option<f32>>) -> usize {
     v.iter().fold(0,|acc,&s| if s.is_none() {acc} else {acc + 1})
 }
 
+/// # description
+/// (usize,f32) pair comparator function 1; used for sorting
 pub fn usize_f32_cmp1(s1: &(usize,f32),s2: &(usize,f32)) -> std::cmp::Ordering {
     if (*s1).1 <= (*s2).1 {
     	return Ordering::Less;
@@ -57,24 +52,33 @@ pub fn usize_f32_cmp1(s1: &(usize,f32),s2: &(usize,f32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
-/*
-binary error interpolator structure.
-
-used to possibly get soln
-
-features:
-- (brute-force)|(frequency-analysis) search for substitution.
-
-*/
+/// binary error interpolator structure.
+/// Used to {possibly} get soln.
+///
+/// features:
+/// - brute-force
+/// - frequency-analysis search for substitution.
+///
+///
+/// generalization of algorithm:
+/// - loop
+///     - accumulate
+///     - substitute
+///     - solve
 #[allow(dead_code)]
 #[allow(non_snake_case)]
 pub struct BEInt {
-    // data load
-    pub data: Array2<f32>, // x values
-    pub e_soln: Array1<f32>, // y values
-    pub r_soln:Array1<Option<f32>>, // data \dot r_soln = e_soln
+    /// x-values
+    pub data: Array2<f32>,
+    /// y-values
+    pub e_soln: Array1<f32>,
+    /// value for each `data` variable (column)
+    pub r_soln:Array1<Option<f32>>,
+    /// 
     pub i:usize,
+    /// 
     pub fanalysis:HashMap<usize,usize>,
+    /// 
     pub ranalysis:HashMap<usize,Array1<f32>>,
     pub im: i_mem::IMem
 }
@@ -90,16 +94,15 @@ pub fn build_BEInt(data:Array2<f32>,e_soln:Array1<f32>) -> BEInt {
 
 impl BEInt {
 
-    /*
-    orderes de data es gracias y gorolobos es stela cumar mi yo si
-    IMem.
-    */
+    /// # description
+    /// orderes de data es gracias y gorolobos es stela cumar mi yo si
+    /// IMem.
     pub fn initiaado(&mut self) {
         self.order_bfs();
     }
 
-    /*
-    */
+    /// # return
+    /// the error term
     pub fn error_term(&mut self, deflt: f32) -> f32 {
         let l = self.r_soln.len() - 1;
         if self.r_soln[l].is_none() {
@@ -120,9 +123,8 @@ impl BEInt {
         sol
     }
 
-    /*
-    initial ordering by active size
-    */
+    /// # description 
+    /// initial ordering by non-decreasing active size
     pub fn order_bfs(&mut self) {
         let  d = self.ds_arr2();
         let lj = d.dim().1 - 1;
@@ -137,23 +139,18 @@ impl BEInt {
             matrixf::replace_vec_in_arr2(&mut self.data, &mut y1.to_owned(),i,true);
         }
     }
-    ///////////////////////////////// accumulator methods
 
-    /*
-    outputs whether data can be solved
-    */
+    /// # return 
+    /// outputs whether data can be solved
     pub fn solve_at(&mut self,i:usize,verbose:bool,solve_mode:usize) -> bool {
         let c:usize = self.contradictions_in_range(0,i,true,false).len();
         let mut c2:usize = c.clone();
         let mut r:usize = 0;
-        //println!("start solve at: {:?}",self.r_soln);
 
         while self.contradictions_in_range(0,i,true,false).len() > 0 {
-
             c2 = self.solve_contradiction(i,verbose,solve_mode);
-            println!("% C {}",c2);
             if c2 > 0 {
-                println!("contradiction @ r_{}",r);
+                println!("contradiction {} @ r_{}",c2,r);
                 return false;
             }
             r += 1;
@@ -162,9 +159,16 @@ impl BEInt {
         return true;
     }
 
-    /*
-    solves subarr2 at i, outputs the number of remaining contradictions
-    */
+    /// # description 
+    /// solves subarr at \[0..i + 1\], outputs the number of remaining contradictions.
+    ///
+    /// # arguments
+    /// - `i` := end index of subarr
+    /// - `stat` := print statements? 
+    /// - `solve_mode` :=  0 for substitution repr., 1 for representative repr.
+    ///
+    /// # return
+    /// number of contradictions in \[0,i\]
     pub fn solve_contradiction(&mut self,i:usize,stat:bool,solve_mode:usize) -> usize {
 
         let acc = self.accumulate(0,i);
@@ -184,14 +188,13 @@ impl BEInt {
             println!("best s-map: {:?}",sm);
             println!("at start: {:?}",self.r_soln);
         }
-        let lxx:usize = self.active_size_of_soln(self.r_soln.clone());
 
+        let lxx:usize = self.active_size_of_soln(self.r_soln.clone());
         let (sc,score) = self.substitute_solve_chain(acc.clone(),sm.clone(),stat);
 
         let sc2: Array1<f32> = sc.into_iter().map(|x| if x.is_none() {0.} else {x.unwrap()}).collect();
         self.save_sol_to_rsoln(sc2);
         if stat {println!("$-> after solve-chain: {:?}",self.r_soln);}
-        //self.deduce_smap_keys_from_rsoln(sm);
         //println!("$-> after s-map deduction {:?}",self.r_soln);
         self.deduce_elements_from_rsoln(0,i,stat);
         if stat {println!("$-> after e-deduction {:?}",self.r_soln);}
@@ -201,10 +204,9 @@ impl BEInt {
         self.contradictions_in_range(0,i,false,false).len()
     }
 
-    /*
-    saves to imem the rsoln and any contradictions (known|unknown vars allowed)
-    in the range [0,i]
-    */
+    /// # description
+    /// saves to `im` the rsoln and any contradictions (known|unknown vars allowed)
+    /// in the range \[0,i\]
     pub fn save_to_imem(&mut self,i:usize) {
         // save rsoln
         self.im.soln_log.push(self.r_soln.clone());
@@ -219,7 +221,6 @@ impl BEInt {
                 continue;
             }
 
-
             let ii: Vec<usize> = vec![self.im.i.clone(),j];
             let q = i_mem::build_contrastruct(ii,Some(self.e_soln[j].clone()),Some(output[j].clone()));
             self.im.contradiction_log.push(q);
@@ -227,7 +228,9 @@ impl BEInt {
         self.im.i += 1;
     }
 
-
+    /// # description
+    /// determines variable solutions from cases of substitution map `sm` that 
+    /// are certain (no remaining unknown) 
     pub fn deduce_smap_keys_from_rsoln(&mut self, sm: HashMap<usize,Array1<f32>>) {
         let mut sol: HashMap<usize,f32> = HashMap::new();
         let l = self.data.dim().1 + 2;
@@ -255,13 +258,19 @@ impl BEInt {
 
     }
 
-
-    /*
-    accumulates the samples in the range [si,ei]
-    output is [var coeff|error coeff|output]
-
-    output is according to the running solution of known variables.
-    */
+    /// # description
+    /// accumulates the samples in the range \[si,ei\].
+    ///
+    /// Output is \[var coeff|error coeff|output\].
+    ///
+    /// Output is according to the running solution of known variables.
+    /// 
+    /// # arguments
+    /// - `si` := start index
+    /// - `ei` := end index
+    /// 
+    /// # return
+    /// literal value <arr1\<f32\>> of summation of subvector `data\[si..ei + 1\]`
     pub fn accumulate(&mut self, si:usize,ei:usize) -> Array1<f32> {
         let mut sol:Array1<f32> = Array1::zeros(self.data.dim().1 + 2);
         let j = 0;
@@ -279,12 +288,12 @@ impl BEInt {
         self.apply_running_soln_to_expr(sol,rs)
     }
 
-    /*
-    outputs an updated expr after running soln rs is applied
-
-    expr := [var coeff|error coeff|output]
-    rs := [var values|error value]
-    */
+    /// # arguments
+    /// - `expr` := \[var coeff|error coeff|output\]
+    /// - `rs` := \[var values|error value\]
+    ///
+    /// # return 
+    /// an updated `expr` of unknown after running soln `rs` is applied
     pub fn apply_running_soln_to_expr(&mut self, expr:Array1<f32>,rs:Array1<f32>) -> Array1<f32> {
         let rssum = rs.sum();
         let mut sol = expr.clone();
@@ -300,20 +309,17 @@ impl BEInt {
          sol
     }
 
-    /*
-    checks that variable k does not contain a contradictory substitution.
-    helper method for above method `is_contradictory_substitution_map`.
-    */
+    /// # description
+    /// checks that variable k does not contain a contradictory substitution.
+    /// helper method for above method `is_contradictory_substitution_map`.
     pub fn check_varsub_contradiction(&mut self, k:usize, substitution_map:HashMap<usize,Array1<f32>>) -> bool {
         let x = self.bfs_sub_on_var(k,substitution_map,false);
         x.contains(&k)
     }
 
-    /// TODO: relocate this.
-    /*
-    performs a BFS on the substitution of variable k; outputs the hashset of all substitution variables
-    for variable k.
-    */
+    /// # description
+    /// performs a BFS on the substitution of variable k; outputs the hashset of all substitution variables
+    /// for variable k.
     pub fn bfs_sub_on_var(&mut self,k:usize,substitution_map:HashMap<usize,Array1<f32>>,save_data:bool) -> HashSet<usize> {
         let mut travelled_keys : HashSet<usize> = [k].into_iter().collect();
         let mut related_indices : HashSet<usize> = self.active_indices_of_expr(substitution_map[&k].clone());
@@ -357,11 +363,13 @@ impl BEInt {
         related_indices
     }
 
-    /*
-    outputs (soln, number of new variables known)
-
-    expr := [var coeff|error coeff|output]
-    */
+    /// # description
+    /// outputs (soln, number of new variables known)
+    /// 
+    /// # arguments
+    /// - `expr` := \[var coeff|error coeff|output\]
+    /// - `substitution_map` := variable -> substitution
+    /// - `verbose` := print statement? 
     pub fn substitute_solve_chain(&mut self,expr:Array1<f32>,substitution_map:HashMap<usize,Array1<f32>>,verbose:bool) -> (Array1<Option<f32>>,i32) {
 
         let sub = self.conduct_substitution(expr.clone(),substitution_map.clone(),false);
@@ -381,18 +389,22 @@ impl BEInt {
         (edsol.into_iter().map(|x| if x != 0. {Some(x)} else {None}).collect(),sc)
     }
 
-    /*
-    outputs a substitution representation of the sample, a vector of length |s|;
-    substitution minimizes the number of (active && unknown) variables.
-
-    derives variable substitutes from the chunk [start_ref,end_ref].
-
-    substitution targets variables that are not known in the running solution.
-
-    uses a brute-force approach.
-
-    s := expression
-    */
+    
+    /// # description
+    /// outputs a substitution representation of the sample, a vector of length |s|;
+    /// substitution minimizes the number of (active && unknown) variables.
+    /// Derives variable substitutes from the chunk \[start_ref,end_ref\].
+    /// Substitution targets variables that are not known in the running solution.
+    /// Uses a brute-force approach.
+    ///
+    /// # argument
+    /// - `s` := expression
+    /// - `start_ref` := start index
+    /// - `end_ref` := end index
+    /// - `verbose` := print statements?
+    ///
+    /// # return
+    /// variable -> <arr1\<f32\>> (substitution)
     pub fn substitution_repr(&mut self,s: Array1<f32>, start_ref:usize,end_ref:usize,verbose:bool) -> HashMap<usize,Array1<f32>> {
 
         let mut active_var:HashSet<usize> = self.active_indices_of_expr(s.clone()).into_iter().collect();
@@ -471,7 +483,6 @@ impl BEInt {
                         continue;
                     }
                     */
-
                     cache.push((c1_,c2 + 1));
                 } else {
                     if verbose {println!("--- --- NO")};
@@ -484,20 +495,24 @@ impl BEInt {
         if verbose {println!("best map: {:?}",best_map)};
         best_map
     }
-
-    /*
-    converts the expression into an output expression by the substitution map;
-    if the substitution map does not contain a variable i, then output expression
-    will use identity;
-
-    WARNING:
-    substitution algorithm will progressively substitute each variable that is present
-    as a key in the substitution map; if substitution map is not structured properly, may
-    lead to infinite loop.
-
-
-    expr := [var coefficients|error term|output]
-    */
+    
+    /// # description
+    /// converts the expression into an output expression by the substitution map;
+    /// if the substitution map does not contain a variable i, then output expression
+    /// will use identity;
+    /// 
+    /// # warning
+    /// substitution algorithm will progressively substitute each variable that is present
+    /// as a key in the substitution map; if substitution map is not structured properly, may
+    /// lead to infinite loop.
+    /// 
+    /// # arguments
+    /// `expr` := \[var coefficients|error term|output\]
+    /// `substitution_map` := variable -> substitution variables
+    /// `verbose` := print statements? 
+    ///
+    /// # return
+    /// <arr1\<f32\>> that is the substitution
     pub fn conduct_substitution(&mut self,expr:Array1<f32>, substitution_map:HashMap<usize,Array1<f32>>,verbose:bool) -> Array1<f32> {
         if verbose {
             println!("conducting one round of sub. on\n\t{}",expr);
@@ -521,11 +536,9 @@ impl BEInt {
         exp1
     }
 
-    /*
-    helper function; conducts 1 round of substitution.
-
-    substitution checks for known vars, and output deducts the sum of the known vars
-    */
+    /// # description 
+    /// helper function; conducts 1 round of substitution.
+    /// substitution checks for known vars, and output deducts the sum of the known vars
     pub fn conduct_substitution_(&mut self,expr:Array1<f32>, substitution_map:HashMap<usize,Array1<f32>>) -> Array1<f32> {
         let mut sol:Array1<f32> = expr.clone();
         let l2 = expr.len() - 2;
@@ -551,11 +564,18 @@ impl BEInt {
         self.apply_running_soln_to_expr(sol,rs)
     }
 
-    //// TODO: delete
-    /*
-    unknown_vec := arr1 of unknown variable coefficients, length is data.dim().1
-    rs := arr1 of running soln values
-    */
+    /// # description
+    /// plugs in values for unknown in `unknown_vec` so that the update running solution to
+    /// `rs` equals `wanted_value`
+    /// 
+    /// 
+    /// # arguments
+    /// - `unknown_vec` := arr1 of unknown variable coefficients, length is data.dim().1
+    /// - `rs` := arr1 of running soln values
+    /// - `wanted_value` := target value
+    ///
+    /// # return
+    /// plugging in values for unknown to `rs` yields `wanted_value`? 
     pub fn solve_by_unknown_vars(&mut self,unknown_vec:Array1<f32>,rs:Array1<f32>,wanted_value:f32) -> bool {
         println!("[solving unknown vars]");
         println!("[wanted] {} [running] {}",wanted_value,rs);
@@ -574,6 +594,11 @@ impl BEInt {
         self.save_sol_to_rsoln(new_sol)
     }
 
+    /// # arguments
+    /// - `soln` := values of variables
+    ///
+    /// # return
+    /// `soln` active vars do not collide with `rsoln`? 
     pub fn save_sol_to_rsoln(&mut self,soln:Array1<f32>) -> bool {
         let mut rsoln2:Array1<Option<f32>> = self.r_soln.clone();
 
@@ -590,13 +615,10 @@ impl BEInt {
         true
     }
 
-    /*
-    uses known variables in rsoln to determine values of error term and other variables;
-
-    outputs whether subarr2 [si..ei + 1] can be solved.
-
-    if can be solved, then saves soln.
-    */
+    /// # description
+    /// uses known variables in rsoln to determine values of error term and other variables;
+    /// outputs whether subarr2 \[si..ei + 1\] can be solved.
+    /// If can be solved, then saves soln.
     pub fn deduce_elements_from_rsoln(&mut self,si:usize,ei:usize,verbose:bool) -> bool {
 
         // sort range by number of unknown
@@ -665,8 +687,8 @@ impl BEInt {
         true
     }
 
-    /*
-    */
+    /// # return
+    /// literal f32 values for subarr `data\[si..ei + 1\]
     pub fn rsoln_output(&mut self,si:usize,ei:usize) -> Array1<f32> {
         let mut sol: Array1<f32> = Array1::zeros(ei - si + 1);
         for (j,i) in (si..ei + 1).into_iter().enumerate() {
@@ -680,11 +702,9 @@ impl BEInt {
         sol
     }
 
-
-    /*
-    determines the indices of elements with all active && (known if absolut) variables known that
-    contradict e_soln
-    */
+    /// # desription
+    /// determines the indices of elements with all active && (known if absolut) variables known that
+    /// contradict e_soln
     pub fn contradictions_in_range(&mut self,si:usize,ei:usize,absolut:bool,verbose:bool) -> HashSet<usize> {
         let mut x:HashSet<usize> = HashSet::new();
 
@@ -715,14 +735,14 @@ impl BEInt {
         x
     }
 
-    /*
-    representation of variable `vi` by element `si`.
-    outputs an expression of the form [var coefficients|error term|output] for
-    variable `vi`;if `vi` == 0, then None.
-
-    si := sample index
-    vi := variable index
-    */
+    /// # description
+    /// representation of variable `vi` by element `si`.
+    /// outputs an expression of the form [var coefficients|error term|output] for
+    /// variable `vi`;if `vi` == 0, then None.
+    ///
+    /// # arguments
+    /// - si := sample index
+    /// - vi := variable index
     pub fn var_repr(&mut self,si:usize,vi:usize) -> Option<Array1<f32>> {
 
         let mut sample: Vec<f32> = self.data.row(si).to_owned().into_iter().collect();
@@ -749,10 +769,11 @@ impl BEInt {
         Some(sample2)
     }
 
-    /*
-    gathers all possible representations of variable vi in range.
-    note: no identity repr
-    */
+    /// # description
+    /// gathers all possible representations of variable vi in range.
+    /// 
+    /// # note
+    /// no identity repr
     pub fn var_reprs_in_range(&mut self, vi:usize,si:usize,ei:usize) -> Vec<Array1<f32>> {
         let mut sol: Vec<Array1<f32>> = Vec::new();
 
@@ -766,10 +787,9 @@ impl BEInt {
         sol
     }
 
-    /*
-    gathers all possible representations of variable vi in range that do not use
-    any of the excluded vars
-    */
+    /// # return
+    /// all possible representations of variable `vi` in range \[`si`,`ei`\] that do not use
+    /// any of the `excluded_vars`. 
     pub fn var_reprs_in_range_filtered(&mut self,vi:usize,si:usize,ei:usize,excluded_vars:HashSet<usize>) -> Vec<Array1<f32>> {
 
         let sol_ = self.var_reprs_in_range(vi,si,ei);
@@ -789,13 +809,14 @@ impl BEInt {
 
     }
 
-    /*
-    Determines if substitution map is contradictory.
-    If there are two variables v1,v2 in the map in which either v2 substitutes for v1 or vice-versa, then
-    that is a contradiction.
-
-    contradictory outputs true, o.w. false.
-    */
+    /// # description
+    /// determines if substitution map is contradictory.
+    ///
+    /// If there are two variables v1,v2 in the map in which either v2 substitutes for v1 or vice-versa, then
+    /// that is a contradiction.
+    /// 
+    /// # return 
+    /// contradictory outputs true, o.w. false.
     pub fn is_contradictory_substitution_map(&mut self, substitution_map:HashMap<usize,Array1<f32>>) -> bool {
         let keys:Vec<usize> = substitution_map.clone().into_keys().collect();
         for k in keys.into_iter() {
@@ -803,14 +824,16 @@ impl BEInt {
             if b {
                 return true;
             }
-
         }
+
         false
     }
 
-    /*
-    v := length is data.dim().1 + 1
-    */
+    /// # arguments
+    /// v := length is data.dim().1 + 1
+    /// 
+    /// # return
+    /// literal f32 values of `v`
     pub fn running_soln_of_sample(&mut self,v:Array1<f32>) -> Array1<f32> {
         let l = self.r_soln.len();
         assert_eq!(l,v.len());
@@ -825,41 +848,40 @@ impl BEInt {
         x
     }
 
-    /*
-    calculates the active size of the var coefficients in `expr`.
-
-    expr := [var coefficients|error term|output]
-    */
+    /// # description 
+    /// calculates the active size of the var coefficients in `expr`.
+    ///
+    /// # argument
+    /// expr := [var coefficients|error term|output]
     pub fn active_size_of_expr(&mut self, expr: Array1<f32>) -> usize {
         let l = expr.len() - 2;
         (0..l).into_iter().fold(0,|acc,s| if expr[s] != 0.0 {acc + 1} else {acc})
     }
 
-    /*
-    calculates the active size of the var coefficients in `soln`.
-
-    expr := [var coefficients|error term|output]
-    */
+    /// # description
+    /// calculates the active size of the var coefficients in `soln`.
+    /// expr := [var coefficients|error term|output]
     pub fn active_size_of_soln(&mut self,soln:Array1<Option<f32>>) -> usize {
         let l = soln.len();
         assert_eq!(l,self.r_soln.len());
         (0..l - 1).into_iter().fold(0,|acc,s| if !soln[s].is_none() {acc + 1} else {acc})
     }
 
-    /*
-    calculates the active size of the var coefficients in `expr`.
-    */
+    /// # return 
+    /// the active indices of `expr`
     pub fn active_indices_of_expr(&mut self, expr: Array1<f32>) -> HashSet<usize> {
         let l = expr.len() - 2;
         (0..l).into_iter().filter(|i|  expr[*i] != 0.0).collect()
     }
 
+    /// # return
+    /// the active indices of the var coefficients in `soln`
     pub fn active_indices_of_soln(&mut self, soln: Array1<Option<f32>>) -> HashSet<usize> {
         let l = soln.len();
         (0..l - 1).into_iter().filter(|i|  !soln[*i].is_none()).collect()
     }
 
-    /// TODO: test this
+    /// # 
     pub fn representative_indices_of_expr(&mut self, expr: Array1<f32>,sm: HashMap<usize,Array1<f32>>) -> HashSet<usize> {
         let ai = self.active_indices_of_expr(expr.clone());
         let rism = self.representative_indices_of_smap(sm.clone());
@@ -868,10 +890,9 @@ impl BEInt {
         ai.difference(&kys).into_iter().map(|x| *x).collect()
     }
 
-    /*
-    representative indices of smap are those indices found in the substitution
-    of each key in sm but are not keys themselves.
-    */
+    /// # description
+    /// representative indices of smap are those indices found in the substitution
+    /// of each key in sm but are not keys themselves.
     pub fn representative_indices_of_smap(&mut self, sm: HashMap<usize,Array1<f32>>) -> HashSet<usize> {
 
         let keys: HashSet<usize> = sm.clone().into_keys().collect();
@@ -885,13 +906,12 @@ impl BEInt {
         sol
     }
 
-    /*
-    s := sample
-    r := running solution, length is |s| + 1.
-
-    return:
-    - array1, length is |s|
-    */
+    /// # arguments
+    /// - s := sample
+    /// - r := running solution, length is |s| + 1.
+    ///
+    /// # return
+    /// - array1 with non-zero unknown, length is |s|
     pub fn remaining_unknown_of_sample(&mut self, s: Array1<f32>, r:Array1<f32>) -> Array1<f32> {
         assert_eq!(s.len(), r.len() - 1);
 
@@ -901,22 +921,16 @@ impl BEInt {
 
         let unknown:Array1<f32> = s.into_iter().enumerate().map(|(i,j)| if !w.contains(&i) {j} else {0.0}).collect();
         unknown
-
-        /*
-        let iw:HashSet<usize> = mat2sort::active_indices(s.clone());
-        let d:HashSet<usize> = iw.difference(&w).into_iter().collect();
-        let
-        */
-
     }
 
     /////////////////////////////// methods for deciding substitution variables
 
-    /*
-    performs a frequency count of substitution map
-    */
+    /// # description 
+    /// performs a frequency count of substitution map
+    ///
+    /// # return 
+    /// variable -> frequency vector of other variables as substitutes
     pub fn submap_var_frequency(&mut self,sm:HashMap<usize,Array1<f32>>) {
-
         // iterate through each key in map
         self.fanalysis = HashMap::new();
         for (k,v) in sm.clone().iter() {
@@ -924,11 +938,10 @@ impl BEInt {
         }
     }
 
-                /////////////////////// methods are for representative solution
-    /*
-    k := column var index
-    v := binary arr1 of length equal to data.dim().1, 1 values correspond to possible representative
-    */
+    /////////////////////// methods are for representative solution
+    
+    /// # return 
+    /// column var index -> binary arr1 of length equal to data.dim().1 (1 values correspond to possible representative)
     pub fn representative_table(&mut self) -> HashMap<usize,Array1<f32>> {
         let base:Array1<f32> = Array1::zeros(self.data.dim().1);
         let r = self.data.dim().0;
@@ -955,11 +968,9 @@ impl BEInt {
         sol
     }
 
-    /*
-    variant of bfs_sub_on_var;
-    obtains all variables in which var i is either a direct or indirect parent of.
-    */
-    ////
+    /// # description 
+    /// variant of bfs_sub_on_var;
+    /// obtains all variables in which var i is either a direct or indirect parent of.
     pub fn relevant_vars_of_var_in_relevance_table(&mut self,rt:HashMap<usize,Array1<f32>>,i:usize) -> Array1<f32> {
         let rvs = self.relevant_vars_structure_of_var_in_relevance_table(rt,i);
         let mut h:HashSet<usize> = HashSet::new();
@@ -969,9 +980,8 @@ impl BEInt {
         (0..self.data.dim().1).into_iter().map(|x| if h.contains(&x) {1.} else {0.}).collect()
     }
 
-    /*
-    ?????
-    */
+    /// # description
+    /// helper method for `relevant_vars_of_var_in_relevance_table`
     pub fn relevant_vars_structure_of_var_in_relevance_table(&mut self,mut rt:HashMap<usize,Array1<f32>>,i:usize) -> Vec<HashSet<usize>> {
         let g = rt.get_mut(&i);
         if g.is_none() {
@@ -1019,6 +1029,9 @@ impl BEInt {
         sol
     }
 
+    /// # return
+    /// 2-d array, row index i corresponds to variable, column index j corresponds to
+    /// frequency of variable j as representative 
     pub fn representative_relevance_table(&mut self,mut rt:HashMap<usize,Array1<f32>>,index_order:Array1<usize>) -> Array2<f32> {
         let keys:Vec<usize> = index_order.clone().into_iter().collect();
         let k2 = keys.clone();
@@ -1047,11 +1060,15 @@ impl BEInt {
         sol
     }
 
+    /// # description
+    /// assigns `representative_table` to `ranalysis`. 
     pub fn representative_analysis_(&mut self) {
         self.ranalysis = self.representative_table();
     }
 
     ///////////////////////////////// start: relevance submatrix methods
+    /// # return 
+    /// frequency of representatives for each variable in `key_indices`
     pub fn relevance_submatrix(&mut self,key_indices:Array1<usize>) -> HashMap<usize,Array1<f32>> {
         let mut sol:HashMap<usize,Array1<f32>> = HashMap::new();
         let k2: HashSet<usize> = key_indices.clone().into_iter().collect();
@@ -1065,9 +1082,8 @@ impl BEInt {
         sol
     }
 
-    /*
-    representative relevance submatrix
-    */
+    /// # return 
+    /// representative relevance submatrix
     pub fn rr_submatrix(&mut self,key_indices:Array1<usize>) -> Array2<f32> {
         let rs = self.relevance_submatrix(key_indices.clone());
         self.representative_relevance_table(rs,key_indices)
@@ -1075,6 +1091,7 @@ impl BEInt {
 
     ///////////////////////////////// end: relevance submatrix methods
 
+    ///
     pub fn representative_analysis(&mut self,rrm:Array2<f32>, index_keys:Array1<usize>) -> Vec<(usize,f32)> {
         assert_eq!(rrm.dim().0,index_keys.len());
 
@@ -1089,13 +1106,17 @@ impl BEInt {
         rv
     }
 
-    /*
-    selects the var. repr. for variable i with the lowest active size that does not use any excluded vars
-
-    excluded_vars := set of vars that cannot be used in var repr.
-                     for an expression, set is usually the union of inactive vars and var i's
-                     representative chain (variables that use var i in its var repr)
-    */
+    /// # description 
+    /// selects the var. repr. for variable i with the lowest active size that does not use any excluded vars
+    ///
+    /// # arguments 
+    /// `i` := index of variable 
+    /// `excluded_vars` := set of vars that cannot be used in var repr.
+    ///                 for an expression, set is usually the union of inactive vars and var i's
+    ///                 representative chain (variables that use var i in its var repr)
+    /// 
+    /// # return 
+    /// representation of var `i`
     pub fn select_var_repr_by_max_candidates(&mut self,i:usize, excluded_vars: HashSet<usize>) -> Option<Array1<f32>> {
         let vr = self.var_reprs_in_range_filtered(i,0,self.data.dim().0,excluded_vars);
         if vr.len() == 0 {
@@ -1153,20 +1174,20 @@ impl BEInt {
         }
 
         Some(sol)
-
     }
 
-    /*
-    covers vars by substitution by forward procedure:
-    - iterate through cache C of rep_analysis (usually sorted at .1)
-        - pop each var [0]
-        - process its tree structure of vars repr. Re-arrange active vars of vars repr to front of cache C.
-
-      - rep_analysis := output from method representative_analysis()
-      - excluded_vars := set of vars that cannot be used in substitution (results in 0's)
-
-      NOTE: will use entire `data` variable of elements as candidates for var. repr.
-    */
+    /// # description 
+    /// covers vars by substitution by forward procedure:
+    /// - iterate through cache C of rep_analysis (usually sorted at .1)
+    ///     - pop each var \[0\]
+    ///     - process its tree structure of vars repr. Re-arrange active vars of vars repr to front of cache C.
+    ///
+    /// # arguments
+    /// - rep_analysis := output from method representative_analysis()
+    /// - excluded_vars := set of vars that cannot be used in substitution (results in 0's)
+    /// 
+    /// # note
+    /// will use entire `data` variable of elements as candidates for var. repr.
     pub fn cover_vars_by_substitution(&mut self,rep_analysis:Vec<(usize,f32)>) -> HashMap<usize,Array1<f32>> {
 
         // declare the cache
@@ -1228,10 +1249,9 @@ impl BEInt {
         sol
     }
 
-    /*
-    uses a cache with elements (substitution map, var search ordering) to search
-    for s-map that produces lowest non-zero unknown active size of expr.
-    */
+    /// # description 
+    /// uses a cache with elements (substitution map, var search ordering) to search
+    /// for s-map that produces lowest non-zero unknown active size of expr.
     pub fn brute_force_cover_vars_by_substitution(&mut self,expr:Array1<f32>,rep_analysis:Vec<(usize,f32)>, verbose:bool) -> HashMap<usize,Array1<f32>> {
         // declare the cache
             // each element in cache is a substitution map and a hashset of its excluded vars
@@ -1288,9 +1308,8 @@ impl BEInt {
         sol
     }
 
-    /*
-    gathers the set of vars that result in var vi as substituent
-    */
+    /// # description 
+    /// gathers the set of vars that result in var vi as substituent from `hm`
     pub fn parent_vars_of_var_in_map(&mut self,mut hm: HashMap<usize,Array1<f32>>, vi: usize) -> HashSet<usize> {
         let mut qual: HashSet<usize> = HashSet::new();
         qual.insert(vi);
@@ -1324,10 +1343,10 @@ impl BEInt {
 
     }
 
-    /*
-    outputs a substitution map for expr.
-    if process_out is on, processes the output expression according to known variables.
-    */
+    /// # description
+    /// outputs a substitution map for expr.
+    ///
+    /// If process_out is on, processes the output expression according to known variables.
     pub fn representative_decision_smap(&mut self,expr:Array1<f32>,verbose:bool) -> HashMap<usize,Array1<f32>> {
 
         // get remaining  ukknown
@@ -1409,17 +1428,8 @@ pub fn test_sample_BEInt_5() -> (Array2<f32>,Array1<f32>) {
 
 #[allow(non_snake_case)]
 pub fn test_sample_BEInt_6() -> (Array2<f32>,Array1<f32>) {
-    /*
-    (arr2(&[[1.,1.,0.],
-        [1.,1.,1.],
-        [1.,1.,1.]]),
-        //arr1(&[70.,114.,313.]))
-    */
-    /////////
     (arr2(&[[1.,1.,0.],[0.,1.,1.]]),
         arr1(&[70.,1140.]))
-
-        //arr1(&[7.,1301.,26325.,3012.,1474.]))
 }
 
 #[allow(non_snake_case)]
@@ -1428,9 +1438,6 @@ pub fn test_sample_BEInt_7() -> (Array2<f32>,Array1<f32>) {
             [0.,0.,1.,1.,0.,0.],
             [0.,0.,0.,0.,1.,1.]]), arr1(&[52.,92.,107.]))
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -1541,8 +1548,5 @@ mod tests {
             (2,arr1(&[0.0, 0.0, 0.0, 1.0, 1.0, 1.0])),
             (5,arr1(&[1.0, 1.0, 1.0, 1.0, 1.0, 0.0]))]);
         assert_eq!(rt,rt2);
-
     }
-
-
 }

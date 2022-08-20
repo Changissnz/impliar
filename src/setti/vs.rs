@@ -1,19 +1,22 @@
-/*
-implementation of VSelect element
-*/
-
 use std::fmt;
 
-
-/*
-Each element in data is [start,end] index, start < end.
-data is ordered.
-*/
+/// Struct that acts on as a container of indice ranges that have 
+/// been selected for an arbitrary sequence 
 #[derive(Clone,Debug)]
 pub struct VSelect {
+    /// ordered sequence of indice ranges. For every
+    /// element `e` in `data`, `e.0 <= e.1`,
+    /// and for two elements `e_0` and `e_1` at the i'th and (i + 1)'th
+    /// positions respectively,
+    ///
+    ///                 e_0.1 < e_1.0 
     pub data: Vec<(usize,usize)>
 }
 
+/// checks if `Vec<(usize,usize)>` for a <VSelect> is valid. 
+///
+/// # return
+/// true if valid o.w. false 
 pub fn check_valid_vselect_vec(data: Vec<(usize,usize)>) -> bool {
 
     let l = data.len();
@@ -41,6 +44,8 @@ pub fn check_valid_vselect_vec(data: Vec<(usize,usize)>) -> bool {
     true
 }
 
+/// # return
+/// true if any index in r1 lies in r2
 pub fn ranges_coincide(r1:(usize,usize),r2:(usize,usize)) -> bool {
     assert!(r1.0 <= r1.1 && r2.0 <= r2.1);
     if r1.1 >= r2.0 && r2.1 >= r1.0 {true} else {false}
@@ -60,17 +65,23 @@ impl fmt::Display for VSelect {
 
 impl VSelect {
 
+    /// # return
+    /// number of ranges
     pub fn len(&mut self) -> usize {
         self.data.len()
     }
 
+    /// # return
+    /// number of indices that have been selected
     pub fn size(&mut self) -> usize {
         self.data.iter().fold(0,|num,&val| num + (val.1 - val.0) + 1)
     }
 
-    /*
-    outputs the first index available during forward mode
-    */
+    /// # arguments
+    /// - n := number of indices, corresponds to range [0,n -1]
+    ///
+    /// # return
+    /// the first index available during forward mode
     pub fn available_forward(&mut self, n:usize) -> Option<usize> {
         let l = self.data.len();
         if l == 0 {
@@ -84,20 +95,26 @@ impl VSelect {
         None
     }
 
+    /// adds a range `e` to `data` if `e` does not coincide
+    /// with any other element in `data`.
+    /// 
+    /// # arguments
+    /// - e: range
+    ///
+    /// # return
+    /// None if `e` cannot be added, otherwise index in `data` that
+    /// `e` is added in. 
     pub fn add_elemente(&mut self, e:(usize,usize)) -> Option<usize> {
         let mut l:usize = self.data.len();
         let l2 = self.data.len();
         for (i,x) in self.data.iter().enumerate() {
-
             if e.1 <= (*x).0 {
-
                 if i > 0 {
                     let q = self.data[i - 1].clone();
                     if ranges_coincide(q,e.clone()) {
                         return None;
                     }
                 }
-
                 l = i;
                 break
             }
@@ -110,9 +127,17 @@ impl VSelect {
         Some(l)
     }
 
-    /*
-    calculates if valid for forward
-    */
+    /// calculates if <vs::VSelect> instance can have `k` options, starting
+    /// at <vs::VSelect::max> index for unoccupied. 
+    /// # arguments
+    /// - n := number of indices, corresponds to range [0,n -1]
+    /// - k := required size of options
+    /// - d := required distance between every range
+    /// - s := required size of each range 
+    /// 
+    /// # return 
+    /// if the maximum possible options for VSelect in its current
+    /// state is at least size `k`. 
     pub fn is_valid_pre_vselect(&mut self,n:usize,k:usize,d:usize,s:usize) -> bool {
         if self.size() > k {
             return false;
@@ -126,11 +151,13 @@ impl VSelect {
         }
 
         let m = self.max();
-        //let sz:usize = self.subvec_option_size(n,d,s,m);
         let sz:usize = self.max_possible_option_size(n,d,s,m);
         sz + self.size() >= k
     }
 
+    /// # return:
+    /// the first available index after the greatest
+    /// occupied index in `data`.    
     pub fn max(&mut self) -> usize {
         let l = self.len();
         if self.len() == 0 {
@@ -139,17 +166,27 @@ impl VSelect {
         self.data[l - 1].1 + 1
     }
 
-    /*
-    calculates the complement VSelect based on distance
-    */
+    /// calculates the complement VSelect for n spaces, based on distance `d`
+    /// to any other range of `data`
+    /// # example
+    /// `data` = [(0,2),(7,10),(17,23)], n = 30,d = 1
+    /// complement is
+    ///         [(3,5),(12,15),(25,29)]
+    ///
+    /// (3,5) is distance 1 from (0,2) and 1 from (7,10).
+    /// (12,15) is distance 1 from (7,10) and 1 from (17,23).
+    ///
+    /// # arguments
+    /// - n := number of indices, corresponds to range [0,n -1]
+    /// - d := required distance between every range
+    /// 
+    /// # return
+    /// VSelect complement with indice ranges for 
     pub fn complement(&mut self, n:usize, d: usize) -> VSelect {
         let mut d2: Vec<(usize,usize)> = Vec::new();
         let (mut i,mut s,mut e): (usize,usize,usize) = (0,0,0);
         let l = self.len();
 
-        /*
-        iterate through and collect complementary chunks
-        */
         while i < l {
             if s < self.data[i].0 {
 
@@ -173,18 +210,34 @@ impl VSelect {
         build_vselect(d2)
     }
 
-
-    /*
-    assumes already in simplified form
-    calculates the number of the subvectors >= minSize
-    */
+    /// Calculates the complement `C` by `(n,d)` of data, and filters
+    /// out any range in `C` with size <= `s` and start index < `i`.
+    /// 
+    /// # arguments
+    /// - n := number of indices, corresponds to range [0,n -1]
+    /// - d := required distance between every range
+    /// - s := required size of each range 
+    /// - i := start index for considering unoccupied. 
+    /// 
+    /// # return
+    /// number of subvectors of size `s` in complement `C` 
     pub fn subvec_option_size(&mut self,n:usize,d:usize,s:usize,i:usize) -> usize {
-
         let mut vs2 = self.complement(n,d);
         let x:usize = vs2.data.iter().fold(0,|num,&val| if val.1 - val.0 + 1 >= s && val.0 >= i {num + (val.1 - s + 1) - val.0 + 1} else {num});
         x
     }
 
+    /// Calculates the complement `C` by `(n,d)` of data, and filters
+    /// out any range in `C` with size <= `s` and start index < `i`.
+    ///
+    /// # arguments
+    /// - n := number of indices, corresponds to range [0,n -1]
+    /// - d := required distance between every range
+    /// - s := required size of each range 
+    /// - i := start index for considering unoccupied. 
+    /// 
+    /// # return
+    /// size of complement `C`
     pub fn max_possible_option_size(&mut self,n:usize,d: usize,s:usize,i:usize) -> usize {
         let mut vs2 = self.complement(n,d);
         vs2.data.iter().fold(0,|num,&val| if val.1 - val.0 + 1 >= s && val.0 >= i {num + (val.1 - val.0 + 1)} else {num})

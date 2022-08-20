@@ -1,3 +1,4 @@
+//! calculation of cheapest skew functions
 use ndarray::{Array,Array1,arr1};
 use crate::enci::skew::Skew;
 use crate::enci::skew;
@@ -6,20 +7,22 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use std::cmp::Eq;
 
+/// # description
+/// the ordering of (adder|multer|addit|multit) 
 pub fn skew_search_ordering() -> Vec<Vec<usize>> {
     vec![vec![0],vec![0,1],vec![0,1,2],vec![0,2],
     vec![0,3],vec![1],vec![1,0],vec![1,2],vec![1,3],
     vec![2],vec![3]]
 }
 
-/*
-calculates a skew that can transform v1 to v2 by one of the following
-orderings in `skew_search_ordering`.
-
-CAUTION: this is a make-shift function and does not guarantee the cheapest skew.
-         Parenthetical notation is missing.
-         For example, the ordering (0 1 2) < ((0 1) 2) < (0 (1 2)) could happen.
-*/
+/// # description
+/// calculates the cheapest skew that can transform v1 to v2 by one of the following
+/// orderings in `skew_search_ordering`.
+///
+/// # Warning
+/// this is a make-shift function and does not guarantee the cheapest skew.
+/// Parenthetical notation is missing.
+/// For example, the ordering (0 1 2) < ((0 1) 2) < (0 (1 2)) could happen.
 pub fn find_cheapest_skew(v1:Array1<i32>,v2:Array1<i32>) -> Skew {
     // collect all possible skews
     let sso = skew_search_ordering();
@@ -45,15 +48,12 @@ pub fn find_cheapest_skew(v1:Array1<i32>,v2:Array1<i32>) -> Skew {
             cheapest_skew_cost_function(min.clone()) {val.clone()} else {min.clone()})
 }
 
-/*
-
-skewInst is ordered set of usizes in [0,3];
-0->adder,1->multer,2->addit,3->multit;
-
-attempting skew for special cases:
-(01,012): additionally attempts with
-    = max_satisfying_mult_additive_for_vec
-*/
+/// # description
+/// skewInst is ordered set of usizes in \[0,3\];
+/// 0->adder,1->multer,2->addit,3->multit;
+/// attempting skew for special cases:
+/// (01,012): additionally attempts with
+///    = max_satisfying_mult_additive_for_vec
 pub fn skews_special_case(v1:Array1<i32>,v2:Array1<i32>,skewInst:Vec<usize>) -> (Option<Skew>,Option<Skew>) {
     let (mut s1, mut s2): (Option<Skew>,Option<Skew>) = (None,None);
 
@@ -103,12 +103,19 @@ pub fn skews_special_case(v1:Array1<i32>,v2:Array1<i32>,skewInst:Vec<usize>) -> 
     return (Some(s1),s2)
 }
 
+/// # return
+/// skew `s` applied on `v1` == v2? 
 pub fn check_skew(mut s:Skew,v1:Array1<i32>,v2:Array1<i32>) -> bool {
     s.skew_value(v1) == v2
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
+/// # description
+/// cost of a skew is
+///
+///             SUM(sum(s_q) + size(s_q) for s_q in s); s_q an element of skew s
+///             sum(s_q) is sum of all values of s_q, size(s_q) is its length.
+///             if s_q is adder or multer, size is 1.
+///             otherwise, size is length of vector addit or multit.
 pub fn cheapest_skew_cost_function(s:Skew) -> f32 {
     let mut c: f32 = 0.0;
 
@@ -137,6 +144,7 @@ pub fn cheapest_skew_cost_function(s:Skew) -> f32 {
     c
 }
 
+/// a struct that acts as a chain of skews
 pub struct SkewEncoder {
     pub skewChain: Vec<Skew>,
 }

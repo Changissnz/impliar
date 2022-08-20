@@ -1,23 +1,25 @@
-/*
-measures on proper bounds b = (start,end); start < end
-*/
-extern crate round;
+//! measures on proper bounds b = (start,end); start < end
 
+extern crate round;
 use ndarray::{Array1,arr1};
 use round::round;
 use crate::enci::mat2sort;
 
+/// # description
+/// determines if f32 bounds b is proper (ordered)
 pub fn is_proper_bounds(b:(f32,f32)) -> bool {
     b.0 <= b.1
 }
 
-/*
-*/
+/// # return
+/// `f` in `b`?
 pub fn in_bounds(b:(f32,f32),f:f32) -> bool {
     assert!(is_proper_bounds(b.clone()));
     f >= b.0 && f <= b.1
 }
 
+/// # return
+/// `b2` in `b`? 
 pub fn is_subbound(b:(f32,f32),b2:(f32,f32)) -> bool {
     assert!(is_proper_bounds(b.clone()));
     assert!(is_proper_bounds(b.clone()));
@@ -25,9 +27,12 @@ pub fn is_subbound(b:(f32,f32),b2:(f32,f32)) -> bool {
     in_bounds(b.clone(),b2.0) && in_bounds(b.clone(),b2.1)
 }
 
-/*
-f,b2 in b1.
-*/
+/// # arguments
+/// - b1 := bound
+/// - b2 := bound, lies in b1
+/// 
+/// # return 
+/// closest distance 
 pub fn closest_distance_to_subbound(b1:(f32,f32),b2:(f32,f32),f:f32) -> f32 {
     assert!(in_bounds(b1.clone(),f), "bounds {:?} for {}",b1,f);
     assert!(in_bounds(b1.clone(),b2.0) && in_bounds(b1.clone(),b2.1),"[1] b1 {:?} b2 {:?} f {}",b1,b2,f);
@@ -48,14 +53,15 @@ pub fn closest_distance_to_subbound(b1:(f32,f32),b2:(f32,f32),f:f32) -> f32 {
     bd1
 }
 
+/// # return
+/// b1 U b2 != NULL? 
 pub fn bounds_intersect(b1:(f32,f32),b2:(f32,f32)) -> bool {
     in_bounds(b2.clone(),b1.0) || in_bounds(b2.clone(),b1.1)
 }
 
-/*
-if f in b: output f
-otherwise: output the modulo value v of f based on its under or over bounds; v in b.
-*/
+/// # return 
+/// - if f in b: output f
+/// - otherwise: output the modded value v of f based on its under or over bounds; v in b.
 pub fn calibrate_in_bounds(b:(f32,f32),f:f32) -> f32 {
     assert!(is_proper_bounds(b.clone()));
 
@@ -90,9 +96,12 @@ pub fn calibrate_in_bounds(b:(f32,f32),f:f32) -> f32 {
     sol
 }
 
-/*
-bounded distance, minumum absolute distance of f32 pair on bounds
-*/
+/// # description
+/// calculates the bounded distance B_d of bound `p` located in `b`.
+///         B_d = MAX\<positive_distance(`p`),negative_distance(`p`)\>
+/// 
+/// # return
+/// B_d 
 pub fn bdistance_of_f32pair(p:(f32,f32),b:(f32,f32)) -> f32 {
     assert!(is_proper_bounds(b.clone()));
     assert!(is_proper_bounds(b.clone()));
@@ -111,9 +120,8 @@ pub fn bdistance_of_f32pair(p:(f32,f32),b:(f32,f32)) -> f32 {
     -d2
 }
 
-/*
-conducts f32 addition of a to f in the bounds b
-*/
+/// # return
+/// f32 addition of a to f in the bounds b
 pub fn additive_in_bounds(b:(f32,f32),f:f32,a:f32) -> f32 {
     assert!(is_proper_bounds(b.clone()));
     assert!(in_bounds(b.clone(),f.clone()), "have bounds {:?} value {}",b.clone(),f);
@@ -122,11 +130,8 @@ pub fn additive_in_bounds(b:(f32,f32),f:f32,a:f32) -> f32 {
     calibrate_in_bounds(b.clone(),f + a)
 }
 
-
-
-/*
-vec. with elements that are all non-intersecting proper bounds?
-*/
+/// # return 
+/// vec. with elements that are all non-intersecting proper bounds?
 pub fn is_proper_bounds_vec(bv: Vec<(f32,f32)>) -> bool {
     let l = bv.len();
     for i in 0..l - 1 {
@@ -141,9 +146,8 @@ pub fn is_proper_bounds_vec(bv: Vec<(f32,f32)>) -> bool {
     true
 }
 
-/*
-outputs the subvector of indices of bv that intersect with v
-*/
+/// # return 
+/// outputs the subvector of indices of bv that intersect with v
 pub fn intersecting_bounds_to_bound(bv: Vec<(f32,f32)>, v: (f32,f32)) -> Vec<usize> {
     let mut sol: Vec<usize> = Vec::new();
 
@@ -155,19 +159,17 @@ pub fn intersecting_bounds_to_bound(bv: Vec<(f32,f32)>, v: (f32,f32)) -> Vec<usi
     sol
 }
 
-/*
-merges the vector of proper bounds bv into one bound
-*/
+/// # return
+/// merges the vector of proper bounds bv into one bound
 pub fn merge_bounds(bv: Vec<(f32,f32)>) -> (f32,f32) {
     let maximum = bv.clone().into_iter().fold(f32::MIN, |acc,s| if s.1 > acc {s.1.clone()} else {acc});
     let minimum = bv.clone().into_iter().fold(f32::MAX, |acc,s| if s.0 < acc {s.0.clone()} else {acc});
     (minimum,maximum)
 }
 
-/*
-outputs a subbound f32 of refb (a proper bound of f in (real numbers)^2)
-based on b of [0.,1.]^2.
-*/
+/// # return 
+/// outputs a subbound f32 of refb (a proper bound of f in (real numbers)^2)
+/// based on b of [0.,1.]^2.
 pub fn bound_01_to_subbound_f32(refb:(f32,f32),b:(f32,f32)) -> (f32,f32) {
     assert!(is_proper_bounds(refb.clone()));
     assert!(is_proper_bounds(b.clone()));
@@ -177,9 +179,8 @@ pub fn bound_01_to_subbound_f32(refb:(f32,f32),b:(f32,f32)) -> (f32,f32) {
     (s,e)
 }
 
-/*
-b2 is subbound of b1
-*/
+/// # return 
+/// b2 is subbound of b1
 pub fn subbound_f32_to_bound_01(b1:(f32,f32),b2:(f32,f32)) -> (f32,f32) {
 
     assert!(is_proper_bounds(b2.clone()));
@@ -199,8 +200,11 @@ pub fn subbound_f32_to_bound_01(b1:(f32,f32),b2:(f32,f32)) -> (f32,f32) {
     (f1,f2)
 }
 
-/*
-*/
+/// # arguments
+/// - bv := vector of bounds
+/// 
+/// # return
+/// bounds representing extremum of values of `bv`
 pub fn bounds_of_bv(bv: Vec<(f32,f32)>) -> (f32,f32) {
     assert!(bv.len() != 0);
 
@@ -219,26 +223,35 @@ pub fn bounds_of_bv(bv: Vec<(f32,f32)>) -> (f32,f32) {
     (c[0],c[l -1])
 }
 
-/*
-maps vector of bounds of (real numbers)^2 to bounds of [0,1]^2 by
-[min(fv as arr1),max(fv as arr1)]
-*/
+/// # description 
+/// maps vector of bounds `fv` of \{real numbers\}^2 to bounds of \{0,1\}^2 by
+/// extremum bounds \[min(fv as arr1),max(fv as arr1)\]
+/// 
+/// # return
+/// scaled version of `fv` into \[0,1\] range
 pub fn bvec_f32_to_bvec_01(fv:Vec<(f32,f32)>) -> Vec<(f32,f32)> {
     let bvv = merge_bounds(fv.clone());
     fv.clone().into_iter().map(|x| subbound_f32_to_bound_01(bvv.clone(),x)).collect()
 }
 
+/// # description 
+/// maps vector of bounds `bv` of \{0,1\}^2 to bounds of \{real numbers\}^2 by
+/// reference bounds \[min(fv as arr1),max(fv as arr1)\]
+/// 
+/// # return
+/// scaled version of `bv` into `refb` range
 pub fn bvec_01_to_bvec_f32(bv:Vec<(f32,f32)>,refb:(f32,f32)) -> Vec<(f32,f32)> {
     bv.clone().into_iter().map(|x| bound_01_to_subbound_f32(refb.clone(),x)).collect()
 }
 
     //////////////////////// specialized functions for i32
 
-/*
-special case of cheapest add:
-
-soln is i32
-*/
+/// # description
+/// calculates the positive vector P (all non-negative values) and negative vector N (all non-positive values)
+/// that when each added to `v1` in the bounds `b` produces the target value `li`
+/// 
+/// # return 
+/// P,N 
 pub fn pos_neg_add_vecs_target_i32(v1:Array1<i32>,b:(i32,i32),li:i32) -> (Array1<i32>,Array1<i32>) {
     // get + & - values for v1 to li
     let mut pv: Vec<i32> = Vec::new();
@@ -256,6 +269,13 @@ pub fn pos_neg_add_vecs_target_i32(v1:Array1<i32>,b:(i32,i32),li:i32) -> (Array1
     (pv.into_iter().collect(),nv.into_iter().collect())
 }
 
+/// # description
+/// calculates the vector of positive/negative values that when added to `v1` in the
+/// bounds `b` produces the target value `li`. 
+/// Uses method <bmeas::pos_neg_add_vecs_target_i32>. 
+///  
+/// # return 
+/// cheapest vector (of positive and negative adds) 
 pub fn bounded_cheapest_add_target_i32_(v1:Array1<i32>,b:(i32,i32),li:i32) -> Array1<i32> {
     let (x1,x2) = pos_neg_add_vecs_target_i32(v1.clone(),b.clone(),li);
     let mut sol:Vec<i32> = Vec::new();
@@ -270,6 +290,8 @@ pub fn bounded_cheapest_add_target_i32_(v1:Array1<i32>,b:(i32,i32),li:i32) -> Ar
     sol.into_iter().collect()
 }
 
+/// # description 
+/// calibrates all elements in `v1` according to the bounds `b`
 pub fn calibrate_arr1_i32_in_bounds(v1:Array1<i32>,b:(i32,i32)) -> Array1<i32> {
     let mut f:Vec<i32> = Vec::new();
 
@@ -280,6 +302,9 @@ pub fn calibrate_arr1_i32_in_bounds(v1:Array1<i32>,b:(i32,i32)) -> Array1<i32> {
     f.into_iter().collect()
 }
 
+/// # description
+/// calculates the sum of absolute bounded distances of elements of 
+/// `v1` to target `f` in which `b` is the bounds of values. 
 pub fn abs_arr1_bdistance(v1:Array1<i32>, f:i32, b:(i32,i32)) -> usize {
     let x:Array1<usize> = v1.into_iter().map(|x| bdistance_of_f32pair((x as f32,f as f32),(b.0 as f32,b.1 as f32)).abs() as usize ).collect();
     x.sum()

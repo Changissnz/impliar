@@ -1,3 +1,5 @@
+//! structs used for partitioning of f32 range based on 
+//! pre-assigned labels for values. 
 use crate::enci::be_int;
 use crate::metrice::bmeas;
 use crate::setti::setf;
@@ -5,9 +7,7 @@ use std::collections::HashSet;
 use ndarray::{arr1,Array1};
 use std::fmt;
 
-/*
-struct used to keep track of FSelect mean and frequency per bound
-*/
+/// struct used to keep track of FSelect mean and frequency per bound
 #[derive(Clone)]
 pub struct FM {
     pub frequency: usize,
@@ -20,8 +20,7 @@ pub fn empty_FM() -> FM {
 
 impl FM {
 
-    /*
-    */
+    /// update `frequency` and `meen` with argument `v`
     pub fn update_values(&mut self,v: f32) {
         let mut q = self.meen.clone() * self.frequency as f32;
         self.frequency += 1;
@@ -29,22 +28,27 @@ impl FM {
     }
 }
 
-/*
-the f32 version that is the VSelect from setti::vs.
-`data` is an unordered vec of proper bounds in `bounds`.
-elements of `data` cannot intersect.
-
-*/
+/// the f32 version that is the VSelect from setti::vs.
+/// `data` is an unordered vec of proper bounds in `bounds`.
+/// elements of `data` cannot intersect. The main functions of
+/// this struct are 
+/// - <fs::FSelect::label_of_f32(f32)>
+/// - <fs::FSelect::index_of_f32(f32)>; index of range
 #[derive(Clone)]
 pub struct FSelect {
+    /// unordered vector of ranges, ranges cannot intersect
     pub data: Vec<(f32,f32)>,
+    /// vector of equal length to `data`, each element is 0 or 1
     pub data_labels:Array1<usize>,
+    /// f32 range that all ranges of data must exist in
     pub bounds: (f32,f32),
+    /// storage value assigned to <fs::FSelect> instance;
+    /// used for purposes such as ranking. 
     pub score:Option<f32>,
 
-    // basic | fm
+    /// "basic" | "fm"
     pub mode: String,
-    // used in the event of fm mode
+    /// used in the event of fm mode
     pub fm: Option<Vec<FM>>
 }
 
@@ -103,9 +107,10 @@ impl FSelect {
         self.fm = Some(fm1);
     }
 
-    /*
-    sorts bounds by closest distance to f. distance is 0. if f in b.
-    */
+    /// # description
+    /// sorts bounds by closest distance to f. distance is 0. if f in b.
+    /// # return
+    /// arr1\<usize\>, each element is index of range 
     pub fn sorted_bounds_by_bdistance_to_f32(&mut self,f:f32) -> Array1<usize> {
         let mut v2:Vec<(usize,f32)> = self.data.clone().into_iter().enumerate().map(
             |(i,b)| (i,bmeas::closest_distance_to_subbound(self.bounds.clone(),b,f.clone()).abs())).collect();
@@ -113,9 +118,10 @@ impl FSelect {
         v2.into_iter().map(|x| x.0).collect()
     }
 
-    /*
-    deletes bounds at index i and outputs its ((start,end),label)
-    */
+    /// # description
+    /// deletes bounds at index i
+    /// # return
+    /// ((start,end),label) of deleted bounds
     pub fn delete_bounds(&mut self,i:usize) -> ((f32,f32),usize) {
         let d = self.data[i].clone();
         let d2 = self.data_labels[i].clone();
@@ -128,7 +134,8 @@ impl FSelect {
         (d,d2)
     }
 
-    //// fselect selectors
+    /// # return
+    /// index of the range that `f` falls in
     pub fn index_of_f32(&mut self, f:f32) -> Option<usize> {
         if !bmeas::in_bounds(self.bounds.clone(),f) {
             return None;
@@ -142,6 +149,8 @@ impl FSelect {
         None
     }
 
+    /// # return
+    /// label of `f` based on its corresponding range
     pub fn label_of_f32(&mut self, f:f32) -> Option<usize> {
         let i = self.index_of_f32(f);
 
@@ -152,15 +161,23 @@ impl FSelect {
         Some(self.data_labels[i.unwrap()].clone())
     }
 
+    /// # return
+    /// if `l` is a label in `data_labels` 
     pub fn label_exists(&mut self,l:usize) -> bool {
         let r:HashSet<usize> = self.data_labels.clone().into_iter().collect();
         r.contains(&l)
     }
 
+    /// # return
+    /// the corresponding range at index `i` in `data`
     pub fn index_to_data(&mut self,i:usize) -> (f32,f32) {
         self.data[i].clone()
     }
 
+    /// # description
+    /// maps the vector `v` of range indices of `data` to 
+    /// # return
+    /// vector of (range,label) pairs
     pub fn indexvec_to_data_labels(&mut self,v:Vec<usize>) -> Vec<((f32,f32),usize)> {
         let mut sol: Vec<((f32,f32),usize)> = Vec::new();
 

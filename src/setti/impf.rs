@@ -1,13 +1,10 @@
 use crate::metrice::vcsv; 
 use ndarray::Array1;
-
 extern crate round;
 use round::{round};
 
-/*
-structs in file used for constructing modular chain functions
-for struct<Impli> and storing them in files
-*/
+/// structs in file used for constructing modular chain functions
+/// for struct<Impli> and storing them in files
 pub struct ImpF {
     // multiples
     m: Array1<f32>,

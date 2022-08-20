@@ -1,9 +1,5 @@
 use crate::setti::setf;
-//use crate::setti::inc;
 use crate::setti::strng_srt;
-//use crate::setti::selection_rule;
-//use crate::setti::vecf;
-//use crate::setti::setf::Count;
 use crate::setti::setc;
 use crate::setti::set_gen;
 use crate::strng_srt::sort_string_vector;
@@ -16,16 +12,13 @@ use std::cmp::Ordering;
 use std::cmp::PartialEq;
 use ndarray::Array2;
 
-
-/*
-SetImp is a struct that can generate vectors of strings using the generator
-`selection_rule::next_available_forward`.
-
-SetImp takes a start vector, a base options vector, and the required number of
-elements to generate.
-
-SetImp will keep a running count of elements for each vector output.
-*/
+/// SetImp is a struct that can generate vectors of strings using the generator
+/// `selection_rule::next_available_forward`.
+/// 
+/// SetImp takes a start vector, a base options vector, and the required number of
+/// elements to generate.
+/// 
+/// SetImp will keep a running count of elements for each vector output.
 pub struct SetImp {
     // choice vector
     cvec:Vec<String>,

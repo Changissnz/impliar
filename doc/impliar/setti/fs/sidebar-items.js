@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_FSelect",""],["empty_FM",""],["empty_FSelect",""]],"struct":[["FM","struct used to keep track of FSelect mean and frequency per bound"],["FSelect","the f32 version that is the VSelect from setti::vs. `data` is an unordered vec of proper bounds in `bounds`. elements of `data` cannot intersect. The main functions of this struct are "]]};

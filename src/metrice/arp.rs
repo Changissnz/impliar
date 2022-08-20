@@ -1,9 +1,12 @@
+//! range partition for sequences of unlabelled real numbers
 use crate::setti::fs;
 use crate::metrice::brp;
 use ndarray::{Array1,arr1};
 use crate::metrice::bmeas;
 use crate::enci::mat2sort;
 
+/// # description
+/// converts an <arr1<f32>> into a scaled <arr1<f32>> (values in \[0.,1.\])
 pub fn arr1_f32_to_arr1_01(f:Array1<f32>) -> Array1<f32> {
     let c = mat2sort::sort_arr1(f.clone(),mat2sort::f32_cmp1);
     let l = c.len();
@@ -19,6 +22,9 @@ pub fn arr1_f32_to_arr1_01(f:Array1<f32>) -> Array1<f32> {
     sol.into_iter().collect()
 }
 
+/// # description
+/// converts a scaled <arr1<f32>> (values in \[0.,1.\]) into an
+/// <arr1<f32>> based on the bounds `b`. 
 pub fn arr1_01_to_arr1_f32(f:Array1<f32>, b:(f32,f32)) -> Array1<f32> {
     assert!(bmeas::is_proper_bounds(b.clone()));
     let mut sol: Vec<f32> = Vec::new();
@@ -37,22 +43,26 @@ pub fn arr1_minmax(f:Array1<f32>) -> (f32,f32) {
     (minumum,maximum)
 }
 
-//////////
-/*
-difference w/ RangePartitionGF2 rests on auto-labelling
-
-struct solution search process is essentially k-means on 1 dimension.
-
-for each FSelect to include an arbitrary f32, uses choices calculated from
-RangePartitionGF2 and modifies their score.
-*/
+/// struct labels a sequence of values similar to <brp::RangePartitionGF2>
+/// difference w/ RangePartitionGF2 rests on auto-labelling
+///
+/// struct solution search process is essentially k-means on 1 dimension.
+/// for each FSelect to include an arbitrary f32, uses choices calculated from
+/// RangePartitionGF2 and modifies their score.
+/// RangePartitionGF2 is used by mapping its \[0,1\] space to ArbitraryRangePartition
+/// as solution.
 pub struct ArbitraryRangePartition {
-    // vec is over real numbers
+    /// vec over real numbers
     f32_vec: Array1<f32>,
+    /// bounds for `f32_vec` values
     xstream: (f32,f32),
+    /// used to collect partitions over\[0,1\] range
     rpgf2: brp::RangePartitionGF2,
+    /// solution
     pub fselect:Option<fs::FSelect>, // used to keep track of distance score: mean and frequency for each range
+    /// maximum number of partitions allowed
     t:usize,
+    /// used for determining best <fs::FSelect> solution
     cache:Vec<(fs::FSelect,f32)> // FSelect, arp score
 }
 
@@ -63,24 +73,16 @@ pub fn build_ArbitraryRangePartition(f32_vec: Array1<f32>,szt:usize) -> Arbitrar
     // get 01 version
     let xstream = arr1_minmax(f32_vec.clone());
     let tmp_f32_vec: Array1<f32> = arr1_f32_to_arr1_01(f32_vec.clone());
-
     let rs = brp::build_range_partition_gf2(tmp_f32_vec.clone(),bl,szt,"fm".to_string());
 
     // fselect:
     ArbitraryRangePartition{f32_vec:f32_vec,xstream:xstream,rpgf2:rs,fselect:None,t:szt,cache:Vec::new()}
 }
 
-/*
-RangePartitionGF2 is used by mapping its [0,1] space to ArbitraryRangePartition
-as solution.
-*/
 impl ArbitraryRangePartition {
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn brute_force_search__decision(&mut self) {
         let f_ = self.rpgf2.brute_force_search__decision();
-
         if f_.is_none() {
             println!("ERROR: no search resut for ARP");
             return;
@@ -134,6 +136,5 @@ mod tests {
             assert_eq!(f.meen,sol1[i].0);
             assert_eq!(f.frequency,sol1[i].1);
         }
-
     }
 }

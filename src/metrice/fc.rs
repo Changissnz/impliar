@@ -23,10 +23,8 @@ pub fn frequency_intervals(l:usize) -> Array1<f32> {
     sol.into_iter().collect()
 }
 
-/*
-frequency collector of values v over a range r by partition p;
-output counts in pc
-*/
+/// frequency collector of values v over a range r by partition p;
+/// output counts in pc
 pub struct FrqncCl {
     v: Vec<f32>,
     r: (f32,f32),

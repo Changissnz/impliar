@@ -4,11 +4,9 @@ struct is specialized to process parenthetical
 strings by order of operator given a float map.
 outputs a float.
 */
-
 use crate::enci::ohop;
 use crate::setti::setf;
 use crate::setti::ftemp;
-
 use std::collections::HashMap;
 
 pub struct OperatorSequence {

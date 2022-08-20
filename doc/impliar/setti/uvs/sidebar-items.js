@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_uvselect",""]],"struct":[["UVSelect","a variant of the VSelect: the unordered vector of ranges `index_order` is the ordering of the ranges"]]};

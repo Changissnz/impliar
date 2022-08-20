@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["decompose_set",""],["is_closed_implication","determines if a vector of sets comprises a closed implication in which k is the number of unique elements that all of those sets contain. "],["nCr",""],["number_of_m_intersections",""],["unique_object_frequency_requirement",""]]};

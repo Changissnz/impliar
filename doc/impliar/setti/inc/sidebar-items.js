@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Inc1",""],["Inc1String",""],["Incr",""]],"trait":[["Inc",""]]};

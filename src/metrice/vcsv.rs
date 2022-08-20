@@ -5,13 +5,16 @@ use ndarray::{Array1,arr1,Array2,arr2};
 use std::any::type_name;
 use std::fs::{File,OpenOptions};
 use std::io::{Write, BufReader, BufRead,Error};
-
 use crate::setti::setf;
 
+/// # description
+/// displays type of `T`
 pub fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
+/// # description
+/// writes sequence of <arr1\<f32\>> into `filename` based on `file_mode` append (a) or write (w). 
 pub fn arr1_seq_to_csv(a:Vec<Array1<f32>>,filename: &str,file_mode:&str) {
     // open file based on write|append mode
     let mut fileRef = if file_mode == "a" {OpenOptions::new().append(true).open(filename).expect("unable to open file")}
@@ -25,6 +28,8 @@ pub fn arr1_seq_to_csv(a:Vec<Array1<f32>>,filename: &str,file_mode:&str) {
     }
 }
 
+/// # description
+/// loads `filepath` contents into a sequence of <arr1\<f32\>>
 pub fn csv_to_arr1_seq(filepath: &str) -> Result<Vec<Array1<f32>>, Box<dyn std::error::Error>> {
     let file = File::open(filepath)?;
     let reader = BufReader::new(file);
@@ -39,7 +44,8 @@ pub fn csv_to_arr1_seq(filepath: &str) -> Result<Vec<Array1<f32>>, Box<dyn std::
     Ok(sol)
 }
 
-
+/// # description
+/// writes <arr1\<f32\>> into `filename` based on `file_mode` append (a) or write (w). 
 pub fn arr1_to_csv(a:Array1<f32>,filename: &str,file_mode:&str) {
     let mut fileRef = if file_mode == "a" {OpenOptions::new().append(true).open(filename).expect("unable to open file")}
                     else {OpenOptions::new().read(true).write(true).create(true).truncate(true).open(filename).expect("Unable to open file")};
@@ -52,6 +58,8 @@ pub fn arr1_to_csv(a:Array1<f32>,filename: &str,file_mode:&str) {
     }
 }
 
+/// # description
+/// loads `filepath` contents into <arr1\<f32\>>
 pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Error>> {
     let file = File::open(filepath)?;
     let reader = BufReader::new(file);
@@ -66,6 +74,8 @@ pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Er
     Ok(sol.into_iter().collect())
 }
 
+/// # description
+/// loads `filepath` into <fs::File> object
 pub fn file_read_obj(filepath: &str) -> Result<BufReader<File>,Box<dyn std::error::Error>> {
     let file = File::open(filepath)?;
     Ok(BufReader::new(file))

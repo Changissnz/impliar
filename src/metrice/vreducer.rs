@@ -5,20 +5,24 @@ use crate::enci::skewf32;
 use crate::setti::dessi;
 use std::fmt;
 
-/*
-cast for function
-*/
+/// cast struct for function f, which takes an arr1<f32>
+/// as input and outputs another arr1<f32>. 
 #[derive(Clone)]
 pub struct FCast {
     pub f: fn(Array1<f32>) -> Array1<f32>
 }
 
+/// cast struct for function f, which takes an arr1<f32>
+/// as input and produces another f32 x, and adding `ai`
+/// to x is the output from struct main function <apply>.    
 #[derive(Clone)]
 pub struct FCastF32 {
     pub f: fn(Array1<f32>) -> f32,
     pub ai: f32 // spare adder
 }
 
+/// struct main function is <apply> on an arr1<f32> to produce
+/// another arr1<f32>. 
 impl FCast {
 
     pub fn apply(&mut self,a:Array1<f32>) -> Array1<f32> {
@@ -33,12 +37,26 @@ impl FCastF32 {
     }
 }
 
+/// structure that acts as a chained-function (a sequence of functions).
+/// Each function in the sequence can be of type <vreducer::FCast> or
+/// type <skewf32::SkewF32>. Main function is <apply>. 
+/// 
+///
+/// variables:
+/// ---------------
+/// fvec := sequence of <vreducer::FCast>.
+/// svec := sequence of <skewf32::SkewF32>. 
+/// directions := binary sequence, used to determine  
+/// switch_f := 0 for <vreducer::FCast> function, 1 for <skewf32::SkewF32> function.
+/// fi := current index in `fvec`.
+/// si := current index in `svec`. 
+/// tail1 := <vreducer::FCastF32> skew applied after fvec|svec functions. 
+/// tailn := <skewf32::SkewF32> skew applied after fvec|svec functions. 
+/// 
 #[derive(Clone)]
 pub struct VRed  {
     pub fvec: Vec<FCast>,
     pub svec: Vec<skewf32::SkewF32>,
-
-    // binary vec
     pub directions: Vec<usize>,
     pub switch_f: usize,
 
@@ -65,13 +83,15 @@ impl fmt::Display for VRed {
         s += &format!("tail1 {} tailn {}",!self.tail1.is_none(),!self.tailn.is_none());
         write!(f, "{}", s)
     }
-
 }
 
 impl VRed {
 
+    /// applies body function (fvec|svec functions) on argument `a`.
+    /// If `tail_type` is 0, applies tail1, o.w. applies tailn. 
     pub fn apply(&mut self,a:Array1<f32>,tail_type:usize) -> (Option<f32>,Option<Array1<f32>>) {
         let a2 = self.apply_body(a);
+        
         // tail1
         if tail_type == 0 {
             if self.tail1.is_none() {
@@ -91,6 +111,7 @@ impl VRed {
         (None,Some(a3))
     }
 
+    /// 
     pub fn apply_body(&mut self,a:Array1<f32>) -> Array1<f32> {
         self.reset_i();
 
@@ -139,6 +160,8 @@ impl VRed {
         sol
     }
 
+    /// checks validity of `directions` with respect to function vectors
+    /// `fvec` and `svec`. 
     pub fn check_directions(&mut self) -> bool {
         let mut q = self.switch_f.clone();
         let l = self.directions.len();
@@ -159,11 +182,13 @@ impl VRed {
         true
     }
 
+    /// index-reset function. 
     pub fn reset_i(&mut self) {
         self.fi = 0;
         self.si = 0;
     }
 
+    /// outputs the number of functions in body function. 
     pub fn size_fs(&mut self) -> usize {
         self.fvec.len() + self.svec.len()
     }
@@ -173,6 +198,7 @@ impl VRed {
         (q + self.directions.len() - 1) % 2
     }
 
+    /// adds a <vreducer::FCast> function to `fvec`  and modifies directions. 
     pub fn add_f(&mut self,a: FCast) {
         let cs = self.current_switch();
 
@@ -183,6 +209,7 @@ impl VRed {
         self.fvec.push(a);
     }
 
+    /// adds a <skewf32::SkewF32> to `svec` and modifies directions. 
     pub fn add_s(&mut self,a: skewf32::SkewF32) {
         let cs = self.current_switch();
 
@@ -194,10 +221,13 @@ impl VRed {
         self.svec.push(a);
     }
 
+    /// replaces `tailn` with argument `nt`. 
     pub fn mod_tailn(&mut self,nt:skewf32::SkewF32) {
         self.tailn = Some(nt);
     }
 
+    /// adds an existing `tailn` to the end of `svec` and replaces
+    /// `tailn` with `nt`. 
     pub fn mod_tailn_(&mut self,nt:skewf32::SkewF32) {
 
         if !self.tailn.is_none() {
@@ -205,7 +235,6 @@ impl VRed {
         }
 
         self.mod_tailn(nt);
-
     }
 
     pub fn mod_tail1(&mut self,nt:FCastF32) {
@@ -213,15 +242,15 @@ impl VRed {
     }
 }
 
+/// sample <skewf32::SkewF32> used for testing. 
 pub fn sample_vred_adder_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
-
     // get size
-    //let y:usize = a.clone().into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(t))).into_iter().max().unwrap();
     let v_:Array1<i32> = a.into_iter().map(|x1| ((x1 * f32::powf(10.,t as f32))).round() as i32).collect();
     let sk = skew::build_skew(None,None,Some(v_),None,vec![2],None);
     skewf32::SkewF32{sk:sk,s:t}
 }
 
+/// sample `fvec`, `svec` used for testing.
 pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
 
     fn f1(x:Array1<f32>) -> Array1<f32> {
@@ -250,15 +279,14 @@ pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
     (fv,sv)
 }
 
-/*
-average for gorilla euclid additive vector A and coefficient vector C
-*/
+/// average for gorilla euclid additive vector A and coefficient vector C
 pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
     let (g1,g2) = gorillasf::gorilla_touch_arr1_basic(s1,0.5);
     (g1 + g2) / 2.0
 }
 
+/// 
 pub fn std_gcd_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
     gorillasf::gorilla_touch_arr1_gcd(s1,0.5)

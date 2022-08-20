@@ -1,6 +1,4 @@
-/*
-this is a struct used to increment elements
-*/
+//! contains generator that increments stringized elements
 use asciis::asc::Asciis;
 use substring::Substring;
 use std::str::FromStr;
@@ -25,13 +23,12 @@ pub trait Inc {
     }
 }
 
+/// i32 incrementor
 pub struct Inc1 {
     pub value: i32
 }
 
-/*
-i32 incrementor
-*/
+
 impl Inc for Inc1 {
 
     fn inc(&mut self){
@@ -49,6 +46,7 @@ impl Inc1 {
 
 }
 
+/// alphabetical incrementor
 #[derive(Clone)]
 pub struct Inc1String {
     pub value: String,
@@ -88,9 +86,6 @@ impl Inc for Inc1String {
     }
 }
 
-/*
-alphabetical incrementor
-*/
 impl Inc1String {
 
     pub fn inc_(&mut self) -> String {

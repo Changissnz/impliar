@@ -2,10 +2,7 @@ use ndarray::{Array,Array1,Array2,arr1,arr2};
 use std::collections::HashSet;
 use std::hash::Hash;
 
-/*
-collects the subset in d with the most matches
-typical values for arguments have Array1 corresponding to indices.
-*/
+/// collects the subset in `d` with the most matches to array `r` according to function `g`.  
 pub fn fcollect_max_proper_hashfit_wrt_reference(mut d:Vec<Array1<usize>>,r:Array1<usize>,g:fn(Vec<Array1<usize>>,Array1<usize>) -> f32,verbose:bool) -> Vec<Array1<usize>> {
 
     // cache will be (element,score,start index of search for possible next)
@@ -89,12 +86,9 @@ pub fn fcollect_max_proper_hashfit_wrt_reference(mut d:Vec<Array1<usize>>,r:Arra
     result
 }
 
-/*
-Calculates the fitness of d to reconstruct (fit) r.
-(number of elements of r activated) - (number of unique elements of d not activated)
-
-CAUTION: no arg. check
-*/
+/// Calculates the fitness of d to reconstruct (fit) r.
+/// (number of elements of r activated) - (number of unique elements of d not activated)
+/// CAUTION: no arg. check
 pub fn hashfit_score1(d:Vec<Array1<usize>>,r:Array1<usize>) -> f32 {
     let mut hr:HashSet<usize> = HashSet::<usize>::from_iter(r.clone().into_iter());
     let mut hr2:HashSet<usize> = hr.clone();
@@ -117,9 +111,7 @@ pub fn hashfit_score1(d:Vec<Array1<usize>>,r:Array1<usize>) -> f32 {
     (s - s2) as f32
 }
 
-/*
-this is the actual functionale used de la fcollect_max_proper_hashfit_wrt_reference.
-*/
+/// this is the actual functionale used de la fcollect_max_proper_hashfit_wrt_reference.
 pub fn hashfit_score2(d:Vec<Array1<usize>>,r:Array1<usize>) -> f32 {
 
     let mut hr:HashSet<usize> = HashSet::<usize>::from_iter(r.clone().into_iter());
@@ -138,12 +130,9 @@ pub fn hashfit_score2(d:Vec<Array1<usize>>,r:Array1<usize>) -> f32 {
 
 }
 
-/*
-f is the ordered (by d) sub-vector of d. Considers the subvector of d after the last
-element of f
-
-CAUTION: order-check for f not coded
-*/
+/// f is the ordered (by d) sub-vector of d. Considers the subvector of d after the last
+/// element of f
+/// CAUTION: order-check for f not coded
 pub fn next_possible_forward_string_hash_fit(d:Vec<HashSet<String>>,f:Vec<HashSet<String>>,si:usize) -> Option<usize> {
     let l = d.len();
     let mut j:usize = 0;
@@ -173,9 +162,7 @@ pub fn next_possible_forward_string_hash_fit(d:Vec<HashSet<String>>,f:Vec<HashSe
     sol
 }
 
-/*
-arr1 version of `is_proper_hash_fit`
-*/
+/// arr1 version of `is_proper_hash_fit`
 pub fn is_proper_hash_fit_arr1<T>(ahf:Vec<Array1<T>>) -> bool
 where
 T: Eq + Clone + Hash
@@ -184,10 +171,8 @@ T: Eq + Clone + Hash
     is_proper_hash_fit(ahf2)
 }
 
-/*
-determines if `vh` is a vector of hashsets that do not contain
-intersecting elements.
-*/
+/// determines if `vh` is a vector of hashsets that do not contain
+/// intersecting elements.
 pub fn is_proper_hash_fit<T>(vh: Vec<HashSet<T>>) -> bool
 where
 T: Eq + Clone + Hash

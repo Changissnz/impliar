@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_ImpF",""],["file_to_ImpFSeq",""]],"struct":[["ImpF","structs in file used for constructing modular chain functions for struct and storing them in files"],["ImpFSeq",""]]};

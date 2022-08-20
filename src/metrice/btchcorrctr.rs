@@ -1,25 +1,25 @@
-use crate::metrice::btchcorrctrc;
+//! batch correcting algorithm used for factorization of skews
+use crate::metrice::{btchcorrctrc,btchcorrctr_tc};
 use crate::enci::{skew,skewf32};
 use crate::setti::dessi;
-
 use ndarray::{arr1,Array1};
 use std::collections::{HashMap,HashSet};
 
-/*
-sb is skewf32 batch type a,
-ref is the operand priori.
-*/
+/// sb is skewf32 batch type a,
+/// ref is the operand priori.
 #[derive(Clone)]
 pub struct GBatchCorrector {
+    /// 
     sb: Vec<skewf32::SkewF32>,
     b: Vec<skewf32::SkewF32>,
 
     refn: Vec<Array1<f32>>,
     refn1: Vec<Array1<f32>>,
     pub best_refactor: (Option<i32>,Option<f32>,bool),
-
     pub m_candidate_scores:HashMap<i32,f32>,
     pub a_candidate_scores:HashMap<i32,f32>,
+
+    /// decimal places
     k:usize
 }
 
@@ -30,21 +30,28 @@ pub fn empty_GBatchCorrector(k:usize) -> GBatchCorrector {
 
 impl GBatchCorrector {
 
+    /// # return
+    /// number of samples that have been processed
     pub fn sample_size(&mut self) -> usize {
             self.refn.len()
     }
 
+    /// # return
+    /// number of candidates
     pub fn candidate_size(&mut self) -> usize {
         self.m_candidate_scores.len() + self.a_candidate_scores.len()
     }
 
+    /// # description
+    /// loads the next batch into 
     pub fn load_next_batch(&mut self,sb: Vec<skewf32::SkewF32>,refn: Vec<Array1<f32>>) {
         self.b = sb;
         self.refn1 = refn;
         assert!(self.is_proper_batch());
     }
 
-    // check that all .s is equal for sb
+    /// # return 
+    /// all .s is equal for new batch `b`?
     pub fn is_proper_batch(&mut self) -> bool {
         for mut b_ in self.b.clone().into_iter() {
             if b_.s != self.k {
@@ -60,15 +67,25 @@ impl GBatchCorrector {
         true
     }
 
-    /*
-    is_batch := bool, true b false sb
-    */
+    /// # description
+    /// converts all <skewf32::SkewF32> into <skew::Skew> over the
+    /// batch specified by `is_batch`
+    ///
+    /// # arguments
+    /// is_batch := bool, true b false sb
     pub fn bare_skew(&mut self,is_batch:bool) -> Vec<skew::Skew> {
 
         let mut q: Vec<skewf32::SkewF32> = if is_batch {self.b.clone()} else {self.sb.clone()};
         q.clone().into_iter().map(|x| x.sk).collect()
     }
 
+    /// # description
+    /// scales reference `refn1` if argument `ref_1 == True`, otherwise 
+    /// scales reference `refn`. Output is a sequence of <arr1\<i32\>> 
+    /// that is the sequence of <arr1\<f32\>> * `k`. 
+    ///
+    /// # return
+    /// the scaled reference 
     pub fn scale_ref(&mut self,ref_1:bool) -> Vec<Array1<i32>> {
         let x = if ref_1 {self.refn1.clone()} else {self.refn.clone()};
         let mut sol: Vec<Array1<i32>> = Vec::new();
@@ -78,16 +95,16 @@ impl GBatchCorrector {
         sol
     }
 
-    /*
-    return:
-    - (best candidate),(candidate score),candidate is adder
-    */
+    /// # return
+    /// ((best factor),(candidate score),candidate is adder)
     pub fn process_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>,bool) {
         let (x1,x2) = self.afactor_on_batch(verbose);
         let (y1,y2) = self.mfactor_on_batch(verbose);
         if x2.unwrap() < y2.unwrap() {(x1,x2,true)} else {(y1,y2,false)}
     }
 
+    /// # description
+    /// pushes the batch data `b` into `sb` and `refn1` into `refn`
     pub fn push_batch(&mut self) {
         let l = self.b.len();
         for i in 0..l {
@@ -98,22 +115,32 @@ impl GBatchCorrector {
         }
     }
 
+    /// # description
+    /// calculates the best (m|a)-factor for all batch samples and then calls the
+    /// `push_batch` function.
     pub fn process_batch_(&mut self,verbose:bool) {
         self.best_refactor = self.process_batch(verbose);
         self.push_batch();
     }
 
-    /*
-    outputs score for adder candidate
-    */
+    /// # description
+    /// updates `a_candidate_score` map with adder `c`
+    /// 
+    /// # arguments
+    /// v1_ := hashmap of adder to score
+    /// c := adder 
+    ///
+    /// # return
+    /// score of a-factor `c` on all samples (sb + b) 
     pub fn process_candidate_adder(&mut self,v1_: HashMap<i32,f32>,c:i32) -> f32 {
 
         if self.a_candidate_scores.contains_key(&c) {
             // process c on self.b
             let (s1,s2,s3) = btchcorrctrc::a_refactor_skewf32_batch_type_a(self.bare_skew(true),self.k,c);
 
-            // add score
-            *self.a_candidate_scores.get_mut(&c).unwrap() += s3;
+            // add score minus (c / (10 ** k))
+            let c_: f32 = (c as f32) / f32::powf(10.,self.k as f32);
+            *self.a_candidate_scores.get_mut(&c).unwrap() += s3 - c_;
         }  else {
             // do c on all self.sb
             let (s1,s2,s3) = btchcorrctrc::a_refactor_skewf32_batch_type_a(self.bare_skew(false),self.k,c);
@@ -122,17 +149,22 @@ impl GBatchCorrector {
         *(self.a_candidate_scores.get(&c).clone().unwrap())
     }
 
-    /*
-    outputs score for multer candidate
-    */
+    /// # description
+    /// updates `m_candidate_score` map with adder `c`
+    /// 
+    /// # arguments
+    /// v1_ := hashmap of multer to score
+    /// c := multer 
+    ///
+    /// # return
+    /// score of m-factor `c` on all samples (sb + b) 
     pub fn process_candidate_multer(&mut self,v1_:HashMap<i32,f32>,c:i32) -> f32 {
         let c_:f32 = c as f32 / f32::powf(10.,self.k as f32);
-
         if self.m_candidate_scores.contains_key(&c) {
             // process c on self.b
             let (skv,av) = self.scale_data(Some(self.k),true);
             let (h1,sb1) = btchcorrctrc::m_refactor_skew_batch_type_a(skv,av,c);
-            let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>() + h1.skew_size as i32;
+            let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>();//h1.skew_size as i32;
 
             // add score
             *self.m_candidate_scores.get_mut(&c).unwrap() += s12 as f32 / f32::powf(10.,self.k as f32);
@@ -140,16 +172,19 @@ impl GBatchCorrector {
             // do c on all self.sb
             let (skv,av) = self.scale_data(Some(self.k),false);
             let (h1,sb1) = btchcorrctrc::m_refactor_skew_batch_type_a(skv,av,c);
-            let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>() + h1.skew_size as i32;
+            let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>();//h1.skew_size as i32;
             self.m_candidate_scores.insert(c,v1_.get(&c).unwrap() + s12 as f32 / f32::powf(10.,self.k as f32));
+            *self.m_candidate_scores.get_mut(&c).unwrap() += c as f32;
         }
-        *self.m_candidate_scores.get_mut(&c).unwrap() += c_;
         *(self.m_candidate_scores.get(&c).clone().unwrap())
     }
 
-    /*
-    outputs min multer soln
-    */
+    
+    /// # description
+    /// performs an m-factor search on batch data, and fetches the m-factor with the least score
+    /// 
+    /// # return
+    /// (best m-factor, m-factor score)
     pub fn mfactor_on_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>) {
         let (mut y,mut y2): (Option<i32>,Option<f32>) = (None,Some(f32::MAX));
         if verbose {println!("\tm-factor on batch")};
@@ -157,12 +192,12 @@ impl GBatchCorrector {
         // get scores on batch
         let (skv,av) = self.scale_data(Some(self.k),true);
 
-        let mx:i32 = i32::pow(10,self.k as u32);
-        let csvec = btchcorrctrc::multiple_score_pair_vec_on_skew_batch_type_a(skv,av,Some(mx));
+            //let mx:i32 = i32::pow(10,self.k as u32);
+        let csvec = btchcorrctrc::multiple_score_pair_vec_on_skew_batch_type_a(skv,av,None);
         let mut v1:HashMap<i32,f32> = HashMap::from_iter(csvec.into_iter().map(|x| (x.0,x.1 as f32 / f32::powf(10.,self.k as f32))).into_iter());
 
         // remove 1
-        v1.remove(&1);
+        v1.remove(&0);
 
         let mut candidates:HashSet<i32> = self.m_candidate_scores.clone().into_keys().collect();
         let v1_:HashSet<i32> = v1.clone().into_keys().collect();
@@ -182,9 +217,11 @@ impl GBatchCorrector {
         (y,y2)
     }
 
-    /*
-    outputs min adder soln
-    */
+    /// # description
+    /// performs an a-factor search on batch data, and fetches the a-factor with the least score
+    /// 
+    /// # return
+    /// (best a-factor, a-factor score)
     pub fn afactor_on_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>) {
         let (mut y,mut y2): (Option<i32>,Option<f32>) = (None,Some(f32::MAX));
 
@@ -195,6 +232,7 @@ impl GBatchCorrector {
         let v1: HashMap<i32,f32> = HashMap::from_iter(btchcorrctrc::adder_score_pair_vec_on_skew_batch_type_a(self.b.clone()).0.into_iter());
         let v2:HashSet<i32> = v1.clone().into_keys().collect();
         candidates.extend(&v2);
+
         // process each candidate
         for c in candidates.into_iter() {
             let x = self.process_candidate_adder(v1.clone(),c);
@@ -207,9 +245,13 @@ impl GBatchCorrector {
         (y,y2)
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    //// methods on entire sb
-
+    /// # description
+    /// searches for the a-factor with the lowest score and the m-factor
+    /// with the lowest score. Outputs the refactorization that produces the lowest
+    /// score 
+    ///
+    /// # return
+    /// lower-scoring refactorization of the batch data
     pub fn refactor(&mut self) -> (Option<skewf32::SkewF32>,Vec<skewf32::SkewF32>,f32) {
         let (s11,s12,s13) = self.best_a();
         let (s21,s22,s23) = self.best_m();
@@ -219,16 +261,20 @@ impl GBatchCorrector {
         (s21,s22,s23)
     }
 
-    /*
-    best a-factor for batch
-    */
+    /// # description
+    /// best a-factor for batch `sb`
+    ///
+    /// # return
+    /// (a-factor skew,refactored skew, score of refactored solution)
     pub fn best_a(&mut self) -> (Option<skewf32::SkewF32>,Vec<skewf32::SkewF32>,f32) {
         btchcorrctrc::best_afactor_for_skewf32_batch_type_a(self.sb.clone())
     }
 
-    /*
-    best m-factor for batch
-    */
+    /// # description
+    /// best m-factor for batch `sb`
+    ///
+    /// # return
+    /// (m-factor skew,refactored skew, score of refactored solution)
     pub fn best_m(&mut self) -> (Option<skewf32::SkewF32>,Vec<skewf32::SkewF32>,f32) {
         let (skv,av) = self.scale_data(Some(self.k),false);
         let (bs,ms) = btchcorrctrc::best_multiple_for_skew_batch_type_a(skv.clone(),av.clone());
@@ -244,66 +290,13 @@ impl GBatchCorrector {
         (Some(h1),sk3,sc1)
     }
 
+    /// # description
+    /// scales <skewf32::SkewF32> data into <skew::Skew> data. Data is
+    /// either `b` or `sb` based on `is_batch`. 
     pub fn scale_data(&mut self,scale:Option<usize>,is_batch:bool) -> (Vec<skew::Skew>,Vec<Array1<i32>>) {//(Vec<skew::Skew>,Vec<Array1<i32>>,usize) {
         (self.bare_skew(is_batch),self.scale_ref(is_batch))
     }
 }
-
-pub fn batch_1() -> (Vec<skewf32::SkewF32>,Vec<Array1<f32>>) {
-
-     // scale by k = 5
-     let k:usize = 5;
-
-     let r1 = arr1(&[3.513,4.221,5.4646,6.88,20.5]);
-     let r2 = arr1(&[1.,2.222,3.001,4.5]);
-     let r3 = arr1(&[30.30303,16.5,25.1]);
-
-     let s1 = arr1(&[15.,16.,22.2,7.1,14.]);
-     let s2 = arr1(&[5.,6.5,10.5,9.5]);
-     let s3 = arr1(&[80.1,50.3,67.5]);
-     let sk1 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s1,k)),
-                    None,vec![2],None);
-    let sk2 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s2,k)),
-                   None,vec![2],None);
-    let sk3 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s3,k)),
-                  None,vec![2],None);
-    let s1k = skewf32::SkewF32{sk:sk1,s:k};
-    let s2k = skewf32::SkewF32{sk:sk2,s:k};
-    let s3k = skewf32::SkewF32{sk:sk3,s:k};
-
-     (vec![s1k,s2k,s3k],vec![r1,r2,r3])
-}
-
-pub fn batch_2() -> (Vec<skewf32::SkewF32>,Vec<Array1<f32>>) {
-    let k:usize = 5;
-
-    let r1 = arr1(&[2.,4.,2.,4.]);
-    let r2 = arr1(&[5.,7.,82.]);
-    let r3 = arr1(&[12.,35.,83.]);
-    let r4 = arr1(&[1.,21.]);
-
-    let s1 = arr1(&[4.,16.,4.,16.]);
-    let s2 = arr1(&[12.,35.,83.]);
-    let s3 = arr1(&[70.,150.,20.]);
-    let s4 = arr1(&[21.,84.7]);
-
-    let sk1 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s1,k)),
-                   None,vec![2],None);
-    let sk2 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s2,k)),
-                  None,vec![2],None);
-    let sk3 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s3,k)),
-                 None,vec![2],None);
-    let sk4 = skew::build_skew(None,None,Some(dessi::scale_arr1_f32_to_arr1_i32(s4,k)),
-       None,vec![2],None);
-
-    let s1k = skewf32::SkewF32{sk:sk1,s:k};
-    let s2k = skewf32::SkewF32{sk:sk2,s:k};
-    let s3k = skewf32::SkewF32{sk:sk3,s:k};
-    let s4k = skewf32::SkewF32{sk:sk4,s:k};
-
-    (vec![s1k,s2k,s3k,s4k],vec![r1,r2,r3,r4])
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -312,26 +305,77 @@ mod tests {
 
     #[test]
     pub fn test__GBatchCorrector__process_batch_AND_refactor() {
-        let (b1,b2) = batch_1();
+        let (b1,b2) = btchcorrctr_tc::batch_1();
         let sb1:f32 = b1.clone().into_iter().map(|mut x| x.skew_size()).into_iter().sum::<f32>();
 
         let mut gbc = empty_GBatchCorrector(5);
         gbc.load_next_batch(b1,b2);
         gbc.process_batch(false);
         gbc.push_batch();
-        //println!("---");
 
-        let (b21,b22) = batch_2();
+        let (b21,b22) = btchcorrctr_tc::batch_2();
         gbc.load_next_batch(b21,b22);
         let (c,s,bo) = gbc.process_batch(false);
-        //println!("{:?} {:?} {}",c,s,bo);
         gbc.push_batch();
 
         let (s11,s12,s13) = gbc.refactor();//best_a();
-        //println!("{} {}",s11.unwrap(),s13);
         let s4 = (s13 - s.unwrap()).abs();
-        //println!("{:?}",s4);
         assert!(s4 < sb1,"{}",s4);
     }
+
+    #[test]
+    pub fn test__GBatchCorrector__process_batch___case5() {
+
+        let (b1,b2) = btchcorrctr_tc::batch_5();
+        let mut gbc = empty_GBatchCorrector(5);
+        gbc.load_next_batch(b1,b2);
+        gbc.process_batch_(true);
+
+        /// check for correct a-factor and m-factor keys
+        let q:HashSet<i32> = gbc.a_candidate_scores.into_keys().collect();
+        let sol_a:HashSet<i32> = HashSet::from_iter(vec![1000000,1380000,0,3000000]);
+        assert_eq!(q,sol_a);
+
+        let q2:HashSet<i32> = gbc.m_candidate_scores.into_keys().collect();
+        let sol_m:HashSet<i32> = HashSet::from_iter(vec![7,4,1,9,10,12,5,2,8]);
+        assert_eq!(q2,sol_m);
+    }
+
+    // checks that scores from processing of batches 5 and 4 separately 
+    // equal to processing at once.
+    #[test]
+    pub fn test__GBatchCorrector__process_batches_4_and_5_equal_soln() {
+        // load two batches 5 and 4 into a batch corrector
+        let (b1,b2) = btchcorrctr_tc::batch_5();
+        let mut gbc = empty_GBatchCorrector(5);
+        gbc.load_next_batch(b1,b2);
+        gbc.process_batch_(false);
+
+        let (b1,b2) = btchcorrctr_tc::batch_4();
+        gbc.load_next_batch(b1,b2);
+        gbc.process_batch_(false);
+        
+        // load batches 4 and 5 at once
+        let (mut b3,mut b4) = btchcorrctr_tc::batch_5();
+        let (mut b5,mut b6) = btchcorrctr_tc::batch_4();
+        b3.extend(b5);
+        b4.extend(b6);
+        let mut gbc2 = empty_GBatchCorrector(5);
+        gbc2.load_next_batch(b3,b4);
+        gbc2.process_batch_(false);
+
+        for (k,v) in gbc.a_candidate_scores.into_iter() {
+            if gbc2.a_candidate_scores.contains_key(&k) {
+                assert_eq!(v,gbc2.a_candidate_scores[&k]);
+            }
+        }
+
+        for (k,v) in gbc.m_candidate_scores.into_iter() {
+            if gbc2.m_candidate_scores.contains_key(&k) {
+                assert_eq!(v,gbc2.m_candidate_scores[&k]);
+            }
+        }
+    }
+
 
 }

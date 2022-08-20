@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_order_of_operator",""],["default_branch_identifier_seed",""],["default_function_identifier_seed",""],["is_branch_identifier",""],["next_element",""],["sample_OrderOfOperator_soln1",""],["sample_OrderOfOperator_soln2",""],["sample_OrderOfOperator_soln3",""]],"struct":[["OrderOfOperator","order-of-operations struct"]]};

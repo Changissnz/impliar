@@ -25,9 +25,7 @@ pub fn is_branch_identifier(s:String) -> bool {
     q == default_branch_identifier_seed()
 }
 
-/*
-order-of-operations struct
-*/
+/// order-of-operations struct
 #[derive(Clone)]
 pub struct OrderOfOperator {
     pub str_repr: String,
@@ -74,8 +72,7 @@ impl OrderOfOperator {
         }
     }
 
-    /*
-    */
+    /// 
     pub fn process_next(&mut self,i:usize) -> Option<usize> {
         let l = self.str_repr.len();
         let s = &self.str_repr.substring(i,i+1).to_owned();

@@ -1,24 +1,29 @@
+//! struct for error-correction
 use ndarray::{Array,Array1,arr1};
 use std::fmt;
 use std::collections::HashSet;
 
-#[derive(Clone)]
+/// struct used to map an i32 n-vector into another i32 n-vector
+#[derive(Debug,Clone,PartialEq)]
 pub struct Skew {
+    /// additive singleton
     pub adder: Option<i32>,
+    /// multiplicative singleton
     pub multer: Option<i32>,
+    /// additive vector
     pub addit: Option<Array1<i32>>,
+    /// multiplicative vector
     pub multit: Option<Array1<i32>>,
+    /// summation of all values used in <skew::Skew>
     pub skew_size: usize,
+    /// determines the ordering to apply elements of <skew::Skew>
+    /// - 0 := adder 
+    /// - 1 := multer
+    /// - 2 := addit
+    /// - 3 := multit
     pub ordering:Vec<usize>,
 }
 
-/*
-ordering
-0 adder,
-1 multer,
-2 addit,
-3 multit
-*/
 pub fn build_skew(a: Option<i32>,m: Option<i32>,
         ad: Option<Array1<i32>>, am: Option<Array1<i32>>,o:Vec<usize>,sg:Option<Vec<Vec<usize>>>) -> Skew {
 
@@ -75,6 +80,8 @@ impl fmt::Display for Skew {
 
 impl Skew {
 
+    /// # return
+    /// set of <skew::Skew> elements that are not None
     pub fn active(&mut self) -> HashSet<usize> {
         let mut hs:HashSet<usize> = HashSet::new();
 
@@ -96,6 +103,8 @@ impl Skew {
         hs
     }
 
+    /// # description
+    /// applies elements (adder|addit|multer|multit) by `ordering` onto v
     pub fn skew_value(&mut self, mut v : Array1<i32>) -> Array1<i32> {
         let l = self.ordering.len();
         for i in 0..l {
@@ -104,6 +113,10 @@ impl Skew {
         v
     }
 
+    /// # description
+    /// applies the i'th element in `ordering` of <skew::Skew> on vector `v`
+    /// # return
+    /// modified `v`
     pub fn apply_at(&mut self, v:Array1<i32>, i:usize) -> Array1<i32> {
         assert!(i <= 3);
 

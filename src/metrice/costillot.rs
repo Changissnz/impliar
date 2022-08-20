@@ -4,17 +4,30 @@ a table of costillos
 use crate::metrice::costillo;
 use crate::setti::matrixf;
 
-pub struct Costillo_T {
+/*
+/// consider the [`with_capacity`] method to prevent excessive
+/// [`with_capacity`]: #method.with_capacity
+*/
+
+/// Creates a new empty `String`.
+/// 
+/// sfsadfasdfa 
+/// - X
+/// - Y 
+/// 
+/// sdfsadfsadf
+/// # SADFSADFADF 
+pub struct CostilloT {
     csvec: Vec<costillo::Costillo>,
     dimn: (usize,usize)
 }
 
-pub fn build_Costillo_T(csvec:Vec<costillo::Costillo>,dimn:(usize,usize)) -> Costillo_T {
+pub fn build_CostilloT(csvec:Vec<costillo::Costillo>,dimn:(usize,usize)) -> CostilloT {
     assert_eq!(csvec.len(),dimn.0 * dimn.1);
-    Costillo_T{csvec:csvec,dimn:dimn}
+    CostilloT{csvec:csvec,dimn:dimn}
 }
 
-impl Costillo_T {
+impl CostilloT {
 
     // update functions here
     pub fn mod_i(&mut self,i:(usize,usize,usize,usize),e: Option<f32>, g: Option<f32>) {

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_vselect",""],["check_valid_vselect_vec","checks if `Vec<(usize,usize)>` for a  is valid. "],["ranges_coincide","return"],["sample_VSelect_1",""]],"struct":[["VSelect","Struct that acts on as a container of indice ranges that have  been selected for an arbitrary sequence "]]};

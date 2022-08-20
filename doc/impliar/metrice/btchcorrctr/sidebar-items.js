@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["empty_GBatchCorrector",""]],"struct":[["GBatchCorrector","sb is skewf32 batch type a, ref is the operand priori."]]};

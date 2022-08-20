@@ -1,3 +1,4 @@
+//! functions for \<arr1\> and \<arr2\> sort
 use crate::setti::matrixf;
 use ndarray::{Array,Array1,Array2,arr1,arr2};
 use ndarray::s;
@@ -6,8 +7,8 @@ use std::cmp::Ordering;
 use ndarray::Dim;
 use std::collections::HashSet;
 
-/////////////////////////////// start: methods for ordering binary error interpolator elements.
-
+/// # return 
+/// shuffled `a` by index vector `s`
 pub fn apply_shuffle_map_arr1<T>(a: Array1<T>,s:Array1<usize>) -> Array1<T>
 where
 T: Clone
@@ -23,6 +24,8 @@ T: Clone
     arr1(&sol)
 }
 
+/// # return 
+/// row-wise or column-wise shuffled `a` by index vector `s`
 pub fn apply_shuffle_map_arr2<T>(a: Array2<T>,s:Array1<usize>,is_row:bool) -> Array2<T>
 where
 T: Clone + Default
@@ -35,9 +38,8 @@ T: Clone + Default
     vec_to_arr2(sol).unwrap()
 }
 
-/*
-long approach; calculates index of each i'th element of a in a2
-*/
+/// # return
+/// sequence of indices of each i'th row of `a` in `a2` 
 pub fn arr2_shuffle_map<T>(a:Array2<T>,a2:Array2<T>) -> Array1<usize>
 where
 T:Eq + Clone
@@ -54,6 +56,8 @@ T:Eq + Clone
     sol
 }
 
+/// # return 
+/// index of `a2` in `a` or None
 pub fn vec_in_arr2<T>(a:Array2<T>,a2: Array1<T>,is_row:bool) -> Option<usize>
 where
 T:Eq + Clone
@@ -77,6 +81,8 @@ T:Eq + Clone
     None
 }
 
+/// # description
+/// f32 comparator function `1`; used for sorting
 pub fn f32_cmp1(s1: &f32, s2: &f32) -> std::cmp::Ordering {
 
     if s1 < s2 {
@@ -85,17 +91,19 @@ pub fn f32_cmp1(s1: &f32, s2: &f32) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+/// # description
+/// sorts array1<f32> `a` by comparator function `f` 
 pub fn sort_arr1(a: Array1<f32>,f: fn(&f32,&f32) -> std::cmp::Ordering) -> Array1<f32> {
     let mut v: Vec<f32> = a.into_iter().collect();
     v.sort_by(f);
     v.into_iter().collect()
 }
 
-
-/*
-basic sorting function for Array2<f32>; does not take into account tie-breakers based on output
-function f.
-*/
+/// # description
+/// sorts array2<f32> `a` row-wise by comparator function `f`
+/// 
+/// # return
+/// does not perform tie-breakers for comparator function `f`
 pub fn sort_arr2(mut a:Array2<f32>,f: fn(&Array1<f32>,&Array1<f32>) -> std::cmp::Ordering) -> Array2<f32> {//f: fn(&Array1<f32>,&Array1<f32>) -> std::cmp::Ordering) -> Array2<f32> {
 
     let mut a2: Vec<Array1<f32>> = Vec::new();
@@ -112,12 +120,13 @@ pub fn sort_arr2(mut a:Array2<f32>,f: fn(&Array1<f32>,&Array1<f32>) -> std::cmp:
     a3
 }
 
-/*
-Similar to above method, except for cases in which elements result in equal
-values, uses probability weights pr to determine ordering. A higher probability
-weight results in higher priority.
-Implementation of insertion sort.
-*/
+/// # description
+/// Similar to above method, except for cases in which elements result in equal
+/// values, uses probability weights `pr` to determine ordering. A higher probability
+/// weight results in higher priority.
+///
+/// # return 
+/// (sorted `a`,probability vector)
 pub fn sort_arr2_tie_breakers(a:Array2<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,
         f: fn(Array1<f32>) -> usize) -> (Array2<f32>,Array1<f32>) {
 
@@ -128,16 +137,16 @@ pub fn sort_arr2_tie_breakers(a:Array2<f32>,ignore_col: Option<HashSet<usize>>, 
     for i in 0..l {
         let q = a.row(i).to_owned();
         let pr_ = pr[i];
-        //sort_insert_in_vec_tie_breakers()
         let prx2 = arr1(&prx);
         let j = sort_insert_in_vec_tie_breakers(&mut sol,q, ignore_col.clone(),prx2,pr_,f);
         prx.insert(j,pr_);
     }
 
     (vec_to_arr2(sol).unwrap(), Array1::from_vec(prx))
-
 }
 
+/// # return
+/// converted vector of <arr1\<T\>> into <arr2\<T\>> or None 
 pub fn vec_to_arr2<T>(v: Vec<Array1<T>>) -> Option<Array2<T>>
 where
 T: Clone + Default
@@ -155,11 +164,12 @@ T: Clone + Default
     Some(sol)
 }
 
-
-/*
-helper method for `sort_arr2_tie_breakers`
-*/
-pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,a:Array1<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,pra:f32,f: fn(Array1<f32>) -> usize) -> usize {//f: &dyn FnOnce(Array1<f32>) -> usize) -> usize {
+/// # description
+/// helper method for `sort_arr2_tie_breakers`. If `ignore_col` is not None, `f` scores `a` according to
+/// its indices not in `ignored_col`. Determines the minimal index `i` in `v` in which `f(a) <= f(v[i])`.
+///             if f(a) == f(v\[i\]) and pra < pr\[i\], insert.
+pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,a:Array1<f32>,ignore_col: Option<HashSet<usize>>, pr:Array1<f32>,
+    pra:f32,f: fn(Array1<f32>) -> usize) -> usize {
 
     assert_eq!((*v).len(),pr.len());
     if pr.len() > 0 {
@@ -167,11 +177,10 @@ pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,a:Array1<f32>,ig
     }
     let l = (*v).len();
     let mut j:usize = 0;
-    let q:usize = if ignore_col.is_none() {f(a.clone())} else {f(a.clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
+    let q:usize = if ignore_col.is_none() {f(a.clone())} else 
+            {f(a.clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
     while j < l {
         let q2:usize = if ignore_col.is_none() {f((*v)[j].clone())} else {f((*v)[j].clone().into_iter().enumerate().filter(|(i,x)| !ignore_col.clone().unwrap().contains(&i)).map(|(i,x)| x).collect() )};
-
-        //let mut q2 = f((*v)[j].clone());
         if q < q2 {
             (*v).insert(j,a);
             return j;
@@ -190,36 +199,43 @@ pub fn sort_insert_in_vec_tie_breakers(v: &mut Vec<Array1<f32>>,a:Array1<f32>,ig
     j
 }
 
-/*
-*/
+/// # return
+/// number of non-zero elements of `v`
 pub fn active_size_of_vec(v: Array1<f32>) -> usize {
     let v2:Array1<f32> = v.into_iter().filter(|x| *x != 0.0).collect();
     v2.len()
 }
 
+/// # return
+/// non-zero indices of `v`
 pub fn active_indices(v:Array1<f32>) -> Array1<usize> {
     let dummy:Array1<f32> = v.clone();
     active_size_intersection(v,dummy)
 }
 
-/*
-difference of active size of v1 and v2
-*/
+/// # return 
+/// difference of active size of v1 and v2
 pub fn active_size_distance(v:Array1<f32>,v2:Array1<f32>) -> usize {
     (active_size_of_vec(v) as i32 - active_size_of_vec(v2) as i32).abs() as usize
 }
 
-/*
-*/
+/// # return
+/// non-zero indices shared by `v` and `v2`
 pub fn active_size_intersection(v: Array1<f32>, v2:Array1<f32>) -> Array1<usize> {
     let v3 = v * v2;
     v3.into_iter().enumerate().filter(|(i,x)| *x != 0.0).map(|(i,x)| i).collect()
 }
 
+/// # return
+/// both `x1` and `x2` positive? 
 pub fn is_positive_intersection(x1:f32,x2:f32) -> bool {
     if x1 > 0.0 && x2 > 0.0 {true} else {false}
 }
 
+/// # description
+/// generic index-wise intersection function between `v1` and `v2`. 
+/// # return 
+/// indices of `v1`
 pub fn arr1_intersection_indices(v1:Array1<f32>,v2:Array1<f32>,f: fn(f32,f32) ->bool) -> Array1<usize> {
     let l = if v1.len() < v2.len() {v1.len()} else {v2.len()};
     let mut sol: Vec<usize> = Vec::new();
@@ -232,41 +248,37 @@ pub fn arr1_intersection_indices(v1:Array1<f32>,v2:Array1<f32>,f: fn(f32,f32) ->
     Array1::from_vec(sol)
 }
 
-/*
-non-commutative function f by reference v1 on arg. v2.
-*/
+/// # description 
+/// non-commutative function f by reference v1 on arg. v2.
 pub fn intersection_difference_measure(v1:Array1<f32>,v2:Array1<f32>) -> i32 {
     let indices = arr1_intersection_indices(v1.clone(),v2.clone(),is_positive_intersection);
     let l = indices.len() as i32;
     (v2 - v1).into_iter().sum::<f32>() as i32 - l
 }
 
-/*
-*/
+/// # description
+/// indices of `v` and `v2` that are equal 
 pub fn arr1_intersection(v:Array1<f32>,v2:Array1<f32>) -> Vec<usize> {
     let v3 = v - v2;
     let v4: Vec<(usize,f32)> = v3.into_iter().enumerate().filter(|(i,x)| *x != 0.0).collect();
     v4.into_iter().map(|(x,x2)| x).collect()
 }
 
-
-/*
-ordering function by active size
-*/
+/// # description 
+/// <arr1\<f32\>> comparator function by active size
 pub fn arr1_cmp1(v:&Array1<f32>,v2:&Array1<f32>) -> std::cmp::Ordering {
     if active_size_of_vec((*v).clone()) <= active_size_of_vec((*v2).clone()) {
         return Ordering::Less;
     }
-
     Ordering::Greater
 }
 
+/// # return
+/// absolute sum of values of <arr1\<f32\>> 
 pub fn abs_sum_arr1_f32(v:Array1<f32>) -> f32 {
     let v2:Array1<f32> = v.into_iter().map(|x| x.abs()).collect();
     v2.sum()
 }
-
-////////////////////////////////////////////////////
 
 pub fn sample_arr2_sort1() -> Array2<f32> {
     arr2(&[[0.,1.,1.,1.,1.],
@@ -293,9 +305,6 @@ pub fn sample_pr_sort11() -> Array1<f32> {
 pub fn sample_pr_sort12() -> Array1<f32> {
     arr1(&[23.4,-10.1,14.2,20.1,23.3,100.7])
 }
-
-
-/////////////////////////////// end: methods for ordering binary error interpolator elements.
 
 #[cfg(test)]
 mod tests {

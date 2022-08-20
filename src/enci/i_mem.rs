@@ -1,24 +1,23 @@
-/*
-memory structure for interpolator
-*/
-
+//! memory structure for contradiction of expected v. got 
 use crate::setti::setf;
 use ndarray::{Array,Array1,Array2,arr1,arr2,s};
 use std::collections::{HashMap,HashSet};
 use std::fmt;
 
+/// Contradiction struct 
 #[derive(Clone)]
 pub struct ContraStruct {
-    // timestamp, element
+    /// typically \<timestamp, element\>
     pub index_identifier:Vec<usize>,
+    /// expected value
     pub expected:Option<f32>,
+    /// got value 
     pub got:Option<f32>
 }
 
 pub fn build_contrastruct(index_identifier:Vec<usize>,expected:Option<f32>,got:Option<f32>) -> ContraStruct {
     ContraStruct{index_identifier:index_identifier,expected:expected,got:got}
 }
-
 
 impl fmt::Display for ContraStruct {
 
@@ -95,7 +94,6 @@ impl IMem {
         }
         sol
     }
-
 
     pub fn add_contradicted_sequence(&mut self,ieg: Array2<Option<f32>>) {
         if ieg.dim().0 == 0 {return;}

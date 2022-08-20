@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_FrqncCl",""],["frequency_intervals",""]],"struct":[["FrqncCl","frequency collector of values v over a range r by partition p; output counts in pc"]]};

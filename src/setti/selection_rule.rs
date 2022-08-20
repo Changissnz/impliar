@@ -1,7 +1,5 @@
-/*
-struct that is a restriction or requirement
-that implements
-*/
+//! struct that is a restriction or requirement
+//! that implements
 use crate::setti::matrixf;
 use crate::setti::setf;
 use crate::setti::strng_srt;
@@ -9,12 +7,17 @@ use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 use std::collections::HashSet;
 use std::fmt;
 
-/*
-*/
+/// # description
+/// generates a n x k matrix with all elements `idn` 
 pub fn default_rmatrix(n: usize,k: usize, idn: i32) -> Array2<i32> {
     Array2::ones((n, k)) * idn
 }
 
+/// # description
+/// builds a 2-dimensional matrix M, of dimension rs x k. 
+/// the map `res_req` has 
+/// key == row indices, value == sequence S of column indices
+/// and every pair (key, s in value) will have value `idn` in M. 
 pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
     assert!(rs > 0 && k > 0);
     assert!(rs >= k);
@@ -39,22 +42,27 @@ pub fn build_rmatrix(rs:usize,idn:i32,res_req: Vec<(usize,Vec<usize>)>,k:usize) 
     sol
 }
 
-////////////////////////////////////// methods for Restriction
+/// structure containing 2-dimensional matrix denoting (row,column) elements that are restricted;
+/// restriction == 1
 #[derive(Clone)]
 pub struct Restriction {
-    // rows are reference elements, columns are indices
+    /// rows are reference elements, columns are indices
     pub data: ndarray::Array2<i32>
 }
 
 impl Restriction {
 
+    /// # description
+    /// restricts all elements in row i
     pub fn restrict_row(&mut self, i: usize) {
         let k = self.data.raw_dim()[1];
         let mut res:Array1<i32> = Array1::ones(k);
         matrixf::replace_vec_in_arr2(&mut self.data,&mut res,i,true)
     }
 
-    // TODO: not tested.
+    /// # description
+    /// restricts all elements in the column range (`start`,`end`) of row i
+    /// TODO: not tested.
     pub fn restrict_subrow(&mut self, i:usize, start:usize,end:usize) {
         // copy
         let mut k:usize = self.data.raw_dim()[1];
@@ -73,30 +81,36 @@ impl Restriction {
     }
 }
 
-/*
-restricted := Vec<index in 0..k,indices not allowed>
-*/
+/// builds the Restriction structure with 2-d matrix of dimension rs x k. 
+/// restricted := Vec<index in 0..k,indices not allowed>
 pub fn build_restriction(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:usize) -> Restriction {
     let rm = build_restriction_matrix(rs,restricted,k);
     Restriction{data:rm}
 }
 
+/// builds the 2-d matrix of dimension rs x k used by a Restriction structure. 
+/// restricted := Vec<index in 0..k,indices not allowed>
 pub fn build_restriction_matrix(rs:usize,restricted: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
     build_rmatrix(rs,1,restricted,k)
 }
 
 ////////////////////////////////////// methods for Requirement
+/// structure containing 2-dimensional matrix denoting (row,column) elements that are required;
+/// requirement == -1
 #[derive(Clone)]
 pub struct Requirement {
     pub data: ndarray::Array2<i32>,
-    //pub all_req:bool,
 }
 
+/// builds the Requirement structure with 2-d matrix of dimension rs x k. 
+/// required := Vec<index in 0..k,indices not allowed>
 pub fn build_requirement(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize) -> Requirement {
     let x = build_requirement_matrix(rs,required,k);
-    Requirement{data:x}//,all_req:all_req}
+    Requirement{data:x}
 }
 
+/// 2-dimensional matrix denoting (row,column) elements that are required;
+/// requirement == -1
 pub fn build_requirement_matrix(rs:usize,required: Vec<(usize,Vec<usize>)>,k:usize) ->Array2<i32> {
     build_rmatrix(rs,-1,required,k)
 }
@@ -132,6 +146,9 @@ impl Requirement {
 
 ////////////////////////////////////// methods for RuleCheck
 
+/// a structure comprised of a Restriction and Requirement structure each
+/// containing an n x k matrix; 
+/// used for calculating k-sequences drawn from a vector of n choices. 
 #[derive(Clone)]
 pub struct SelectionRule {
     pub res: Restriction,
@@ -139,18 +156,9 @@ pub struct SelectionRule {
     pub choice: Vec<usize>
 }
 
-pub fn empty_selection_rule() {
-
-}
-
-
-/*
-calculates the next choice given choice (of len k) by greedy forward selection (first available).
-
-Forward selection selects the first available index i for the subvector "[i:i + distance]".
-
-both `choice` and `output` are ordered vectors.
-*/
+/// calculates the next choice given choice (of len k) by greedy forward selection (first available).
+/// Forward selection selects the first available index i for the subvector "[i:i + distance]".
+/// both `choice` and `output` are ordered. 
 pub fn next_available_forward(choice:Vec<usize>,n:usize,distance:usize) -> Option<Vec<usize>> {
     let mut l:usize = choice.len();
     let mut j:i32 = -1;
@@ -215,16 +223,14 @@ impl fmt::Display for SelectionRule {
     }
 }
 
-/*
-SelectionRule will be able to update for every "batch"
-of equally-sized sequences.
-
-Selection is a process that takes place along the y column,
-and be one of elimination|non-elimination.
-Elimination is when the existence of an element at index i in a vector
-results in the element not able to be selected again at a later time
-t >= i + 1.
-*/
+/// SelectionRule will be able to update for every "batch"
+/// of equally-sized sequences.
+/// 
+/// Selection is a process that takes place along the y column,
+/// and be one of elimination|non-elimination.
+/// Elimination is when the existence of an element at index i in a vector
+/// results in the element not able to be selected again at a later time
+/// t >= i + 1.
 impl SelectionRule{
 
     pub fn clone(&mut self) -> SelectionRule {
@@ -259,12 +265,11 @@ impl SelectionRule{
         rqi
     }
 
-    /*
-    Selects the choice `ch` and marks it off the restricted matrix if `eliminate` is
-    set to true.
-
-    WARNING: does not check if choice valid.
-    */
+    /// Selects the choice `ch` and marks it off the restricted matrix if `eliminate` is
+    /// set to true.
+    /// 
+    /// # Warning
+    /// does not check if choice valid.
     pub fn select_choice_at_col_index(&mut self, ch: usize, ci: usize, eliminate:bool) -> usize {
         self.res.data[Dim([ch,ci])] = 1;
         if !eliminate {
@@ -277,9 +282,8 @@ impl SelectionRule{
         ch
     }
 
-    /*
-    Calculates available choice at column.
-    */
+    
+    /// Calculates set of available choices at column.
     pub fn choices_at_col_index(&mut self,i:usize) -> HashSet<usize> {
         if i >= self.res.data.raw_dim()[1] {
             return HashSet::new();
@@ -302,6 +306,14 @@ impl SelectionRule{
     }
 }
 
+/// # description
+/// Both Restriction and Requirement are of equal dimension. 
+/// Checks if Restriction and Requirement structure are valid
+/// alongside each other by the rule:
+///
+/// # return
+/// if there exists a (row index, column index) that is both restricted
+/// and required, output false, otherwise output true. 
 pub fn check_rule_contents(restricted: &Restriction,
         required: &Requirement) -> bool {
     let mut q = (*restricted).data.clone() * (*required).data.clone();
@@ -320,17 +332,18 @@ pub fn std_collision_score(y1:&(usize,&i32)) -> bool {
     *((*y1).1) == -1
 }
 
+/// # description
+/// calculates the number of elements in the matrix `res_req` that collide
 pub fn collision_score(res_req: Array2<i32>,f: fn(&(usize,&i32))->bool) ->i32 {
     let x:Array1<_> = res_req.iter().enumerate().filter(f).collect();
     let x2:Array1<i32> = x.iter().map(|y| *(*y).1).collect();
     x2.len() as i32
 }
 
-/*
-fixes collisions between restricted and required by
-flipping a colliding element from either `restricted`
-or `required` based on `preference`
-*/
+/// # description
+/// fixes collisions between restricted and required by
+/// flipping a colliding element from either `restricted`
+/// or `required` based on `preference`
 pub fn fix_rule_contents_1(restricted: &mut Restriction,
         required: &mut Requirement,preference:Array1<i32>) -> bool {
     let res_req = (*restricted).data.clone() * (*required).data.clone();
@@ -354,9 +367,6 @@ pub fn fix_rule_contents_1(restricted: &mut Restriction,
 
     true
 }
-
-
-////////////////////////////////////////////
 
 pub fn test_rule_contents() -> (Restriction,Requirement){
 

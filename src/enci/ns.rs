@@ -1,6 +1,4 @@
-/*
-numerical seeds for types i32,f32
-*/
+//! numerical seeds for types i32,f32 using `std_rng`
 use crate::enci::std_rng;
 
 pub trait RN<T>

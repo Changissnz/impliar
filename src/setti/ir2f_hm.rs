@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 use crate::setti::setf;
-//// TODO: test
 
 /*
 index-range-to-function hashmap

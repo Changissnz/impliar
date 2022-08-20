@@ -8,7 +8,7 @@ use ndarray::{Array1,Array2, array,arr1,arr2,s};
 use std::default::Default;
 use std::collections::HashMap;
 
-
+/// replaces column or row i in 2-d array a
 pub fn replace_vec_in_arr2<T>(a:&mut Array2<T>,q:&mut Array1<T>,i:usize,is_row:bool)
 where
 T:Clone

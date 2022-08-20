@@ -1,9 +1,4 @@
-/*
-file of gorilla test functions.
--------------------------------
-
-gcd test first
-*/
+////! basic gorilla test functions.
 use crate::setti::vs;
 use crate::setti::vs::VSelect;
 use crate::setti::set_gen;
@@ -17,13 +12,12 @@ use std::str::FromStr;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-/*
-implementation of euclid's algorithm on v by u
-
-produces equal-sized array1's
-[0] multiple
-[1] additive
-*/
+/// # description 
+/// implementation of euclid's algorithm on v by u.
+/// # return
+/// equal-sized vectors
+/// - \[0\] multiple
+/// - \[1\] additive
 pub fn euclids_sequence(u:i32,v:i32) -> (Array1<i32>,Array1<i32>) {
 
     // get initial c and
@@ -49,11 +43,6 @@ pub fn euclids_sequence(u:i32,v:i32) -> (Array1<i32>,Array1<i32>) {
 
     (sol1.into_iter().collect(),sol2.into_iter().collect())
 }
-
-/*
-have to collect all columns of each function into arr2,
-which
-*/
 
 /*
 version used for struct<GMem>

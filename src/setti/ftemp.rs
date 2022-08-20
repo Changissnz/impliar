@@ -21,6 +21,3 @@ pub fn basic_mult() -> fn(f32,f32) -> f32 {
 
     f
 }
-
-//pub fn modf32_add(m:f32) -> fn(f32,f32) -> f32 {
-//}

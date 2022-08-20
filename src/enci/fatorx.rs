@@ -1,6 +1,4 @@
-/*
-file contains functions for factors.
-*/
+//! add/mult functions for factorization
 use crate::setti::strng_srt;
 use crate::setti::setf;
 use crate::setti::setf::Count;
@@ -11,9 +9,8 @@ use std::hash::Hash;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-
-///////////////////////////////// start: factors
-
+/// # return
+/// all factors of unsigned integer
 pub fn factors_of_usize(v:usize) -> HashSet<usize> {
     let mut cap = v / 2;
     let mut sol: HashSet<usize> = HashSet::new();
@@ -30,14 +27,9 @@ pub fn factors_of_usize(v:usize) -> HashSet<usize> {
     sol
 }
 
-
+/// # return
+/// all factors of i32
 pub fn factors_of_i32(v:i32) -> HashSet<i32> {
-    /*
-    let v = v.abs();
-    let sol_:HashSet<usize> = factors_of_usize(v as usize);//.into_iter().map(|x| x as i32).collect();
-    neg_double_vec(sol_.into_iter().collect()).into_iter().collect()
-    */
-    /////
     if v >= 0 {
         let sol:HashSet<i32> = factors_of_usize(v as usize).into_iter().map(|x| x as i32).collect();
         return sol;
@@ -55,6 +47,8 @@ pub fn factors_of_i32(v:i32) -> HashSet<i32> {
     sol
 }
 
+/// # return
+/// greatest common denominator between two i32's
 pub fn gcd_of_i32_pair(i1:i32,i2:i32) -> i32 {
     let f1 = factors_of_i32(i1);
     let  f2 = factors_of_i32(i2);
@@ -62,12 +56,10 @@ pub fn gcd_of_i32_pair(i1:i32,i2:i32) -> i32 {
     *f3.iter().max().unwrap()
 }
 
-/*
-
-finds closest multiple c for u * c = v.
-
-direction in {any|over|under}
-*/
+/// # description
+/// finds closest multiple `c` for `u` * c = `v`.
+/// # return
+/// multiple `c` based on `direction` in {any|over|under}
 pub fn closest_multiple_i32_pair(u: i32, v: i32, direction:String) -> i32 {
     let c = v / u;
 
@@ -92,9 +84,8 @@ pub fn closest_multiple_i32_pair(u: i32, v: i32, direction:String) -> i32 {
 
 }
 
-
-/*
-*/
+/// # return
+/// hashset of factors for each element in `v1`
 pub fn factors_for_vec(v1:Vec<i32>) -> Vec<HashSet<i32>> {
     let mut sol: Vec<HashSet<i32>> = Vec::new();
     for v in v1.iter() {
@@ -103,6 +94,8 @@ pub fn factors_for_vec(v1:Vec<i32>) -> Vec<HashSet<i32>> {
     sol
 }
 
+/// # return
+/// does f | v1 ? 
 pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
     for v_ in v1.iter() {
         if *v_ % f != 0 {
@@ -112,6 +105,9 @@ pub fn is_factor_for_vec(v1:Vec<i32>,f:i32) -> bool {
     true
 }
 
+/// # description
+/// calculates the <factorx::cheapest_multiple_vec> `M` for `v1` and
+/// `v2`. Then determines the element `m` in M closest to the mean of M.
 pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     let cmv = cheapest_multiple_vec(v1.clone(),v2.clone());
     if cmv.len() == 0 {
@@ -134,10 +130,8 @@ pub fn mean_multiple(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     nearest
 }
 
-///////////////////////////////// end: factors
-
-//////////////////////////////// start: gcf
-
+/// # return
+/// the greatest common factor of all elements of `v1`
 pub fn gcf_for_vec(v1:Vec<i32>) -> i32 {
     assert!(v1.len() > 0);
 
@@ -168,19 +162,17 @@ pub fn gcf_for_vec(v1:Vec<i32>) -> i32 {
     1
 }
 
-/*
-*/
+/// # description
+/// calculates the greatest common factor `f` for `v2`, then calculates
+/// the additive vector `v` for `v1` such that `v1 + v = f`.
 pub fn gcf_add4mult_vec(v1:Array1<i32>,v2:Array1<i32>) -> Array1<i32> {
     let mut v2_:Vec<i32> = v2.into_iter().collect();
     let m = gcf_for_vec(v2_);
     -1 * (v1 - m)
 }
 
-//////////////////////////////// end: gcf
-
-
-////////////////////////////////////// start: cheapest
-
+/// # return
+/// vector `m` such that `m` * `v1` is the closest vector to `v2`
 pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
     let v1x:Array1<f32> = v1.into_iter().map(|x| x as f32).collect();
     let v2x:Array1<f32> = v2.into_iter().map(|x| x as f32).collect();
@@ -189,17 +181,18 @@ pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
     v3x
 }
 
-
+/// # return 
+/// multiple `m` such that `m` * `v1` is 
 pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
     let f1:f32 = v1.sum() as f32;
     let f2:f32 = v2.sum() as f32;
     (f2 / f1).round() as i32
 }
 
-
-/*
-is also the mean
-*/
+/// # description
+/// calculates the cheapest add `v` for `v1 + v = v2`
+/// # return 
+/// the i32 that is the mean pairwise difference of elements `v2 - v1`
 pub fn cheapest_add(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     if v2.len() == 0 {
         return 0;
@@ -208,16 +201,14 @@ pub fn cheapest_add(v1:Array1<i32>,v2:Array1<i32>) ->i32 {
     (((v2.clone() - v1.clone()).sum() as f32) / (v2.len() as f32).round()) as i32
 }
 
-
+/// # description
+/// cheapest additive vector `v` such that `v1 + v = v2` 
 pub fn cheapest_add_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
     v2 - v1
 }
 
-
-////////////////////////////////////// end: cheapest
-
-///////////////////////////// start: closest to
-
+/// # return
+/// (median element, possible median element 2)
 pub fn median_of_iterable<T>(v:Vec<T>) -> (T,Option<T>)
 where
 T: Clone
@@ -229,9 +220,8 @@ T: Clone
     }
 }
 
-/*
-pops them out
-*/
+/// # return
+/// (index of median element, possible index of median element 2)
 pub fn median_of_iterable_<T>(v:Vec<T>) -> (usize,Option<usize>)
 where
 T: Clone
@@ -244,6 +234,8 @@ T: Clone
     }
 }
 
+/// # return
+/// sorted elements of `v` to its median
 pub fn sort_by_distance_to_median<T>(v:Vec<T>) -> Vec<T>
 where
 T: Clone
@@ -269,6 +261,9 @@ T: Clone
     sol
 }
 
+/// # description
+/// calculates the negative double vector of `v` by the following:
+///         for `v'` in `v`: (`v'`,`v'` * -1)
 pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
     let mut v2: Vec<i32> = Vec::new();
 
@@ -282,8 +277,8 @@ pub fn neg_double_vec(v:Vec<usize>) -> Vec<i32> {
     v2
 }
 
-/*
-*/
+/// # description
+/// used by the function <fatorx::ranked_mult_additive_for_vec>
 pub fn ranked_mult_additives_for_i32(v:i32,v2:i32) -> Vec<i32> {
     let fv: Vec<usize> = factors_of_usize(v as usize).into_iter().collect();
     let fv_ = neg_double_vec(fv);
@@ -292,12 +287,11 @@ pub fn ranked_mult_additives_for_i32(v:i32,v2:i32) -> Vec<i32> {
     fv3
 }
 
-/*
-Outputs a vector v2 in which for each i'th element e in v2,
-e is the vector of additives for the factors M of the i'th element of v2,
-and its ordering of the additives correspond to that of the distance to
-the median of M.
-*/
+/// # description
+/// outputs a vector `v3` in which for each i'th element `e` in `v2`,
+/// `e` is the vector of additives for the factors `M` of the i'th element of `v2`,
+/// and its ordering of the additives correspond to that of the distance to
+/// the median of M.
 pub fn ranked_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> Vec<Vec<i32>> {
     let mut sol: Vec<Vec<i32>> = Vec::new();
     for (i,v_) in v.into_iter().enumerate() {
@@ -306,12 +300,11 @@ pub fn ranked_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> Vec<Vec<i32
     sol
 }
 
-/*
-locates the i32 add for v to satisfy l members of
-v as factors of v2's corresponding members, l the
-maximum possible number of members can be satisfied
-by adding an i32.
-*/
+/// # description
+/// locates the i32 add for v to satisfy l members of
+/// v as factors of v2's corresponding members, l the
+/// maximum possible number of members can be satisfied
+/// by adding an i32.
 pub fn max_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32 {
     let b: Vec<Vec<i32>> = ranked_mult_additive_for_vec(v,v2);
     let mut vc: setf::VectorCounter = setf::build_VectorCounter();
@@ -324,6 +317,8 @@ pub fn max_satisfying_mult_additive_for_vec(v:Array1<i32>,v2:Array1<i32>) -> i32
     i32::from_str(d2[d2.len() - 1].0.as_str()).unwrap()
 }
 
+/// # description
+/// closest i32 to the mean of `v`
 pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
     let m:i32 = v.clone().into_iter().map(|x| x as f32).collect::<Array1<f32>>().mean().unwrap().round() as i32;
     let diff:Array1<usize> = v.clone().into_iter().map(|x| (x - m).abs() as usize).collect();
@@ -332,21 +327,20 @@ pub fn closest_i32_to_mean(v:Array1<i32>) -> i32 {
     v[index]
 }
 
+/// # description
+/// closest i32 to the 1st median of `v`
 pub fn closest_i32_to_median(v:Array1<i32>) -> i32 {
     let mut v_:Vec<i32> = v.clone().into_iter().collect();
     v_.sort();
     let (s1,_): (i32,Option<i32>) = median_of_iterable(v_);
     let diff:Array1<usize> = v.clone().into_iter().map(|x| (x - s1).abs() as usize).collect();
     let mn = diff.iter().fold(0, |min, &val| if val < min{ val } else{ min });
-
     let index = diff.iter().position(|&r| r == mn).unwrap();
     v[index]
 }
 
-///////////////////////////// end: closest to
-
-/*
-*/
+/// # return
+/// outputs the set of elements present in all members of `v`
 pub fn intersection_set_for_hashsetvec<T>(v:Vec<HashSet<T>>) ->HashSet<T>
 where
 T:  Hash + Clone + Eq {
@@ -365,7 +359,9 @@ T:  Hash + Clone + Eq {
     sol
 }
 
-
+/// # description
+/// performs safe-division of `v1` by `v2`. For any element `v1[i] / v2[i] = 0`,
+/// use `n` instead.
 pub fn arr1_safe_divide(v1:Array1<f32>,v2:Array1<f32>,n:f32) -> Array1<f32> {
     assert_eq!(v1.len(),v2.len());
     let mut v:Vec<f32> = Vec::new();

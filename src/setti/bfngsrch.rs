@@ -1,9 +1,10 @@
 use ndarray::{Array1,Array2,arr1};
 use crate::setti::selection_rule;
 
-/*
-each selection rule is accompanied by a binary vector, 1 is greedy search.
-*/
+/// structure used by brute-force greedy searcher; 
+/// uses a selection rule
+/// each selection rule is accompanied by a binary vector, 1 is greedy search.
+/// 
 #[derive(Clone)]
 pub struct BFGSelectionRule {
     pub sr: selection_rule::SelectionRule,
@@ -24,41 +25,48 @@ pub fn default_BFGSelectionRule(r:usize,c:usize) -> BFGSelectionRule {
     BFGSelectionRule{sr:sr,i:0,next_path:Vec::new(),score:None}
 }
 
-impl BFGSelectionRule {
-
-}
-
-/*
-brute-force greedy searcher;
-designed as a generic structure used to select options given a SelectionRule.
-Generization is implemented by the function f,
-exterior to struct.
-*/
+/// brute-force greedy searcher;
+/// designed as a generic structure used to select options given a SelectionRule.
+/// Generization is implemented by the function f,
+/// external to struct. Function f decides the choice c at column i.
+/// The choice c is the input arg to <BFGSearcher.next_srs>. 
+/// If c is None, searcher takes brute-force approach and considers all available
+/// choices at column i. Otherwise, searcher takes choice c at column i  
+///
+///
+/// description of class variables
+/// ------------------------------
+/// cache: contains all BFGSelectionRules in the process of decision.
+/// tmp: contains BFGSelectionRules recently iterated by one step (column) from a source
+///         BFGSelectionRule
+/// all_cache: contains all decided (completed) BFGSelectionRules.
+/// ..............................................................
+/// variable usage by struct: 
+/// ...
+///
+/// p = cache\[0\]
+/// tmp_cache <- search(p)
+/// tmp_cache -> (cache if incomplete|all_cache if complete)   
+/// 
 pub struct BFGSearcher {
 
-    /*
-    p = cache[0]
-    tmp_cache <- search(p)
-    tmp_cache -> (cache|all_cache)
-    */
     pub cache:Vec<BFGSelectionRule>,
         // for each rule in tmp_cache
     pub tmp_cache:Vec<BFGSelectionRule>,
     pub all_cache:Vec<BFGSelectionRule>,
 
     // timestamp 0..|selection_rule.columns
-    // UNUSED
-    pub ts:usize
+    // UNUSED, delete. 
+    // pub ts:usize
 }
 
-/*
-*/
 pub fn build_BFGSearcher(x: BFGSelectionRule) -> BFGSearcher {
-    BFGSearcher{cache:vec![x],tmp_cache:Vec::new(),all_cache:Vec::new(),ts:0}
+    BFGSearcher{cache:vec![x],tmp_cache:Vec::new(),all_cache:Vec::new()}//,ts:0}
 }
 
 impl BFGSearcher {
 
+    /// 
     pub fn next_srs(&mut self, sri :Option<usize>) {
         // case: brute
         if sri.is_none() {
@@ -82,9 +90,7 @@ impl BFGSearcher {
         self.tmp_cache = Vec::new();
     }
 
-    /*
-    processes one element in cache
-    */
+    /// processes one element in cache
     pub fn process(&mut self) -> bool {
 
         if self.cache.len() == 0 {
@@ -108,9 +114,8 @@ impl BFGSearcher {
         true
     }
 
-    /*
-    loads next batch into memory, and prompt for outside class to yield decision
-    */
+    
+    /// loads next batch into memory, and prompt for outside class to yield decision
     pub fn next_srs_(&mut self, s: &mut BFGSelectionRule) ->
         Vec<BFGSelectionRule> {
 

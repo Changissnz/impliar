@@ -1,25 +1,31 @@
-/*
-f32 version of Skew; uses a scale s for 10^s
-scaling of values from Skew
-*/
+//! f32 version of Skew
+
 use ndarray::{arr1,Array1};
 use crate::enci::skew;
 use std::fmt;
 
-#[derive(Clone)]
+/// struct that uses a Skew and a decimal to perform error-correction
+/// on f32 values.
+#[derive(Debug,Clone,PartialEq)]
 pub struct SkewF32 {
+    /// 
     pub sk: skew::Skew,
+    /// 
     pub s: usize
 }
 
 impl SkewF32 {
 
+    /// # description
+    /// skews value `v` by `sk` 
     pub fn skew_value(&mut self, v : Array1<f32>) -> Array1<f32> {
         let v_:Array1<i32> = v.into_iter().map(|x| (x * f32::powf(10.,self.s as f32)) as i32).collect();
         let ans:Array1<i32> = self.sk.skew_value(v_);
         ans.into_iter().map(|x| (x as f32) / f32::powf(10.,self.s as f32)).collect()
     }
 
+    /// # description
+    /// size of the <skewf32::SkewF32> instance
     pub fn skew_size(&mut self) -> f32 {
         let d = i32::pow(10,self.s as u32) as f32;
         self.sk.skew_size as f32 / d

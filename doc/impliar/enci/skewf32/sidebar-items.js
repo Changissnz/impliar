@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SkewF32","struct that uses a Skew and a decimal to perform error-correction on f32 values."]]};

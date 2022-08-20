@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_GorillaIns","caution"],["f9","description"]],"struct":[["GorillaIns","Gorilla instructor GorillaIns is a “normal”-detection algorithm that determines if attribute “sequence” (arr1<f32>) is normal. "]]};

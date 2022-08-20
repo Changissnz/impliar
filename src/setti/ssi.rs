@@ -44,12 +44,6 @@ impl SSI {
         while !self.next_(i) {
             i += 1;
             if i == self.v.len() {break;}
-            /*
-            println!("V");
-            if self.is_finished() {
-                break;
-            }
-            */
         }
         self.init = false;
         self.v.clone()

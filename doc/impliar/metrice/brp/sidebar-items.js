@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_range_partition_gf2",""],["test_sample_rpgf2_1",""]],"struct":[["RangePartitionGF2","A struct that calculates an fs::FSelect instance  that fits `f32_vec` with its corresponding `binary_labels` (0|1). "]]};

@@ -1,7 +1,5 @@
-/*
-std functions using rand crate
-*/
 
+//! pseudo-random number generating functions using rand crate
 use rand::prelude::*;
 
 pub fn random_f32_in_range(r:(f32,f32)) -> f32 {

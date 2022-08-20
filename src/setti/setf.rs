@@ -1,8 +1,6 @@
+//! counter class for generic objects. Uses string-conversion methods. 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-/*
-set functions
-*/
 pub use std::collections::HashSet;
 pub use std::collections::HashMap;
 use std::string::ToString;
@@ -12,6 +10,7 @@ use std::fmt;
 use std::ops::{Add, Sub};
 use std::mem;
 
+/// Add capability for <setf::VectorCounter>
 impl Add for VectorCounter {
     type Output = Self;
 
@@ -42,7 +41,7 @@ impl Add for VectorCounter {
     }
 }
 
-
+/// Sub capability for <setf::VectorCounter>
 impl Sub for VectorCounter {
     type Output = Self;
 
@@ -86,6 +85,7 @@ impl Sub for VectorCounter {
     }
 }
 
+/// struct that counts objects, stores counts as map: string -> i32
 #[derive(Clone)]
 pub struct VectorCounter {
     pub data: HashMap<String,i32>,
@@ -148,6 +148,8 @@ impl VectorCounter {
 
 }
 
+/// # return
+/// converted generic vector to string using _ as separator
 pub fn vec_to_str<T>(s: Vec<T>) -> String
     where
     T : ToString {

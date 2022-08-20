@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_CostilloT",""]],"struct":[["CostilloT","Creates a new empty `String`."]]};

@@ -1,3 +1,4 @@
+//! contains sorting of string-like sequences 
 #![allow(dead_code)]
 #![allow(unused_variables)]
 use crate::setti::setf;
@@ -8,8 +9,8 @@ use std::collections::HashSet;
 use std::str::FromStr;
 use std::collections::HashMap;
 
-////////////////////////////////////////////// methods on standard sort of string
-
+/// # description
+/// string comparator function using <strng_srt::lessr_str>; used for sorting.
 pub fn str_cmp3(s1: &String, s2: &String) -> std::cmp::Ordering {
 
     if lessr_str(s1,s2) == s1 {
@@ -18,6 +19,8 @@ pub fn str_cmp3(s1: &String, s2: &String) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+/// # description
+/// uses <string_srt::str_lessr> to determine lesser string of `s1` and `s2`
 pub fn lessr_str<'life>(s1: &'life String, s2: &'life String) -> &'life String {
 	let b = str_lessr(s1,s2);
     if b {
@@ -25,8 +28,9 @@ pub fn lessr_str<'life>(s1: &'life String, s2: &'life String) -> &'life String {
     }
     s2
 }
-//*/
 
+/// # return 
+/// `s1` is less than `s2` by alphabetical order? 
 pub fn str_lessr<'life>(s1: &'life String, s2: &'life String) -> bool {
     assert!((s1.len() > 0) & (s2.len() > 0), "strings cannot be empty");
 
@@ -47,22 +51,27 @@ pub fn str_lessr<'life>(s1: &'life String, s2: &'life String) -> bool {
     true
 }
 
+/// # description
+/// sorts sequence of strings by <strng_srt::str_cmp3> 
 pub fn sort_string_vector(v1: &mut Vec<String>) {
     (*v1).sort_by(str_cmp3);
 }
 
-
-////////////////////////////////////////////// methods on inc1string
+/// # description
+/// sorts sequence of strings by <strng_srt::str_cmp2> 
 pub fn sort_inc1string_vector(v1: &mut Vec<String>) {
     (*v1).sort_by(str_cmp2);
 }
 
+/// # return
+/// `s` is alphanumeric? 
 pub fn is_proper_string(s:String) -> bool {
-    //s.chars().all(char::is_alphabetic)//numeric)
     s.chars().all(char::is_alphanumeric)
 
 }
 
+/// # description
+/// scoring function for string
 pub fn inc1string_to_u32(s:String) -> u32 {
     assert_eq!(is_proper_string(s.clone()),true);
     let x:u32 = (122 * (s.len() - 1)) as u32;
@@ -72,6 +81,8 @@ pub fn inc1string_to_u32(s:String) -> u32 {
     x + r
 }
 
+/// # return
+/// string in `s` with max value according to <strng_srt::inc1string_to_u32>
 pub fn inc1string_vector_max(s:Vec<String>) -> String {
     let s2:Vec<u32> = s.iter().map(|x| inc1string_to_u32((*x).clone())).collect();
     // get max
@@ -83,6 +94,8 @@ pub fn inc1string_vector_max(s:Vec<String>) -> String {
     s[im].clone()
 }
 
+/// # description
+/// string comparator function using <strng_srt::inc1string_to_u32>; used for sorting.
 pub fn str_cmp2(s1: &String, s2: &String) -> std::cmp::Ordering {
 
     if inc1string_to_u32((*s1).clone()) <= inc1string_to_u32((*s2).clone()) {
@@ -94,17 +107,24 @@ pub fn str_cmp2(s1: &String, s2: &String) -> std::cmp::Ordering {
 
 //////////////////////////////////////////////// methods on iterable conversion to string
 
-
+/// # description
+/// uses <strng_srt::sort_string_vector> to sort `v`
+/// # return
+/// stringized sorted `v`
 pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
     sort_string_vector(v);
     setf::vec_to_str(v.to_vec())
 }
 
+/// # description
+/// set version of <strng_srt::stringized_srted_vec>
 pub fn stringized_srted_hash(h: HashSet<String>) -> String {
     let mut c: Vec<String> = (h).into_iter().collect();
     stringized_srted_vec(&mut c)
 }
 
+/// # return
+/// converted set `h` to vector 
 pub fn string_hashset_to_vector(h: HashSet<String>) -> Vec<String> {
     let mut v:Vec<String> = Vec::new();
 
@@ -114,7 +134,8 @@ pub fn string_hashset_to_vector(h: HashSet<String>) -> Vec<String> {
     v
 }
 
-
+/// # return
+// set version of generic vector `v`
 pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
     where
     T:ToString
@@ -128,8 +149,9 @@ pub fn vector_to_string_hashset<T>(v: Vec<T>) -> HashSet<String>
 }
 
 ////////////////////////////////////////////////////////////////////////////
-// TODO: test
 
+/// # description
+/// sequence of `(T,T2)` pairs to map of `T -> T2`
 pub fn vecd2_to_hashmap<T,T2>(vd: Vec<(T,T2)>) -> HashMap<String,String>
 where T:ToString + Eq,//Eq + Hashable,
       T2: ToString//Eq
@@ -141,6 +163,8 @@ where T:ToString + Eq,//Eq + Hashable,
     res
 }
 
+/// # description
+/// string comparator function 4; used for sorting.
 pub fn str_cmp4(s1: &(String,f32),s2: &(String,f32)) -> std::cmp::Ordering {
     if (*s1).1 <= (*s2).1 {
     	return Ordering::Less;
@@ -148,6 +172,8 @@ pub fn str_cmp4(s1: &(String,f32),s2: &(String,f32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+/// # description
+/// string comparator function 5; used for sorting.
 pub fn str_cmp5(s1: &(String,i32),s2: &(String,i32)) -> std::cmp::Ordering {
     if (*s1).1 <= (*s2).1 {
     	return Ordering::Less;
@@ -155,6 +181,8 @@ pub fn str_cmp5(s1: &(String,i32),s2: &(String,i32)) -> std::cmp::Ordering {
     Ordering::Greater
 }
 
+/// # description
+/// map of `T -> T2` to sequence of `(T,T2)` pairs
 pub fn hashmap_to_2vector<T,T2>(hm: HashMap<T,T2>) -> Vec<(T,T2)>
 where
 T:Clone,

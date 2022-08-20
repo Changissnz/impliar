@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["is_in_vector","outputs (index of `t` in `v`, if element `t` in vector `v`) "],["subvector_indices_to_indices",""]]};

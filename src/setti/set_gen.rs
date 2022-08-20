@@ -13,9 +13,7 @@ use crate::setti::selection_rule;
 use selection_rule::SelectionRule;
 use ndarray::{Dim,Array,Array1,Array2,array,arr2,s};
 
-/*
-determines the first available choice in selection rule at column index
-*/
+/// determines the first available choice in selection rule at column index
 pub fn sr_op(sr: &mut SelectionRule,i:usize) -> (usize,bool) {
     let mut sr2 = SelectionRule{res:sr.res.clone(),
                 req: sr.req.clone(),choice:sr.choice.clone()};
@@ -26,6 +24,9 @@ pub fn sr_op(sr: &mut SelectionRule,i:usize) -> (usize,bool) {
     (0,false)
 }
 
+/// decides a k-vector for an n x k SelectionRule by the greedy
+/// approach:
+/// first available element (top to bottom) at each column (left to right). 
 pub fn greedy_decision(sr :&mut SelectionRule) -> Vec<usize> {
     let mut x: Vec<usize> = Vec::new();
     let q = sr.dimso().1;
@@ -45,15 +46,15 @@ pub fn greedy_decision(sr :&mut SelectionRule) -> Vec<usize> {
     x
 }
 
+/// SGen is short for set-generator; generates k-sets from choice vector
+/// `value`. 
 pub struct SGen {
     pub value: Vec<String>,
     pub data: Vec<HashSet<String>>,
     pub next: Vec<HashSet<String>>,
 }
 
-/*
-generates all sub-vectors of length k given value (Vec<String>)
-*/
+/// generates all sub-vectors of length k given value (Vec<String>)
 impl SGen {
 
     pub fn fcollect_all(&mut self,k : usize) {
@@ -83,10 +84,8 @@ impl SGen {
     }
 }
 
-/*
-vector version of `fcollect`;
-collects all subvectors of size k starting with s[r] in the subvector s[r+1:]
-*/
+/// vector version of `fcollect`;
+/// collects all subvectors of size k starting with s\[r\] in the subvector s\[r+1:\]
 pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     let mut result: Vec<Vec<String>> = Vec::new();
 
@@ -174,9 +173,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     result
 }
 
-/*
-collects all combinational sets of size k starting with s[r] in the subvector s[r+1:]
-*/
+/// collects all combinational sets of size k starting with s\[r\] in the subvector s\[r+1:\]
 pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     let mut result: Vec<HashSet<String>> = Vec::new();
 
@@ -266,6 +263,8 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     result
 }
 
+/// orders the vector `v2` by the vector `reference`; for remaining elements of `v2`
+/// not in `reference, method orders them according to `strng_srt::sort_inc1string_vector`. 
 pub fn ordered_vec_by_reference<T>(v2:Vec<T>,reference:Vec<T>) -> Vec<String>
 where
 T:ToString + Clone,
@@ -312,12 +311,12 @@ T:ToString + Clone,
 }
 
 
-/*
-i := index at
-r := present length
-k := wanted length
-l := length of entire sequence
-*/
+/// method used for determining validity of index for `fcollect` methods
+/// 
+/// i := index at
+/// r := present length
+/// k := wanted length
+/// l := length of entire sequence
 pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
 
     if i > l - 1 {
@@ -334,6 +333,7 @@ pub fn valid_index_limit(i: i32, r: i32, k: i32, l:i32) -> bool {
 
 ///////////////////////////////////////////////////
 
+/// outputs a k-vector with all elements equal to `v`. 
 pub fn identity_vector(k: usize,v:usize) ->Vec<usize> {
 
     let mut x: Vec<usize> = Vec::new();
@@ -343,9 +343,7 @@ pub fn identity_vector(k: usize,v:usize) ->Vec<usize> {
     x
 }
 
-/*
-outputs the vector map for restriction|requirement
-*/
+/// outputs the vector map for restriction|requirement
 pub fn identity_k_vector_map(k:usize, rs: usize) -> Vec<(usize,Vec<usize>)> {
     let mut vm: Vec<(usize,Vec<usize>)> = Vec::new();
     let idv: Vec<usize> = Array::range(0.0,(rs) as f64, 1.0).into_iter().map(|x| x as usize).collect();
@@ -355,9 +353,8 @@ pub fn identity_k_vector_map(k:usize, rs: usize) -> Vec<(usize,Vec<usize>)> {
     vm
 }
 
-/*
-restriction and requirement is all
-*/
+/// sample SelectionRule; unused. 
+/// restriction and requirement is all
 pub fn selection_rule_sample_1() -> SelectionRule {
     let rs:usize = 10;
     let k:usize = 6;
@@ -370,9 +367,8 @@ pub fn selection_rule_sample_1() -> SelectionRule {
     sr
 }
 
-/*
-requirement is all, restriction is none
-*/
+/// sample SelectionRule; unused. 
+/// requirement is all, restriction is none
 pub fn selection_rule_sample_2() -> SelectionRule {
     let rs:usize = 3;
     let k:usize = 3;
@@ -388,6 +384,7 @@ pub fn selection_rule_sample_2() -> SelectionRule {
     sr
 }
 
+/// sample SelectionRule; unused. 
 pub fn selection_rule_sample_3() -> SelectionRule {
     let rs:usize = 10;
     let k:usize = 6;

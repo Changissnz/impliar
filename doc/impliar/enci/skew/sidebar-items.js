@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_skew",""]],"struct":[["Skew","struct used to map an i32 n-vector into another i32 n-vector"]]};

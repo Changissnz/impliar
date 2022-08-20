@@ -72,16 +72,3 @@ impl Impli {
 
 }
 
-
-///////////////////////////////////////////////////
-/////// used to serialize and deserialize data  
-/*
-use serde::{Serialize, Deserialize};
-
-// here the "magic" conversion is generated
-#[derive(Debug, Serialize, Deserialize)]
-struct T {
-    i: i32,
-    f: f64,
-}
-*/ 
