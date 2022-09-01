@@ -48,84 +48,8 @@ use crate::enci::ns::RN;
 
 #[macro_use]
 extern crate savefile_derive;
-
 extern crate savefile;
 use savefile::prelude::*;
 
-/*
-#[macro_use]
-extern crate savefile_derive;
-
-
-#[derive(Savefile)]
-struct Player {
-    name : String,
-    strength : u32,
-    inventory : Vec<String>,
-}
-
-fn save_player(player:&Player) {
-    save_file("save.bin", 0, player).unwrap();
-}
-
-fn load_player() -> Player {
-    load_file("save.bin", 0).unwrap()
-}
-*/ 
-//////////////
-
-
-fn main() {
-    //impli::Impli{};
-
-    //////////////////////////////////////
-    // linear congruential generator
-    /*
-    let m:f32 = 4.5;
-    let c:f32 = 7.;
-    let l: f32 = 30.;
-    let mut s:f32 = 2.;
-    let mut i: usize = 10;
-    while i > 0 {
-        s = (s * m + c) % l;
-        println!("{}",s);
-    }
-    */ 
-    //////////////////////////////////////
-    /*
-    let x: Vec<String> = vec!["at".to_string(),"being".to_string(),"cat".to_string()];
-    let x2: Vec<String> = vec!["at".to_string(),"bein".to_string(),"ca".to_string()];
-
-    let mut vc1 = setti::setf::build_VectorCounter();
-
-    vc1.countv(x);
-    let mut vc2 = vc1.clone(); 
-    vc2.countv(x2);
-    let q = vc2 - vc1.clone(); 
-    println!("{}",q);
-    let q2 = vc1 - q; 
-    println!("{}",q2);
-
-    // to get new elements: 
-    */ 
-    ////////////////////////////////////////////
-    /*
-    let player = Player { name: "Steve".to_string(), strength: 42,
-    inventory: vec!(
-        "wallet".to_string(),
-        "car keys".to_string(),
-        "glasses".to_string())};
-
-    save_player(&player);
-    let reloaded_player = load_player();
-    assert_eq!(reloaded_player.name,"Steve".to_string());
-    */ 
-
-    /*
-    setti::impf::sample_ImpF_vec_e_1_save_to_file("ife".to_string());
-    setti::impf::sample_ImpF_vec_i_1_save_to_file("ifi".to_string());
-    */
-
-    setti::impf::load_ImpF("ife1");
-    
+fn main() {    
 }
