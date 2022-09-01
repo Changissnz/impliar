@@ -1,3 +1,4 @@
+//! contains order-of-operations parser for parenthetical/underscored strings
 use crate::setti::inc;
 use crate::setti::setf;
 use substring::Substring;
@@ -61,6 +62,8 @@ pub fn next_element(s:String, i:usize) -> Option<(String,usize)> {
 
 impl OrderOfOperator {
 
+    /// # description
+    /// process the entire string into its branch form
     pub fn process(&mut self) {
         let mut i:usize = 0;
         while true {
@@ -72,7 +75,8 @@ impl OrderOfOperator {
         }
     }
 
-    /// 
+    /// # description
+    /// processes the next element in string into branch form.
     pub fn process_next(&mut self,i:usize) -> Option<usize> {
         let l = self.str_repr.len();
         let s = &self.str_repr.substring(i,i+1).to_owned();
@@ -106,6 +110,8 @@ impl OrderOfOperator {
         }
     }
 
+    /// # description
+    /// add `s` to the the current branch.
     pub fn add_to_last_branch(&mut self,s:String) {
         let l2 = self.branches.len() - 1;
         let mut q = self.branches[l2].to_owned();//clone();
@@ -113,12 +119,9 @@ impl OrderOfOperator {
         mem::replace(&mut self.branches[l2],q);
     }
 
-    /*
-    saves old branch and
-
-    index [i] is "("
-    collects the first element for the new branch. outputs the next index
-    */
+    /// # description
+    /// saves old branch and index \[i\] is `(`. 
+    /// collects the first element for the new branch. outputs the next index
     pub fn new_branch(&mut self,i: usize) -> Option<usize> {
         let x = next_element(self.str_repr.clone(),i);
         if x.is_none() {
@@ -130,10 +133,9 @@ impl OrderOfOperator {
         Some(q2)
     }
 
-    /*
-    call this before going on to new branch, close is ")".
-    when branch is closed, all pre-branch data is merged.
-    */
+    /// # description
+    /// call this before going on to new branch, close is ")".
+    /// when branch is closed, all pre-branch data is merged.
     fn close_branch(&mut self, i: usize) -> Option<usize> {
         // make identifier for branch
         let q = self.incstring.inc_();
@@ -158,9 +160,123 @@ impl OrderOfOperator {
         }
 
         Some(i + 1)
+    }
+}
 
+/// # description
+/// alphabetical filter for string
+pub fn str_alphabebetical_filter(s:String) -> String {
+    let mut q: String = "".to_string();
+    for s_ in s.chars() {
+        if !s_.is_alphabetic() {
+            continue;
+        }
+
+        q = q + s_.to_string().as_str();  
+    }
+    q
+}
+
+/// # description
+/// `OrderOfOperator` comma format is <ImpElement::ImpSetSource> identifier, 
+/// which consists of the form
+///                 n0_n1_..._nm
+/// in which for an ni
+///                 ni = c^{ni0},c^{ni1},...,c^{nij}
+/// # return
+/// sequence of the form
+///                 c^{ni0},...,c^{nim},...,c^{nm0},...,c^{nmj}
+///
+/// # arguments
+/// strfilter := typically alphabetic filter (no numbers in output)
+pub fn parse_OrderOfOperator__comma_format(o: &mut OrderOfOperator,strfilter: fn(String) -> String) -> Vec<String> {
+    let b = (*o).branches.clone();
+    let mut sol: Vec<String> = Vec::new();
+
+    for b_ in b.into_iter() {
+        let x1 = parse_OrderOfOperator_branch(o,b_.to_string());
+        let x2 = parse_strvec__comma_format(x1);
+        sol.extend(x2);
     }
 
+    let mut sol2: Vec<String> = Vec::new();  
+    for q in sol.into_iter() {
+        let q2 = strfilter(q);
+        if q2.len() > 0 {
+            sol2.push(q2);
+        }
+    }
+
+    sol2
+}
+
+/// # description
+/// for each element `e` in `s`, converts `e` to a sequence
+/// of strings based on comma separator and pushes sequence
+/// to resultant sequence.
+pub fn parse_strvec__comma_format(s: Vec<String>) -> Vec<String> {
+    let mut s2: Vec<String> = Vec::new();
+
+    for s_ in s.into_iter() {
+        let mut q = setf::str_to_vec(s_.clone(),',');
+        s2.extend(q);
+    }
+    s2 
+}
+
+/// # description
+/// parses the branch of `o` into a sequence of non-branch elements
+pub fn parse_OrderOfOperator_branch(o: &mut OrderOfOperator,b:String) -> Vec<String> {
+    // convert to vec
+    let mut s = setf::str_to_vec(b.clone(),'_');
+    let mut stat = true;
+    let mut i = 0;
+
+    while stat {
+        let (x1,x2,x3) = one_round_branch_to_element_conversion(o,s,i); 
+        s = x1.clone();
+        i = x2;
+        stat = x3; 
+    }
+    s
+}
+
+/// # description
+/// locates the first branch identifier in `v` and translates it to the next element layer. 
+///
+/// # return
+/// - `v` translated at first branch at index i onwards
+/// - index of first branch at index i onwards
+/// - any remaining branches? 
+pub fn one_round_branch_to_element_conversion(o: &mut OrderOfOperator,v: Vec<String>,i:usize) -> (Vec<String>, usize,bool) {
+    let l = v.len();
+    let mut stat = false;
+    let mut p: Option<usize> = None;
+    for j in i..l {
+        stat = (*o).branch_identifiers.contains_key(&v[j].clone());
+        if stat {
+            p = Some(j);
+            break;
+        }
+    }
+
+    if stat {
+        // first half
+        let mut v2 = v[0..p.unwrap()].to_vec(); 
+
+        // branch value
+        let mut b = (*o).branch_identifiers.get_mut(&v[p.unwrap()].clone()).unwrap().clone();
+        let s = setf::str_to_vec(b.clone(),'_');
+
+        v2.extend(s); 
+
+        // second half
+        let mut v3 = v[p.unwrap() + 1..l].to_vec(); 
+        v2.extend(v3);
+        return (v2,p.unwrap(),stat); 
+    }
+
+    (v,0,stat) 
 }
 
 ///////////////////////////////////////// test code
@@ -226,4 +342,34 @@ mod tests {
         assert_eq!(x4.branch_identifiers,x5.branch_identifiers);
     }
 
+    #[test]
+    fn test_parse_OrderOfOperator_branch() {
+        let mut x2 = build_order_of_operator("(8_5_1(2_3))(4(5_6)7)".to_string());
+        x2.process();
+
+        let sol: Vec<Vec<String>> = vec![
+                vec!["8".to_string(), "5".to_string(), "1".to_string(), "2".to_string(), "3".to_string()],
+                vec!["4".to_string()],
+                vec!["5".to_string(), "6".to_string(), "7".to_string()]]; 
+
+        for (i,b) in x2.branches.clone().iter().enumerate() {
+            let b2 = parse_OrderOfOperator_branch(&mut x2,b.to_string());
+            println!("{:?}",b2); 
+            assert_eq!(sol[i],b2); 
+        }
+    }
+
+    #[test]
+    fn test_parse_OrderOfOperator__comma_format() {
+        let sol = vec!["s".to_string(), "t".to_string(), "u".to_string(), "v".to_string(),
+        "w".to_string(), "s".to_string(), "t".to_string(), "u".to_string(),
+        "v".to_string(), "w".to_string(), "s".to_string(), "t".to_string(),
+        "u".to_string(), "v".to_string(), "w".to_string()];
+        
+        let q = "s1_t2_u3_v4_w5(s,t,u,v,w,1)(s,t,u,v,w,2)".to_string();
+        let mut x2 = build_order_of_operator(q);
+        x2.process();
+        let cf = parse_OrderOfOperator__comma_format(&mut x2,str_alphabebetical_filter); 
+        assert_eq!(sol,cf);
+    }
 }

@@ -78,80 +78,103 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::setc</span>;
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+</pre><pre class="rust"><code><span class="doccomment">//! struct used to generate statements represented as</span>
+<span class="doccomment">//! k-set sequences. </span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::setc</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::sets</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::impf</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::implif</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::set_gen</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::setf</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>,<span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::metrice::vcsv</span>;
 <span class="kw">use</span> <span class="ident">ndarray::Array1</span>;
 
-<span class="comment">/*
-CAUTION: kernel allows for duplicates
-*/</span>
+<span class="doccomment">/// TODO: make each initial element an ImpSetSource</span>
+<span class="doccomment">///         REQUIRES REFORMATTING OF STRING</span>
+<span class="doccomment">/// notation:</span>
+<span class="doccomment">/// merging two elements e, e2</span>
+<span class="doccomment">///     e + e2 </span>
+<span class="doccomment">/// new element x for e</span>
+<span class="doccomment">///     e__x</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// merge element (e + e2) and (e3 + e4)?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// M = e + e2 + e3 + e4</span>
+<span class="doccomment">/// calculating the parents of M?</span>
+<span class="doccomment">/// - get the median + </span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// M2 = e + e2 + e3 + e4 + e5</span>
+<span class="doccomment">/// calculating the parents of M2?</span>
+<span class="doccomment">/// CANNOT</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// CONCLUSION</span>
+<span class="doccomment">/// have to find way to use `parentnot` and `ohop`! </span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Impli</span> {
+    <span class="doccomment">/// starting elements</span>
     <span class="kw">pub</span> <span class="ident">kernel</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-
-    <span class="comment">// kernel correspondence file</span>
-    <span class="kw">pub</span> <span class="ident">kcf</span>: <span class="ident">String</span>,
-    <span class="comment">// stringized kernel vec -&gt; f32</span>
-    <span class="ident">kchm</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,<span class="ident">f32</span><span class="op">&gt;</span>,
-
-    <span class="comment">// implication chain file</span>
-    <span class="kw">pub</span> <span class="ident">icf</span>: <span class="ident">String</span>,
-    <span class="ident">ifs</span>: <span class="ident">impf::ImpFSeq</span> 
+    <span class="doccomment">/// starting existence/implication values for every single element</span>
+    <span class="doccomment">/// existence_implication</span>
+    <span class="kw">pub</span> <span class="ident">start_lone_file</span>:<span class="ident">String</span>,
+    <span class="doccomment">/// start element -&gt; (existence,implication)</span>
+    <span class="kw">pub</span> <span class="ident">kernel_table</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,(<span class="ident">f32</span>,<span class="ident">f32</span>)<span class="op">&gt;</span>,
+    <span class="doccomment">/// kernel new element existence value generator</span>
+    <span class="ident">impfvec_e</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">impf::ImpF</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// kernel new element implication value generator</span>
+    <span class="ident">impfvec_i</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">impf::ImpF</span><span class="op">&gt;</span>, 
+    <span class="doccomment">/// filenames for existence/implication function vectors </span>
+    <span class="ident">impfvec_fn</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>,<span class="ident">String</span>)<span class="op">&gt;</span>,
+    <span class="doccomment">/// used to determine the k-values of  </span>
+    <span class="ident">kstatement_fn</span>: (<span class="ident">impf::ImpFI32</span>,<span class="ident">String</span>), 
+    <span class="comment">// seed size function</span>
+    <span class="ident">ssf</span>: <span class="ident">implif::ImpElementSeedSizeF</span>,
+    <span class="comment">// used to determine the minumum implication of statement </span>
+    <span class="ident">implication_fn</span>: <span class="kw">fn</span>(<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>) -&gt; <span class="ident">f32</span>    
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_Impli</span>(<span class="ident">kernel</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,<span class="ident">kcf</span>: <span class="ident">String</span>,<span class="ident">icf</span>:<span class="ident">String</span>) -&gt; <span class="ident">Impli</span> {
-    <span class="kw">let</span> <span class="ident">vv</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array1::ones</span>(<span class="ident">kernel</span>.<span class="ident">len</span>()).<span class="ident">into_iter</span>().<span class="ident">collect</span>();
-    <span class="kw">let</span> <span class="ident">qr</span> <span class="op">=</span> (<span class="number">0.</span>,<span class="number">1.</span>);
-    <span class="kw">let</span> <span class="ident">ifs</span> <span class="op">=</span> <span class="ident">impf::file_to_ImpFSeq</span>(<span class="kw-2">&amp;</span><span class="ident">icf</span>,<span class="ident">vv</span>,<span class="ident">qr</span>);
-    <span class="ident">Impli</span>{<span class="ident">kernel</span>:<span class="ident">kernel</span>,<span class="ident">kcf</span>:<span class="ident">kcf</span>,<span class="ident">kchm</span>:<span class="ident">HashMap::new</span>(),<span class="ident">icf</span>:<span class="ident">icf</span>,<span class="ident">ifs</span>:<span class="ident">ifs</span>}
-}
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_Impli</span>(<span class="ident">kernel</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,<span class="ident">start_lone_file</span>:<span class="ident">String</span>, <span class="ident">impfvec_fn</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>,<span class="ident">String</span>)<span class="op">&gt;</span>,<span class="ident">kfn</span>:<span class="ident">String</span>,<span class="ident">ssf</span>: <span class="ident">implif::ImpElementSeedSizeF</span>,<span class="ident">ifn</span>:<span class="kw">fn</span>(<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>,<span class="ident">f32</span>) -&gt; <span class="ident">f32</span>) -&gt; <span class="ident">Impli</span> {
+    <span class="comment">// make the kernel table</span>
+    <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="string">&quot;src/data/&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">start_lone_file</span>.<span class="ident">as_str</span>(); 
+    <span class="kw">let</span> <span class="ident">vseq</span> <span class="op">=</span> <span class="ident">vcsv::csv_to_arr1_seq</span>(<span class="ident">q</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>(); 
 
-<span class="kw">impl</span> <span class="ident">Impli</span> {
-
-    <span class="comment">//// init functions</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_kcf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        
-        <span class="comment">// open kcf file and read</span>
-        <span class="kw">let</span> <span class="ident">a1</span> <span class="op">=</span> <span class="ident">vcsv::csv_to_arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kcf</span>).<span class="ident">unwrap</span>();
-
-        <span class="comment">// generate all possible 2-vecs</span>
-        <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">kernel</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">l</span> {
-            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">set_gen::fcollect_vec</span>(<span class="self">self</span>.<span class="ident">kernel</span>.<span class="ident">clone</span>(),<span class="ident">i</span>, <span class="number">2</span>);
-            <span class="ident">d</span>.<span class="ident">extend</span>(<span class="ident">v</span>);
-        }
-
-        <span class="comment">// add (k,v) pairs to correspondence hash map</span>
-        <span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="ident">d</span>.<span class="ident">len</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">dl</span>,<span class="ident">a1</span>.<span class="ident">len</span>());
-
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">dl</span> {
-            <span class="kw">let</span> <span class="ident">vs</span> <span class="op">=</span> <span class="ident">setf::vec_to_str</span>(<span class="ident">d</span>[<span class="ident">i</span>].<span class="ident">clone</span>());
-            <span class="self">self</span>.<span class="ident">kchm</span>.<span class="ident">insert</span>(<span class="ident">vs</span>,<span class="ident">a1</span>[<span class="ident">i</span>]);
-        }
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kt</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,(<span class="ident">f32</span>,<span class="ident">f32</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+    <span class="kw">for</span> (<span class="ident">i</span>,<span class="ident">k</span>) <span class="kw">in</span> <span class="ident">kernel</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+        <span class="ident">kt</span>.<span class="ident">insert</span>(<span class="ident">k</span>.<span class="ident">to_string</span>(),(<span class="ident">vseq</span>[<span class="ident">i</span>][<span class="number">0</span>],<span class="ident">vseq</span>[<span class="ident">i</span>][<span class="number">1</span>]));
     }
 
-    <span class="comment">////////////////////////////////////</span>
+    <span class="comment">// declare the 2 vectors of ImpF for existence and implication generation</span>
+    <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">kernel</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v1</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">impf::ImpF</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">impf::ImpF</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_of_choice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">l</span> {
+        <span class="comment">// load existence generator</span>
+        <span class="kw">let</span> <span class="ident">ipf1</span> <span class="op">=</span> <span class="ident">impf::load_ImpF</span>(<span class="ident">impfvec_fn</span>[<span class="ident">i</span>].<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">as_str</span>());
+        <span class="comment">// load implication generator</span>
+        <span class="kw">let</span> <span class="ident">ipf2</span> <span class="op">=</span> <span class="ident">impf::load_ImpF</span>(<span class="ident">impfvec_fn</span>[<span class="ident">i</span>].<span class="number">1</span>.<span class="ident">clone</span>().<span class="ident">as_str</span>());
 
+        <span class="ident">v1</span>.<span class="ident">push</span>(<span class="ident">ipf1</span>);
+        <span class="ident">v2</span>.<span class="ident">push</span>(<span class="ident">ipf2</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_src</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+    <span class="comment">// load the k-statement and implication generators</span>
+    <span class="kw">let</span> <span class="ident">fk</span> <span class="op">=</span> <span class="ident">impf::load_ImpFI32</span>(<span class="kw-2">&amp;</span><span class="ident">kfn</span>);
+    <span class="ident">Impli</span>{<span class="ident">kernel</span>:<span class="ident">kernel</span>,<span class="ident">start_lone_file</span>:<span class="ident">start_lone_file</span>,<span class="ident">kernel_table</span>:<span class="ident">kt</span>,
+        <span class="ident">impfvec_e</span>:<span class="ident">v1</span>,<span class="ident">impfvec_i</span>:<span class="ident">v2</span>,<span class="ident">impfvec_fn</span>:<span class="ident">impfvec_fn</span>,
+        <span class="ident">kstatement_fn</span>:(<span class="ident">fk</span>,<span class="ident">kfn</span>),<span class="ident">ssf</span>:<span class="ident">ssf</span>,<span class="ident">implication_fn</span>:<span class="ident">ifn</span>}
 
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_layer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Vec::new</span>()
-    }
-
-}
-
-</code></pre></div>
+}</code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="impliar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (Fedora 1.63.0-1.fc36)" ></div>
 </body></html>

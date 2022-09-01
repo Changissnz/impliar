@@ -17,7 +17,7 @@ impl IndexRange2FunctionHM {
 
         // iterate through
         for k in self.hm.clone().into_keys() {
-            let h:HashSet<usize> = setf::str_to_vec(k.clone()).into_iter().map(|x| x.parse::<usize>().unwrap()).collect();
+            let h:HashSet<usize> = setf::str_to_vec(k.clone(),'_').into_iter().map(|x| x.parse::<usize>().unwrap()).collect();
             if h.contains(&i) {
                 return Some(*(self.hm.get_mut(&k).unwrap()));
             }

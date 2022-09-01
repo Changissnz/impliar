@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["impliar"] = [{"text":"impl Deserialize for <a class=\"struct\" href=\"impliar/setti/impf/struct.ImpF.html\" title=\"struct impliar::setti::impf::ImpF\">ImpF</a>","synthetic":false,"types":["impliar::setti::impf::ImpF"]},{"text":"impl Deserialize for <a class=\"struct\" href=\"impliar/setti/impf/struct.ImpFI32.html\" title=\"struct impliar::setti::impf::ImpFI32\">ImpFI32</a>","synthetic":false,"types":["impliar::setti::impf::ImpFI32"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

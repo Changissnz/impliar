@@ -104,7 +104,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     // initialize the queue and dictionary
     let d2: Vec<String> = vec![s[r].clone()];
     let d3 = vec![r,r+1];
-    d.insert(setf::vec_to_str(d2),d3);
+    d.insert(setf::vec_to_str(d2,'_'),d3);
     q.push(s[r].clone());
 
     while q.len() > 0 {
@@ -114,7 +114,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
 
         // get info for add-on
         let mut ni = (d.get_mut(&x).unwrap()).clone();
-        let mut x3 = setf::str_to_vec(x.clone());
+        let mut x3 = setf::str_to_vec(x.clone(),'_');
 
             // determine if terminate
         let slen = s.len() + 1;
@@ -133,13 +133,13 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     		x3.push(n);
 
     		// UPDATE OLD KEY
-    		let ok = setf::vec_to_str(x32);
+    		let ok = setf::vec_to_str(x32,'_');
 	        let mut nok = (d.get_mut(&(ok.to_string())).unwrap()).clone();
     		nok[1] = nok[1] + 1;
     		d.insert(ok.to_string(),nok);
 
     		// UPDATE NEW KEY
-    		let nk = setf::vec_to_str(x3.clone());
+    		let nk = setf::vec_to_str(x3.clone(),'_');
             let nk2 = nk.clone();
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
@@ -166,7 +166,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     		q.push(nk.to_string());
         }
 
-        let nk = setf::vec_to_str(x3.clone());
+        let nk = setf::vec_to_str(x3.clone(),'_');
         result.push(x3);
         q.push(x.clone());
    }
@@ -193,7 +193,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     // initialize the queue and dictionary
     let d2: Vec<String> = vec![s[r].clone()];
     let d3 = vec![r,r+1];
-    d.insert(setf::vec_to_str(d2),d3);
+    d.insert(setf::vec_to_str(d2,'_'),d3);
     q.push(s[r].clone());
     while q.len() > 0 {
         // fetch next base
@@ -202,7 +202,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
 
         // get info for add-on
         let mut ni = (d.get_mut(&x).unwrap()).clone();
-        let mut x3 = setf::str_to_vec(x.clone());
+        let mut x3 = setf::str_to_vec(x.clone(),'_');
 
             // determine if terminate
         let slen = s.len() + 1;
@@ -221,13 +221,13 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     		x3.push(n);
 
     		// UPDATE OLD KEY
-    		let ok = setf::vec_to_str(x32);
+    		let ok = setf::vec_to_str(x32,'_');
 	        let mut nok = (d.get_mut(&(ok.to_string())).unwrap()).clone();
     		nok[1] = nok[1] + 1;
     		d.insert(ok.to_string(),nok);
 
     		// UPDATE NEW KEY
-    		let nk = setf::vec_to_str(x3.clone());
+    		let nk = setf::vec_to_str(x3.clone(),'_');
             let nk2 = nk.clone();
 
     			// case: new key does not exist
@@ -255,7 +255,7 @@ pub fn fcollect(s: Vec<String>, r: usize,k: usize) -> Vec<HashSet<String>> {
     		q.push(nk.to_string());
         }
 
-        let nk = setf::vec_to_str(x3.clone());
+        let nk = setf::vec_to_str(x3.clone(),'_');
         let h: HashSet<String> = x3.into_iter().collect();
         result.push(h);
         q.push(x.clone());
@@ -453,13 +453,13 @@ mod tests {
         let mut s1 = ordered_vec_by_reference(x1,x2.clone());
 
         let mut qsw = vec![-2,1,31,54,34,61,140,120,3000];
-        let mut sol = setf::vec_to_str(qsw);
-        let mut s1s = setf::vec_to_str(s1);
+        let mut sol = setf::vec_to_str(qsw,'_');
+        let mut s1s = setf::vec_to_str(s1,'_');
         assert_eq!(sol,s1s);
 
         let mut x1_: Vec<i32> = vec![120,140,31,3000,34,-2,54,61,1,31,-2];
         let mut s2 = ordered_vec_by_reference(x1_,x2);
-        let mut s2s = setf::vec_to_str(s2);
+        let mut s2s = setf::vec_to_str(s2,'_');
         let mut sol2 = "-2_-2_1_31_31_54_34_61_140_120_3000".to_string();
         assert_eq!(sol2,s2s);
     }

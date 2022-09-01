@@ -324,6 +324,17 @@
 <span id="318">318</span>
 <span id="319">319</span>
 <span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
 </pre><pre class="rust"><code><span class="doccomment">//! counter class for generic objects. Uses string-conversion methods. </span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
@@ -461,9 +472,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">VectorCounter</span> {
-    <span class="comment">/*
-    place each key as value 1
-    */</span>
+    
+    <span class="doccomment">/// place each key as value 1</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">one_it</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">k</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into_keys</span>().<span class="ident">collect</span>();
 
@@ -472,18 +482,32 @@
         }
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">i32</span> {
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>).<span class="ident">unwrap</span>().<span class="ident">clone</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">increment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">i</span>:<span class="ident">i32</span>) {
+        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into_keys</span>() {
+            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>).<span class="ident">unwrap</span>() <span class="op">+</span><span class="op">=</span> <span class="ident">i</span>; 
+        }
+    }
+
 }
 
 <span class="doccomment">/// # return</span>
 <span class="doccomment">/// converted generic vector to string using _ as separator</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vec_to_str</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vec_to_str</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,<span class="ident">c</span>:<span class="ident">char</span>) -&gt; <span class="ident">String</span>
     <span class="kw">where</span>
     <span class="ident">T</span> : <span class="ident">ToString</span> {
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;&quot;</span>);
     <span class="kw">for</span> <span class="ident">s_</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">iter</span>() {
         <span class="ident">h</span> <span class="op">=</span> <span class="ident">h</span> <span class="op">+</span> <span class="kw-2">&amp;</span>(<span class="ident">s_</span>.<span class="ident">to_string</span>());
-        <span class="ident">h</span>.<span class="ident">push_str</span>(<span class="string">&quot;_&quot;</span>);
+        <span class="ident">h</span>.<span class="ident">push_str</span>(<span class="ident">c</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>());
     }
 
     <span class="kw">if</span> <span class="ident">h</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
@@ -493,40 +517,38 @@
     <span class="ident">h</span>
 }
 
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>:<span class="ident">String</span>,<span class="ident">cx</span>:<span class="ident">char</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="bool-val">true</span> {
         <span class="comment">// get substring starting at j</span>
         <span class="kw">let</span> <span class="ident">sx</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string</span>().<span class="ident">substring</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">s</span>.<span class="ident">len</span>()).<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">next_str</span>(<span class="ident">sx</span>.<span class="ident">clone</span>());<span class="comment">//(*s4).to_string());</span>
+        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">next_str</span>(<span class="ident">sx</span>.<span class="ident">clone</span>(),<span class="ident">cx</span>);<span class="comment">//(*s4).to_string());</span>
         <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
-            <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">s</span>.<span class="ident">to_string</span>().<span class="ident">substring</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">s</span>.<span class="ident">len</span>()).<span class="ident">to_owned</span>());
+            <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string</span>().<span class="ident">substring</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">s</span>.<span class="ident">len</span>()).<span class="ident">to_owned</span>();
+            <span class="kw">if</span> <span class="ident">q</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">q</span>);
+            }
             <span class="kw">break</span>;
         }
         <span class="kw">let</span> <span class="ident">ss</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string</span>().<span class="ident">substring</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>,(<span class="ident">j</span> <span class="op">+</span> <span class="ident">i</span>) <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">to_owned</span>();
-        <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">ss</span>.<span class="ident">clone</span>());
-        <span class="ident">j</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
-        <span class="ident">c</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> {
-            <span class="kw">break</span>;
+        <span class="kw">if</span> <span class="ident">ss</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">ss</span>.<span class="ident">clone</span>());
         }
+        <span class="ident">j</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
     }
     <span class="ident">v</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_str</span>(<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">i32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_str</span>(<span class="ident">s</span>:<span class="ident">String</span>,<span class="ident">c</span>:<span class="ident">char</span>) -&gt; <span class="ident">i32</span> {
 
     <span class="kw">for</span> (<span class="ident">i</span>,<span class="ident">s_</span>) <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">if</span> <span class="ident">s_</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span> {
+        <span class="kw">if</span> <span class="ident">s_</span> <span class="op">==</span> <span class="ident">c</span> {
             <span class="kw">return</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">i32</span>;
         }
     }
     <span class="op">-</span><span class="number">1</span>
 }
-
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_vec_to_stringvec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">v</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -552,7 +574,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;_flsakdjflas;dfjls;adkjf&quot;</span>;
         <span class="kw">let</span> <span class="ident">sol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;&quot;</span>.<span class="ident">to_string</span>(),<span class="string">&quot;flsakdjflas;dfjls;adkjf&quot;</span>.<span class="ident">to_string</span>()];
 
-        <span class="kw">let</span> <span class="ident">v1</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">v1</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>.<span class="ident">to_string</span>(),<span class="string">&#39;_&#39;</span>);
 
         <span class="kw">for</span> (<span class="ident">i</span>,<span class="ident">v</span>) <span class="kw">in</span> <span class="ident">v1</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">v</span>.<span class="ident">to_string</span>(),<span class="ident">sol</span>[<span class="ident">i</span>]);
@@ -561,7 +583,7 @@
         <span class="comment">// case 2</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;&quot;</span>;
         <span class="kw">let</span> <span class="ident">sol2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;&quot;</span>.<span class="ident">to_string</span>()];
-        <span class="kw">let</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s2</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s2</span>.<span class="ident">to_string</span>(),<span class="string">&#39;_&#39;</span>);
 
         <span class="kw">for</span> (<span class="ident">i</span>,<span class="ident">v</span>) <span class="kw">in</span> <span class="ident">v2</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">v</span>.<span class="ident">to_string</span>(),<span class="ident">sol2</span>[<span class="ident">i</span>]);
@@ -569,7 +591,7 @@
 
         <span class="comment">// case 3</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;arbitrox_bartinuell_radinox&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">str_to_vec</span>(<span class="ident">s</span>,<span class="string">&#39;_&#39;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">s2</span>,<span class="macro">vec!</span>[<span class="string">&quot;arbitrox&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;bartinuell&quot;</span>.<span class="ident">to_string</span>(),<span class="string">&quot;radinox&quot;</span>.<span class="ident">to_string</span>()]);
 
     }
@@ -578,12 +600,12 @@
     <span class="kw">fn</span> <span class="ident">test__vec_to_str</span>() {
         <span class="comment">// case 1</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;&quot;</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v1</span> <span class="op">=</span> <span class="ident">vec_to_str</span>(<span class="ident">s</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v1</span> <span class="op">=</span> <span class="ident">vec_to_str</span>(<span class="ident">s</span>,<span class="string">&#39;_&#39;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">v1</span>,<span class="string">&quot;lasjdflsadjfsal;fjsald;fjsadl;&quot;</span>.<span class="ident">to_string</span>());
 
         <span class="comment">// case 2</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;one&quot;</span>,<span class="string">&quot;two&quot;</span>,<span class="string">&quot;2&quot;</span>,<span class="string">&quot;three&quot;</span>];
-        <span class="ident">v1</span> <span class="op">=</span> <span class="ident">vec_to_str</span>(<span class="ident">s2</span>);
+        <span class="ident">v1</span> <span class="op">=</span> <span class="ident">vec_to_str</span>(<span class="ident">s2</span>,<span class="string">&#39;_&#39;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">v1</span>,<span class="string">&quot;one_two_2_three&quot;</span>.<span class="ident">to_string</span>());
     }
 

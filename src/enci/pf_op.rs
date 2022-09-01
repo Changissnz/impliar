@@ -98,7 +98,7 @@ impl PFOperator {
     pexpr := expression w/o parentheses, process from L->R
     */
     pub fn solve_pexpr_if_known(&mut self,pexpr:String) -> Option<f32> {
-        let x = setf::str_to_vec(pexpr.clone());
+        let x = setf::str_to_vec(pexpr.clone(),'_');
         let unk:Vec<String> = x.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
 
         if unk.len() > 0 {
@@ -134,7 +134,7 @@ impl PFOperator {
         let b = self.oo.branches[self.pi].clone();
 
         // split into elmts
-        let es = setf::str_to_vec(b.clone());
+        let es = setf::str_to_vec(b.clone(),'_');
 
         // get all initial unknown vars (of branches)
         let mut unk:Vec<String> = es.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
@@ -148,7 +148,7 @@ impl PFOperator {
 
             // get unknown elements of unknown branch
             let bi = self.oo.branch_identifiers.get_mut(&q).unwrap().clone();
-            let x = setf::str_to_vec(bi.clone());
+            let x = setf::str_to_vec(bi.clone(),'_');
             let mut unk2:Vec<String> = x.iter().filter(|y| self.is_unknown((*y).clone())).map(|y| (*y).clone()).collect();
 
             // case: cannot be solved, missing var value

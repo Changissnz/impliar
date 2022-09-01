@@ -23,7 +23,7 @@ impl fmt::Display for ContraStruct {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut q = "* contra ".to_string();
-        let s = setf::vec_to_str(self.index_identifier.clone());
+        let s = setf::vec_to_str(self.index_identifier.clone(),'_');
         let  e: String = if self.expected.is_none() {"--".to_string()} else {self.expected.unwrap().clone().to_string()};
         let g: String = if self.got.is_none() {"--".to_string()} else {self.got.unwrap().clone().to_string()};
         q.push_str(&s);

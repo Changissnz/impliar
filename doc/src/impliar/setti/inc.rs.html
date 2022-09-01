@@ -149,14 +149,7 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-</pre><pre class="rust"><code><span class="comment">/*
-this is a struct used to increment elements
-*/</span>
+</pre><pre class="rust"><code><span class="doccomment">//! contains generator that increments stringized elements</span>
 <span class="kw">use</span> <span class="ident">asciis::asc::Asciis</span>;
 <span class="kw">use</span> <span class="ident">substring::Substring</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
@@ -181,13 +174,12 @@ this is a struct used to increment elements
     }
 }
 
+<span class="doccomment">/// i32 incrementor</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Inc1</span> {
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">i32</span>
 }
 
-<span class="comment">/*
-i32 incrementor
-*/</span>
+
 <span class="kw">impl</span> <span class="ident">Inc</span> <span class="kw">for</span> <span class="ident">Inc1</span> {
 
     <span class="kw">fn</span> <span class="ident">inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>){
@@ -205,6 +197,7 @@ i32 incrementor
 
 }
 
+<span class="doccomment">/// alphabetical incrementor</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Inc1String</span> {
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">String</span>,
@@ -244,9 +237,6 @@ i32 incrementor
     }
 }
 
-<span class="comment">/*
-alphabetical incrementor
-*/</span>
 <span class="kw">impl</span> <span class="ident">Inc1String</span> {
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">String</span> {

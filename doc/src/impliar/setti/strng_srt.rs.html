@@ -254,6 +254,149 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
 </pre><pre class="rust"><code><span class="doccomment">//! contains sorting of string-like sequences </span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
@@ -265,10 +408,59 @@
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
-<span class="comment">////////////////////////////////////////////// methods on standard sort of string</span>
+<span class="doccomment">/// # TODO</span>
+<span class="doccomment">/// relocate this</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mod_in_range</span>(<span class="ident">x</span>:<span class="ident">i32</span>,<span class="ident">r</span>:(<span class="ident">i32</span>,<span class="ident">i32</span>)) -&gt; <span class="ident">i32</span> {
+    <span class="macro">assert!</span>(<span class="ident">r</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="ident">r</span>.<span class="number">1</span>);
+    <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">r</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">r</span>.<span class="number">1</span> {
+        <span class="kw">return</span> <span class="ident">x</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="ident">r</span>.<span class="number">1</span> {
+        <span class="comment">// get difference</span>
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">x</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">1</span>) <span class="op">%</span> (<span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">0</span>);
+        <span class="kw">return</span> <span class="ident">r</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">d</span>;
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">r</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">x</span>) <span class="op">%</span> (<span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">0</span>);
+        <span class="kw">return</span> <span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">d</span>; 
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_mod_in_range</span>(<span class="ident">x</span>:<span class="ident">f32</span>,<span class="ident">r</span>:(<span class="ident">f32</span>,<span class="ident">f32</span>)) -&gt; <span class="ident">f32</span> {
+    <span class="macro">assert!</span>(<span class="ident">r</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="ident">r</span>.<span class="number">1</span>);
+    <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">r</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">r</span>.<span class="number">1</span> {
+        <span class="kw">return</span> <span class="ident">x</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="ident">r</span>.<span class="number">1</span> {
+        <span class="comment">// get difference</span>
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">x</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">1</span>) <span class="op">%</span> (<span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">0</span>);
+        <span class="kw">return</span> <span class="ident">r</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">d</span>;
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">r</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">x</span>) <span class="op">%</span> (<span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">r</span>.<span class="number">0</span>);
+        <span class="kw">return</span> <span class="ident">r</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">d</span>; 
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">std_alphanumeric_vec</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">48</span>..<span class="number">58</span>).<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">65</span>..<span class="number">91</span>).<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x3</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">97</span>..<span class="number">122</span>).<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+    <span class="ident">x</span>.<span class="ident">extend</span>(<span class="ident">x2</span>);
+    <span class="ident">x</span>.<span class="ident">extend</span>(<span class="ident">x3</span>);
+    <span class="ident">x</span>
+}
 
 <span class="doccomment">/// # description</span>
-<span class="doccomment">/// string comparator function 3; used for sorting.</span>
+<span class="doccomment">/// calibrates i32 in range \[48,57\], \[65,90\],\[97,122\]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calibrate_i32_in_std_alphanumeric_range</span>(<span class="ident">i</span>:<span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
+    <span class="comment">// mod in range 61</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">%</span> <span class="number">61</span>;
+    <span class="ident">std_alphanumeric_vec</span>()[<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>]
+}
+
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// string comparator function using &lt;strng_srt::lessr_str&gt;; used for sorting.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_cmp3</span>(<span class="ident">s1</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>, <span class="ident">s2</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
 
     <span class="kw">if</span> <span class="ident">lessr_str</span>(<span class="ident">s1</span>,<span class="ident">s2</span>) <span class="op">==</span> <span class="ident">s1</span> {
@@ -278,7 +470,7 @@
 }
 
 <span class="doccomment">/// # description</span>
-<span class="doccomment">/// uses &lt;string_srt\&lt;str_lessr\&gt;&gt; to determine lesser string of `s1` and `s2`</span>
+<span class="doccomment">/// uses &lt;string_srt::str_lessr&gt; to determine lesser string of `s1` and `s2`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lessr_str</span><span class="op">&lt;</span><span class="lifetime">&#39;life</span><span class="op">&gt;</span>(<span class="ident">s1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life</span> <span class="ident">String</span>, <span class="ident">s2</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life</span> <span class="ident">String</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;life</span> <span class="ident">String</span> {
 	<span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">str_lessr</span>(<span class="ident">s1</span>,<span class="ident">s2</span>);
     <span class="kw">if</span> <span class="ident">b</span> {
@@ -309,21 +501,27 @@
     <span class="bool-val">true</span>
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// sorts sequence of strings by &lt;strng_srt::str_cmp3&gt; </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_string_vector</span>(<span class="ident">v1</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
     (<span class="kw-2">*</span><span class="ident">v1</span>).<span class="ident">sort_by</span>(<span class="ident">str_cmp3</span>);
 }
 
-
-<span class="comment">////////////////////////////////////////////// methods on inc1string</span>
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// sorts sequence of strings by &lt;strng_srt::str_cmp2&gt; </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_inc1string_vector</span>(<span class="ident">v1</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
     (<span class="kw-2">*</span><span class="ident">v1</span>).<span class="ident">sort_by</span>(<span class="ident">str_cmp2</span>);
 }
 
+<span class="doccomment">/// # return</span>
+<span class="doccomment">/// `s` is alphanumeric? </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_proper_string</span>(<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">all</span>(<span class="ident">char::is_alphanumeric</span>)
 
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// scoring function for string</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc1string_to_u32</span>(<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">u32</span> {
     <span class="macro">assert_eq!</span>(<span class="ident">is_proper_string</span>(<span class="ident">s</span>.<span class="ident">clone</span>()),<span class="bool-val">true</span>);
     <span class="kw">let</span> <span class="ident">x</span>:<span class="ident">u32</span> <span class="op">=</span> (<span class="number">122</span> <span class="op">*</span> (<span class="ident">s</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)) <span class="kw">as</span> <span class="ident">u32</span>;
@@ -333,6 +531,8 @@
     <span class="ident">x</span> <span class="op">+</span> <span class="ident">r</span>
 }
 
+<span class="doccomment">/// # return</span>
+<span class="doccomment">/// string in `s` with max value according to &lt;strng_srt::inc1string_to_u32&gt;</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc1string_vector_max</span>(<span class="ident">s</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">s2</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">inc1string_to_u32</span>((<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">clone</span>())).<span class="ident">collect</span>();
     <span class="comment">// get max</span>
@@ -344,6 +544,69 @@
     <span class="ident">s</span>[<span class="ident">im</span>].<span class="ident">clone</span>()
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// converts each charactr in `s` to 3-digit usize  and concatenates</span>
+<span class="doccomment">/// those usizes together</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">std_str_to_usize</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
+    <span class="comment">// convert str to 3-ascii form</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span>:<span class="ident">String</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(); 
+    <span class="kw">let</span> <span class="ident">asc</span> <span class="op">=</span> <span class="ident">Asciis</span>{};
+    
+    <span class="kw">for</span> <span class="ident">s_</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>() {
+        <span class="comment">// usize::from_char(s_); </span>
+        <span class="kw">let</span> <span class="ident">m</span>:<span class="ident">usize</span> <span class="op">=</span> (<span class="ident">usize::try_from</span>(<span class="ident">asc</span>.<span class="ident">ord</span>(<span class="kw-2">&amp;</span><span class="ident">s_</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>())).<span class="ident">unwrap</span>(); 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m2</span>:<span class="ident">String</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">to_string</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">m2</span>.<span class="ident">len</span>(); 
+        <span class="kw">while</span> <span class="ident">l</span> <span class="op">&lt;</span> <span class="number">3</span> {
+            <span class="ident">m2</span> <span class="op">=</span> <span class="string">&quot;0&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">m2</span>.<span class="ident">as_str</span>();
+            <span class="ident">l</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; 
+        }
+        <span class="ident">s2</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">m2</span>;
+    }
+
+    <span class="comment">// output the usize</span>
+    <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s2</span>).<span class="ident">unwrap</span>()
+}
+
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// processes usize in 3-digit chunks to produce a usize</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">std_usize_to_str</span>(<span class="ident">u</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">to_string</span>(); 
+    <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>(); 
+    <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">l</span> <span class="op">/</span> <span class="number">3</span>;
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">l</span> <span class="op">%</span> <span class="number">3</span>;
+
+    <span class="kw">let</span> <span class="ident">asc</span> <span class="op">=</span> <span class="ident">Asciis</span>{};
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span>:<span class="ident">String</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(); 
+
+    <span class="comment">///////////////////////////////////  </span>
+    <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">m</span> <span class="op">*</span> <span class="number">3</span>; 
+    <span class="kw">if</span> <span class="ident">j</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">l</span> {
+        <span class="kw">return</span> <span class="ident">s2</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">r</span> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="comment">// process 1st (&lt;3)-chunks</span>
+        <span class="kw">let</span> <span class="ident">q</span>:<span class="ident">i32</span> <span class="op">=</span> <span class="ident">i32::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">substring</span>(<span class="number">0</span>,<span class="ident">r</span>).<span class="ident">to_owned</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">q2</span> <span class="op">=</span> <span class="ident">asc</span>.<span class="ident">chr</span>(<span class="ident">q</span>).<span class="ident">unwrap</span>();
+        <span class="ident">s2</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">q2</span>;
+    }
+
+    <span class="comment">///////////////////////////////////////////////////////////</span>
+    
+    <span class="comment">// process all 3-chunks</span>
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">m</span> {
+        <span class="kw">let</span> <span class="ident">i_</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">i</span> <span class="op">+</span> <span class="ident">r</span>;
+        <span class="kw">let</span> <span class="ident">q</span>:<span class="ident">i32</span> <span class="op">=</span> <span class="ident">i32::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">substring</span>(<span class="ident">i_</span>,<span class="ident">i_</span> <span class="op">+</span> <span class="number">3</span>).<span class="ident">to_owned</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">q2</span> <span class="op">=</span> <span class="ident">asc</span>.<span class="ident">chr</span>(<span class="ident">q</span>).<span class="ident">unwrap</span>();
+        <span class="ident">s2</span> <span class="op">=</span> <span class="ident">s2</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">q2</span>;
+    }
+    
+    <span class="ident">s2</span> 
+}
+
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// string comparator function using &lt;strng_srt::inc1string_to_u32&gt;; used for sorting.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_cmp2</span>(<span class="ident">s1</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>, <span class="ident">s2</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
 
     <span class="kw">if</span> <span class="ident">inc1string_to_u32</span>((<span class="kw-2">*</span><span class="ident">s1</span>).<span class="ident">clone</span>()) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">inc1string_to_u32</span>((<span class="kw-2">*</span><span class="ident">s2</span>).<span class="ident">clone</span>()) {
@@ -355,17 +618,24 @@
 
 <span class="comment">//////////////////////////////////////////////// methods on iterable conversion to string</span>
 
-
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// uses &lt;strng_srt::sort_string_vector&gt; to sort `v`</span>
+<span class="doccomment">/// # return</span>
+<span class="doccomment">/// stringized sorted `v`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stringized_srted_vec</span>(<span class="ident">v</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
     <span class="ident">sort_string_vector</span>(<span class="ident">v</span>);
-    <span class="ident">setf::vec_to_str</span>(<span class="ident">v</span>.<span class="ident">to_vec</span>())
+    <span class="ident">setf::vec_to_str</span>(<span class="ident">v</span>.<span class="ident">to_vec</span>(),<span class="string">&#39;_&#39;</span>)
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// set version of &lt;strng_srt::stringized_srted_vec&gt;</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stringized_srted_hash</span>(<span class="ident">h</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="ident">h</span>).<span class="ident">into_iter</span>().<span class="ident">collect</span>();
     <span class="ident">stringized_srted_vec</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>)
 }
 
+<span class="doccomment">/// # return</span>
+<span class="doccomment">/// converted set `h` to vector </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_hashset_to_vector</span>(<span class="ident">h</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -375,7 +645,8 @@
     <span class="ident">v</span>
 }
 
-
+<span class="doccomment">/// # return</span>
+<span class="comment">// set version of generic vector `v`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vector_to_string_hashset</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
     <span class="kw">where</span>
     <span class="ident">T</span>:<span class="ident">ToString</span>
@@ -389,8 +660,9 @@
 }
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////</span>
-<span class="comment">// TODO: test</span>
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// sequence of `(T,T2)` pairs to map of `T -&gt; T2`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vecd2_to_hashmap</span><span class="op">&lt;</span><span class="ident">T</span>,<span class="ident">T2</span><span class="op">&gt;</span>(<span class="ident">vd</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T</span>,<span class="ident">T2</span>)<span class="op">&gt;</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,<span class="ident">String</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">T</span>:<span class="ident">ToString</span> <span class="op">+</span> <span class="ident">Eq</span>,<span class="comment">//Eq + Hashable,</span>
       <span class="ident">T2</span>: <span class="ident">ToString</span><span class="comment">//Eq</span>
@@ -402,6 +674,8 @@
     <span class="ident">res</span>
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// string comparator function 4; used for sorting.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_cmp4</span>(<span class="ident">s1</span>: <span class="kw-2">&amp;</span>(<span class="ident">String</span>,<span class="ident">f32</span>),<span class="ident">s2</span>: <span class="kw-2">&amp;</span>(<span class="ident">String</span>,<span class="ident">f32</span>)) -&gt; <span class="ident">std::cmp::Ordering</span> {
     <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">s1</span>).<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">s2</span>).<span class="number">1</span> {
     	<span class="kw">return</span> <span class="ident">Ordering::Less</span>;
@@ -409,6 +683,8 @@
     <span class="ident">Ordering::Greater</span>
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// string comparator function 5; used for sorting.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_cmp5</span>(<span class="ident">s1</span>: <span class="kw-2">&amp;</span>(<span class="ident">String</span>,<span class="ident">i32</span>),<span class="ident">s2</span>: <span class="kw-2">&amp;</span>(<span class="ident">String</span>,<span class="ident">i32</span>)) -&gt; <span class="ident">std::cmp::Ordering</span> {
     <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">s1</span>).<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">s2</span>).<span class="number">1</span> {
     	<span class="kw">return</span> <span class="ident">Ordering::Less</span>;
@@ -416,6 +692,8 @@
     <span class="ident">Ordering::Greater</span>
 }
 
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// map of `T -&gt; T2` to sequence of `(T,T2)` pairs</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hashmap_to_2vector</span><span class="op">&lt;</span><span class="ident">T</span>,<span class="ident">T2</span><span class="op">&gt;</span>(<span class="ident">hm</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">T</span>,<span class="ident">T2</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T</span>,<span class="ident">T2</span>)<span class="op">&gt;</span>
 <span class="kw">where</span>
 <span class="ident">T</span>:<span class="ident">Clone</span>,
@@ -501,6 +779,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;ar&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;bxx&quot;</span>.<span class="ident">to_string</span>()];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stringized_srted_vec</span>(<span class="kw-2">&amp;mut</span> <span class="ident">x</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">y</span>,<span class="string">&quot;a_ar_bxx&quot;</span>.<span class="ident">to_string</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span> 
+    <span class="kw">fn</span> <span class="ident">test__std_str_usize_conversion</span>() {
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;FOCK&quot;</span>; 
+        <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">std_str_to_usize</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">s3</span> <span class="op">=</span> <span class="ident">std_usize_to_str</span>(<span class="ident">s2</span>); 
+        <span class="macro">assert_eq!</span>(<span class="ident">s3</span>,<span class="string">&quot;FOCK&quot;</span>.<span class="ident">to_string</span>());
     }
 
 }

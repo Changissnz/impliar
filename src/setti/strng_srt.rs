@@ -9,6 +9,57 @@ use std::collections::HashSet;
 use std::str::FromStr;
 use std::collections::HashMap;
 
+/// # TODO
+/// relocate this
+pub fn mod_in_range(x:i32,r:(i32,i32)) -> i32 {
+    assert!(r.0 < r.1);
+    if x >= r.0 && x <= r.1 {
+        return x;
+    }
+
+    if x > r.1 {
+        // get difference
+        let d = (x - r.1) % (r.1 - r.0);
+        return r.0 + d;
+    } else {
+        let d = (r.0 - x) % (r.1 - r.0);
+        return r.1 - d; 
+    }
+}
+
+pub fn f32_mod_in_range(x:f32,r:(f32,f32)) -> f32 {
+    assert!(r.0 < r.1);
+    if x >= r.0 && x <= r.1 {
+        return x;
+    }
+
+    if x > r.1 {
+        // get difference
+        let d = (x - r.1) % (r.1 - r.0);
+        return r.0 + d;
+    } else {
+        let d = (r.0 - x) % (r.1 - r.0);
+        return r.1 - d; 
+    }
+}
+
+pub fn std_alphanumeric_vec() -> Vec<i32> {
+    let mut x: Vec<i32> = (48..58).into_iter().collect();
+    let mut x2: Vec<i32> = (65..91).into_iter().collect();
+    let mut x3: Vec<i32> = (97..122).into_iter().collect();
+    x.extend(x2);
+    x.extend(x3);
+    x
+}
+
+/// # description
+/// calibrates i32 in range \[48,57\], \[65,90\],\[97,122\]
+pub fn calibrate_i32_in_std_alphanumeric_range(i:i32) -> i32 {
+    // mod in range 61
+    let mut j = i % 61;
+    std_alphanumeric_vec()[j as usize]
+}
+
 /// # description
 /// string comparator function using <strng_srt::lessr_str>; used for sorting.
 pub fn str_cmp3(s1: &String, s2: &String) -> std::cmp::Ordering {
@@ -95,6 +146,67 @@ pub fn inc1string_vector_max(s:Vec<String>) -> String {
 }
 
 /// # description
+/// converts each charactr in `s` to 3-digit usize  and concatenates
+/// those usizes together
+pub fn std_str_to_usize(s: &str) -> usize {
+    // convert str to 3-ascii form
+    let mut s2:String = "".to_string(); 
+    let asc = Asciis{};
+    
+    for s_ in s.chars() {
+        // usize::from_char(s_); 
+        let m:usize = (usize::try_from(asc.ord(&s_.to_string()).unwrap())).unwrap(); 
+        let mut m2:String = m.to_string();
+        let mut l = m2.len(); 
+        while l < 3 {
+            m2 = "0".to_string() + m2.as_str();
+            l += 1; 
+        }
+        s2 += &m2;
+    }
+
+    // output the usize
+    usize::from_str(&s2).unwrap()
+}
+
+/// # description
+/// processes usize in 3-digit chunks to produce a usize
+pub fn std_usize_to_str(u: usize) -> String {
+    let mut s = u.to_string(); 
+    let l = s.len(); 
+    let m = l / 3;
+    let r = l % 3;
+
+    let asc = Asciis{};
+    let mut s2:String = "".to_string(); 
+
+    ///////////////////////////////////  
+    let j = m * 3; 
+    if j >= l {
+        return s2;
+    }
+
+    if r > 0 {
+        // process 1st (<3)-chunks
+        let q:i32 = i32::from_str(&s.substring(0,r).to_owned()).unwrap();
+        let q2 = asc.chr(q).unwrap();
+        s2 += &q2;
+    }
+
+    ///////////////////////////////////////////////////////////
+    
+    // process all 3-chunks
+    for i in 0..m {
+        let i_ = 3 * i + r;
+        let q:i32 = i32::from_str(&s.substring(i_,i_ + 3).to_owned()).unwrap();
+        let q2 = asc.chr(q).unwrap();
+        s2 = s2 + &q2;
+    }
+    
+    s2 
+}
+
+/// # description
 /// string comparator function using <strng_srt::inc1string_to_u32>; used for sorting.
 pub fn str_cmp2(s1: &String, s2: &String) -> std::cmp::Ordering {
 
@@ -113,7 +225,7 @@ pub fn str_cmp2(s1: &String, s2: &String) -> std::cmp::Ordering {
 /// stringized sorted `v`
 pub fn stringized_srted_vec(v: &mut Vec<String>) -> String {
     sort_string_vector(v);
-    setf::vec_to_str(v.to_vec())
+    setf::vec_to_str(v.to_vec(),'_')
 }
 
 /// # description
@@ -268,6 +380,14 @@ mod tests {
         let mut x = vec!["a".to_string(), "ar".to_string(), "bxx".to_string()];
         let mut y = stringized_srted_vec(&mut x);
         assert_eq!(y,"a_ar_bxx".to_string());
+    }
+
+    #[test] 
+    fn test__std_str_usize_conversion() {
+        let s = "FOCK"; 
+        let s2 = std_str_to_usize(&s);
+        let s3 = std_usize_to_str(s2); 
+        assert_eq!(s3,"FOCK".to_string());
     }
 
 }

@@ -12,3 +12,4 @@ pub mod skewf32;
 pub mod std_rng;
 pub mod demo_rng;
 pub mod ns;
+pub mod implie;

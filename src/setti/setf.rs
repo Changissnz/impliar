@@ -135,9 +135,8 @@ impl fmt::Display for VectorCounter {
 }
 
 impl VectorCounter {
-    /*
-    place each key as value 1
-    */
+    
+    /// place each key as value 1
     pub fn one_it(&mut self) {
         let k:Vec<String> = self.data.clone().into_keys().collect();
 
@@ -146,18 +145,32 @@ impl VectorCounter {
         }
     }
 
+    pub fn contains(&mut self,s:String) -> bool {
+        self.data.contains_key(&s)
+    }
+
+    pub fn value(&mut self,s:String) -> i32 {
+        self.data.get(&s).unwrap().clone()
+    }
+
+    pub fn increment(&mut self,i:i32) {
+        for k in self.data.clone().into_keys() {
+            *self.data.get_mut(&k).unwrap() += i; 
+        }
+    }
+
 }
 
 /// # return
 /// converted generic vector to string using _ as separator
-pub fn vec_to_str<T>(s: Vec<T>) -> String
+pub fn vec_to_str<T>(s: Vec<T>,c:char) -> String
     where
     T : ToString {
 
     let mut h = String::from("");
     for s_ in s.iter() {
         h = h + &(s_.to_string());
-        h.push_str("_");
+        h.push_str(c.to_string().as_str());
     }
 
     if h.len() > 0 {
@@ -167,40 +180,38 @@ pub fn vec_to_str<T>(s: Vec<T>) -> String
     h
 }
 
-
-pub fn str_to_vec(s:String) -> Vec<String> {
+pub fn str_to_vec(s:String,cx:char) -> Vec<String> {
     let mut j: i32 = 0;
     let mut v: Vec<String> = Vec::new();
-    let mut c = 0;
     while true {
         // get substring starting at j
         let sx = s.to_string().substring(j as usize, s.len()).to_owned();
-        let i = next_str(sx.clone());//(*s4).to_string());
+        let i = next_str(sx.clone(),cx);//(*s4).to_string());
         if i == -1 {
-            v.push(s.to_string().substring(j as usize, s.len()).to_owned());
+            let q = s.to_string().substring(j as usize, s.len()).to_owned();
+            if q.len() > 0 {
+                v.push(q);
+            }
             break;
         }
         let ss = s.to_string().substring(j as usize,(j + i) as usize).to_owned();
-        v.push(ss.clone());
-        j += i + 1;
-        c += 1;
-        if c >= 5 {
-            break;
+        if ss.len() > 0 {
+            v.push(ss.clone());
         }
+        j += i + 1;
     }
     v
 }
 
-pub fn next_str(s:String) -> i32 {
+pub fn next_str(s:String,c:char) -> i32 {
 
     for (i,s_) in s.chars().enumerate() {
-        if s_ == '_' {
+        if s_ == c {
             return i as i32;
         }
     }
     -1
 }
-
 
 pub fn generic_vec_to_stringvec<T>(v:Vec<T>) -> Vec<String>
     where
@@ -226,7 +237,7 @@ mod tests {
         let mut s = "lasjdflsadjfsal;fjsald;fjsadl;_flsakdjflas;dfjls;adkjf";
         let sol: Vec<String> = vec!["lasjdflsadjfsal;fjsald;fjsadl;".to_string(),"flsakdjflas;dfjls;adkjf".to_string()];
 
-        let v1 = str_to_vec(s.to_string());
+        let v1 = str_to_vec(s.to_string(),'_');
 
         for (i,v) in v1.iter().enumerate() {
             assert_eq!(v.to_string(),sol[i]);
@@ -235,7 +246,7 @@ mod tests {
         // case 2
         let mut s2 = "lasjdflsadjfsal;fjsald;fjsadl;";
         let sol2: Vec<String> = vec!["lasjdflsadjfsal;fjsald;fjsadl;".to_string()];
-        let v2 = str_to_vec(s2.to_string());
+        let v2 = str_to_vec(s2.to_string(),'_');
 
         for (i,v) in v2.iter().enumerate() {
             assert_eq!(v.to_string(),sol2[i]);
@@ -243,7 +254,7 @@ mod tests {
 
         // case 3
         let mut s = "arbitrox_bartinuell_radinox".to_string();
-        let mut s2 = str_to_vec(s);
+        let mut s2 = str_to_vec(s,'_');
         assert_eq!(s2,vec!["arbitrox".to_string(), "bartinuell".to_string(),"radinox".to_string()]);
 
     }
@@ -252,12 +263,12 @@ mod tests {
     fn test__vec_to_str() {
         // case 1
         let mut s = vec!["lasjdflsadjfsal;fjsald;fjsadl;"];
-        let mut v1 = vec_to_str(s);
+        let mut v1 = vec_to_str(s,'_');
         assert_eq!(v1,"lasjdflsadjfsal;fjsald;fjsadl;".to_string());
 
         // case 2
         let mut s2 = vec!["one","two","2","three"];
-        v1 = vec_to_str(s2);
+        v1 = vec_to_str(s2,'_');
         assert_eq!(v1,"one_two_2_three".to_string());
     }
 

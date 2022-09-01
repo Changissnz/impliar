@@ -22,7 +22,7 @@ pub fn arr1_seq_to_csv(a:Vec<Array1<f32>>,filename: &str,file_mode:&str) {
 
     let r = a.len();
     for i in 0..r {
-        let mut s = setf::vec_to_str(a[i].clone().into_iter().collect());
+        let mut s = setf::vec_to_str(a[i].clone().into_iter().collect(),'_');
         s += "\n";
         fileRef.write_all(s.as_bytes()).expect("write failed");
     }
@@ -36,7 +36,7 @@ pub fn csv_to_arr1_seq(filepath: &str) -> Result<Vec<Array1<f32>>, Box<dyn std::
     let mut sol: Vec<Array1<f32>> = Vec::new();
 
     for line in reader.lines() {
-        let s: Vec<String> = setf::str_to_vec(line?);
+        let s: Vec<String> = setf::str_to_vec(line?,'_');
         let s2:Array1<f32> = s.into_iter().map(|x| x.parse::<f32>().unwrap()).collect();
         sol.push(s2);
     }
@@ -52,7 +52,7 @@ pub fn arr1_to_csv(a:Array1<f32>,filename: &str,file_mode:&str) {
 
     let r = a.len();
     for i in 0..r {
-        let mut s = setf::vec_to_str(vec![a[i]]);
+        let mut s = setf::vec_to_str(vec![a[i]],'_');
         s += "\n";
         fileRef.write_all(s.as_bytes()).expect("write failed");
     }
@@ -66,7 +66,7 @@ pub fn csv_to_arr1(filepath: &str) -> Result<Array1<f32>, Box<dyn std::error::Er
     let mut sol: Vec<f32> = Vec::new();
 
     for line in reader.lines() {
-        let s: Vec<String> = setf::str_to_vec(line?);
+        let s: Vec<String> = setf::str_to_vec(line?,'_');
         assert!(s.len() == 1);
         sol.push(s[0].parse::<f32>().unwrap());
     }

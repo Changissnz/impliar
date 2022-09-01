@@ -2,6 +2,7 @@
 use ndarray::{Array,Array1,arr1};
 use std::fmt;
 use std::collections::HashSet;
+use std::ops::{Add};
 
 /// struct used to map an i32 n-vector into another i32 n-vector
 #[derive(Debug,Clone,PartialEq)]
@@ -135,7 +136,72 @@ impl Skew {
             return v * r;
         }
     }
+
+    // # description
+    // 
+    /*
+    pub fn inversion(&mut self)  -> Skew {
+
+    }
+    */
 }
+
+/// add schematic for Skew is the following:
+///
+/// - use the skew ordering of self. 
+/// - go through <?adder,?addit,?multer,?multit> and
+///                 - if self or other is None, take !None
+///                 - otherwise, add self + other
+impl Add for Skew {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        let mut a1: Option<i32> = None;
+        let mut a2: Option<Array1<i32>> = None;
+        let mut m1: Option<i32> = None;
+        let mut m2: Option<Array1<i32>> = None;
+
+        if !self.adder.is_none() {
+            if !other.adder.is_none() {
+                let a = self.adder.unwrap() + other.adder.unwrap();
+                a1 = Some(a);
+            } else {
+                a1 = self.adder.clone(); 
+            }
+        }
+
+        if !self.addit.is_none() {
+            if !other.addit.is_none() {
+                let a_ = self.addit.unwrap() + other.addit.unwrap();
+                a2 = Some(a_);
+            } else {
+                a2 = self.addit.clone(); 
+            }
+        }
+
+        if !self.multer.is_none() {
+            if !other.multer.is_none() {
+                let m = self.multer.unwrap() + other.multer.unwrap();
+                m1 = Some(m);
+            }  else {
+                m1 = self.multer.clone(); 
+            }
+        }
+
+        if !self.multit.is_none() {
+            if !other.multit.is_none() {
+                let m_ = self.multit.unwrap() + other.multit.unwrap();
+                m2 = Some(m_);
+            }  else {
+                m2 = self.multit.clone(); 
+            }
+        }
+
+       build_skew(a1,m1,a2,m2,self.ordering.clone(),None) 
+    }
+}
+
+
 
 
 #[cfg(test)]

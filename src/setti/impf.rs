@@ -1,117 +1,106 @@
 use crate::metrice::vcsv; 
+use crate::setti::strng_srt;
 use ndarray::Array1;
 extern crate round;
 use round::{round};
 
+extern crate savefile;
+extern crate savefile_derive;
+use savefile::prelude::*;
+
+pub fn save_ImpF(impf:&ImpF,bin_name:&str) {
+    save_file(("src/data/".to_string() + bin_name).as_str(),0,impf).unwrap();
+}
+
+pub fn load_ImpF(bin_name:&str) -> ImpF {
+    load_file(("src/data/".to_string() + bin_name).as_str(), 0).unwrap()
+}
+
+pub fn save_ImpFI32(impf:&ImpFI32,bin_name:&str) {
+    save_file(("src/data/".to_string() + bin_name).as_str(),0,&impf.i).unwrap();
+}
+
+pub fn load_ImpFI32(bin_name:&str) -> ImpFI32 {
+    let impf = load_file(("src/data/".to_string() + bin_name).as_str(), 0).unwrap();
+    build_ImpFI32(impf) 
+}
+
+
 /// structs in file used for constructing modular chain functions
 /// for struct<Impli> and storing them in files
+#[derive(Savefile)]
 pub struct ImpF {
-    // multiples
-    m: Array1<f32>,
-    // current value
+    /// multiples of length n
+    m: Vec<f32>,
+    /// adders of length n 
+    a: Vec<f32>,
+    /// current value
     v: f32,
-    // current index
+    /// current index
     i:usize,
-    // min,max range of v
+    /// min,max range of v
     qr: (f32,f32)
+}
+
+pub fn build_ImpF(m:Vec<f32>,a:Vec<f32>,v:f32,i:usize,qr:(f32,f32)) -> ImpF {
+    ImpF{m:m,a:a,v:v,i:i,qr:qr} 
+}
+
+/// # description
+/// sample ImpF vec used for existence values of <impli::Impli> kernel size of 4;
+/// non-uniform generators. 
+pub fn sample_ImpF_vec_e_1_save_to_file(base_fp: String) {
+    let i1 = build_ImpF(vec![0.5,2.,0.25,4.],vec![0.2,0.1,0.15,0.05],0.4,0,(0.,2.));
+    let i2 = build_ImpF(vec![0.5,1.5],vec![0.2,-0.1],0.7,0,(0.,2.));
+    let i3 = build_ImpF(vec![0.5,1.,1.,2.,0.5],vec![0.,0.,0.,0.,0.],1.,0,(0.,2.));
+    let i4 = build_ImpF(vec![2.,0.25,1.],vec![0.5,0.1,-0.2],0.4,0,(0.,2.));
+    
+    save_ImpF(&i1,(base_fp.clone() + "1").as_str());
+    save_ImpF(&i2,(base_fp.clone() + "2").as_str());
+    save_ImpF(&i3,(base_fp.clone() + "3").as_str());
+    save_ImpF(&i4,(base_fp.clone() + "4").as_str());
+}
+
+/// # description
+/// sample ImpF vec used for existence values of <impli::Impli> kernel size of 4;
+/// non-uniform generators. 
+pub fn sample_ImpF_vec_i_1_save_to_file(base_fp: String) {
+    let i1 = build_ImpF(vec![1.],vec![1.],0.5,0,(0.,2.));
+   
+    save_ImpF(&i1,(base_fp.clone() + "1").as_str());
+    save_ImpF(&i1,(base_fp.clone() + "2").as_str());
+    save_ImpF(&i1,(base_fp.clone() + "3").as_str());
+    save_ImpF(&i1,(base_fp.clone() + "4").as_str());
 }
 
 impl ImpF {
 
     pub fn next(&mut self) -> f32 {
+        
         let l = self.m.len();
         self.i = self.i % self.m.len();
-        self.v *= self.m[self.i].clone();
-        if self.v < self.qr.0 {
-            self.v = self.qr.0.clone();
-        }
-
-        if self.v > self.qr.1 {
-            self.v = self.qr.1.clone();
-        }
-
+        self.v = self.v * self.m[self.i].clone() + self.a[self.i].clone();
+        self.v = strng_srt::f32_mod_in_range(self.v,self.qr.clone());
         self.i += 1;
         self.v.clone()
     }
-
-    pub fn to_file(&mut self,filename: &str,file_mode:&str) {
-        let q = vec![self.m.clone()];
-        vcsv::arr1_seq_to_csv(q,filename,file_mode);
-    }
-
 }
 
-
-/////////////////////////////////////////////////////////////
-
-pub struct ImpFSeq {
-    iv: Vec<ImpF>
+/// i32 version of 
+#[derive(Savefile)]
+pub struct ImpFI32 {
+    i : ImpF,
 }
 
-impl ImpFSeq {
+pub fn build_ImpFI32(i: ImpF) -> ImpFI32 {
+    ImpFI32{i:i} 
+}
 
-    pub fn next(&mut self,i:usize) -> f32 {
-        self.iv[i].next()
-    }
+impl ImpFI32 {
 
-    pub fn to_file(&mut self,filename: &str) {
-        let l = self.iv.len();
-        if l == 0 {
-            return; 
-        }
-
-        // write the first one
-        self.iv[0].to_file(filename,"w");
-
-        // append the rest
-        for i in 1..l {
-            self.iv[i].to_file(filename,"a");
-        }
+    pub fn next(&mut self) -> i32 {
+        let n = self.i.next();
+        n.round() as i32
     }
 }
 
-pub fn build_ImpF(m: Array1<f32>,v:f32,qr:(f32,f32)) -> ImpF {
-    ImpF{m:m,v:v,i:0,qr:qr}
-}
-
-pub fn file_to_ImpFSeq(f: &str,vv:Vec<f32>,qr:(f32,f32)) -> ImpFSeq {
-    let s = vcsv::csv_to_arr1_seq(f).unwrap();
-    let l = vv.len();
-    assert!(s.len() == l);
-    let mut d: Vec<ImpF> = Vec::new(); 
-    for i in 0..l {
-        let f = build_ImpF(s[i].clone(),vv[i],qr.clone());
-        d.push(f);
-    }
-
-    ImpFSeq{iv:d}
-}  
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-
-    #[test]
-    pub fn test__file_to_ImpFSeq() {
-        let f = "src/data/i_f1.csv";
-        let vv = vec![0.2,0.4,0.5,0.6];
-        let qr = (0.,1.);
-        let ifs = file_to_ImpFSeq(f,vv,qr);
-    }
-
-    #[test]
-    pub fn test__ImpFSeq__next() {
-        let f = "src/data/i_f1.csv";
-        let vv = vec![0.2,0.4,0.5,0.6];
-        let qr = (0.,1.);
-        let mut ifs = file_to_ImpFSeq(f,vv,qr);
-        
-        let mut res:Vec<f32> = Vec::new();
-        for i in 0..4 {
-            let q = round(ifs.next(i) as f64,5) as f32;
-            res.push(q); 
-        }
-        assert_eq!(res,vec![0.6, 0.2, 1.0, 0.48]);
-    }
-}

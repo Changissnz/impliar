@@ -110,7 +110,7 @@ csv functions for reading/write vec&lt;arr1&gt;
 
     <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">len</span>();
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">r</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">setf::vec_to_str</span>(<span class="ident">a</span>[<span class="ident">i</span>].<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">setf::vec_to_str</span>(<span class="ident">a</span>[<span class="ident">i</span>].<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>(),<span class="string">&#39;_&#39;</span>);
         <span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="string">&quot;\n&quot;</span>;
         <span class="ident">fileRef</span>.<span class="ident">write_all</span>(<span class="ident">s</span>.<span class="ident">as_bytes</span>()).<span class="ident">expect</span>(<span class="string">&quot;write failed&quot;</span>);
     }
@@ -124,7 +124,7 @@ csv functions for reading/write vec&lt;arr1&gt;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
-        <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">line</span><span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">line</span><span class="question-mark">?</span>,<span class="string">&#39;_&#39;</span>);
         <span class="kw">let</span> <span class="ident">s2</span>:<span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()).<span class="ident">collect</span>();
         <span class="ident">sol</span>.<span class="ident">push</span>(<span class="ident">s2</span>);
     }
@@ -140,7 +140,7 @@ csv functions for reading/write vec&lt;arr1&gt;
 
     <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">len</span>();
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">r</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">setf::vec_to_str</span>(<span class="macro">vec!</span>[<span class="ident">a</span>[<span class="ident">i</span>]]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">setf::vec_to_str</span>(<span class="macro">vec!</span>[<span class="ident">a</span>[<span class="ident">i</span>]],<span class="string">&#39;_&#39;</span>);
         <span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="string">&quot;\n&quot;</span>;
         <span class="ident">fileRef</span>.<span class="ident">write_all</span>(<span class="ident">s</span>.<span class="ident">as_bytes</span>()).<span class="ident">expect</span>(<span class="string">&quot;write failed&quot;</span>);
     }
@@ -154,7 +154,7 @@ csv functions for reading/write vec&lt;arr1&gt;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
-        <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">line</span><span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">line</span><span class="question-mark">?</span>,<span class="string">&#39;_&#39;</span>);
         <span class="macro">assert!</span>(<span class="ident">s</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>);
         <span class="ident">sol</span>.<span class="ident">push</span>(<span class="ident">s</span>[<span class="number">0</span>].<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
     }

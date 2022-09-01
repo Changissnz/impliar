@@ -124,9 +124,9 @@ Disclude-Include Forward Branching Chain Head
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">change_identifier</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dif</span>: <span class="kw-2">&amp;mut</span> <span class="ident">disinc::DisIncForwardChainHead</span>, <span class="ident">i</span>:<span class="ident">usize</span>) {
 
         <span class="comment">//</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">dif</span>.<span class="ident">idn</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">setf::str_to_vec</span>(<span class="ident">dif</span>.<span class="ident">idn</span>(),<span class="string">&#39;_&#39;</span>);
         <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
-        <span class="ident">dif</span>.<span class="ident">mod_identifier</span>(<span class="ident">setf::vec_to_str</span>(<span class="ident">v</span>));
+        <span class="ident">dif</span>.<span class="ident">mod_identifier</span>(<span class="ident">setf::vec_to_str</span>(<span class="ident">v</span>,<span class="string">&#39;_&#39;</span>));
     }
 
 }

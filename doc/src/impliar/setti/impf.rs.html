@@ -110,133 +110,112 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::metrice::vcsv</span>; 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::strng_srt</span>;
 <span class="kw">use</span> <span class="ident">ndarray::Array1</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">round</span>;
 <span class="kw">use</span> <span class="ident">round</span>::{<span class="ident">round</span>};
 
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">savefile</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">savefile_derive</span>;
+<span class="kw">use</span> <span class="ident">savefile::prelude</span>::<span class="kw-2">*</span>;
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_ImpF</span>(<span class="ident">impf</span>:<span class="kw-2">&amp;</span><span class="ident">ImpF</span>,<span class="ident">bin_name</span>:<span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="ident">save_file</span>((<span class="string">&quot;src/data/&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">bin_name</span>).<span class="ident">as_str</span>(),<span class="number">0</span>,<span class="ident">impf</span>).<span class="ident">unwrap</span>();
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_ImpF</span>(<span class="ident">bin_name</span>:<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ImpF</span> {
+    <span class="ident">load_file</span>((<span class="string">&quot;src/data/&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">bin_name</span>).<span class="ident">as_str</span>(), <span class="number">0</span>).<span class="ident">unwrap</span>()
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_ImpFI32</span>(<span class="ident">impf</span>:<span class="kw-2">&amp;</span><span class="ident">ImpFI32</span>,<span class="ident">bin_name</span>:<span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="ident">save_file</span>((<span class="string">&quot;src/data/&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">bin_name</span>).<span class="ident">as_str</span>(),<span class="number">0</span>,<span class="kw-2">&amp;</span><span class="ident">impf</span>.<span class="ident">i</span>).<span class="ident">unwrap</span>();
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_ImpFI32</span>(<span class="ident">bin_name</span>:<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ImpFI32</span> {
+    <span class="kw">let</span> <span class="ident">impf</span> <span class="op">=</span> <span class="ident">load_file</span>((<span class="string">&quot;src/data/&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">bin_name</span>).<span class="ident">as_str</span>(), <span class="number">0</span>).<span class="ident">unwrap</span>();
+    <span class="ident">build_ImpFI32</span>(<span class="ident">impf</span>) 
+}
+
+
 <span class="doccomment">/// structs in file used for constructing modular chain functions</span>
 <span class="doccomment">/// for struct&lt;Impli&gt; and storing them in files</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Savefile</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImpF</span> {
-    <span class="comment">// multiples</span>
-    <span class="ident">m</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="comment">// current value</span>
+    <span class="doccomment">/// multiples of length n</span>
+    <span class="ident">m</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// adders of length n </span>
+    <span class="ident">a</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// current value</span>
     <span class="ident">v</span>: <span class="ident">f32</span>,
-    <span class="comment">// current index</span>
+    <span class="doccomment">/// current index</span>
     <span class="ident">i</span>:<span class="ident">usize</span>,
-    <span class="comment">// min,max range of v</span>
+    <span class="doccomment">/// min,max range of v</span>
     <span class="ident">qr</span>: (<span class="ident">f32</span>,<span class="ident">f32</span>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_ImpF</span>(<span class="ident">m</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,<span class="ident">a</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,<span class="ident">v</span>:<span class="ident">f32</span>,<span class="ident">i</span>:<span class="ident">usize</span>,<span class="ident">qr</span>:(<span class="ident">f32</span>,<span class="ident">f32</span>)) -&gt; <span class="ident">ImpF</span> {
+    <span class="ident">ImpF</span>{<span class="ident">m</span>:<span class="ident">m</span>,<span class="ident">a</span>:<span class="ident">a</span>,<span class="ident">v</span>:<span class="ident">v</span>,<span class="ident">i</span>:<span class="ident">i</span>,<span class="ident">qr</span>:<span class="ident">qr</span>} 
+}
+
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// sample ImpF vec used for existence values of &lt;impli::Impli&gt; kernel size of 4;</span>
+<span class="doccomment">/// non-uniform generators. </span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample_ImpF_vec_e_1_save_to_file</span>(<span class="ident">base_fp</span>: <span class="ident">String</span>) {
+    <span class="kw">let</span> <span class="ident">i1</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="macro">vec!</span>[<span class="number">0.5</span>,<span class="number">2.</span>,<span class="number">0.25</span>,<span class="number">4.</span>],<span class="macro">vec!</span>[<span class="number">0.2</span>,<span class="number">0.1</span>,<span class="number">0.15</span>,<span class="number">0.05</span>],<span class="number">0.4</span>,<span class="number">0</span>,(<span class="number">0.</span>,<span class="number">2.</span>));
+    <span class="kw">let</span> <span class="ident">i2</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="macro">vec!</span>[<span class="number">0.5</span>,<span class="number">1.5</span>],<span class="macro">vec!</span>[<span class="number">0.2</span>,<span class="op">-</span><span class="number">0.1</span>],<span class="number">0.7</span>,<span class="number">0</span>,(<span class="number">0.</span>,<span class="number">2.</span>));
+    <span class="kw">let</span> <span class="ident">i3</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="macro">vec!</span>[<span class="number">0.5</span>,<span class="number">1.</span>,<span class="number">1.</span>,<span class="number">2.</span>,<span class="number">0.5</span>],<span class="macro">vec!</span>[<span class="number">0.</span>,<span class="number">0.</span>,<span class="number">0.</span>,<span class="number">0.</span>,<span class="number">0.</span>],<span class="number">1.</span>,<span class="number">0</span>,(<span class="number">0.</span>,<span class="number">2.</span>));
+    <span class="kw">let</span> <span class="ident">i4</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="macro">vec!</span>[<span class="number">2.</span>,<span class="number">0.25</span>,<span class="number">1.</span>],<span class="macro">vec!</span>[<span class="number">0.5</span>,<span class="number">0.1</span>,<span class="op">-</span><span class="number">0.2</span>],<span class="number">0.4</span>,<span class="number">0</span>,(<span class="number">0.</span>,<span class="number">2.</span>));
+    
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i1</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;1&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i2</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;2&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i3</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;3&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i4</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;4&quot;</span>).<span class="ident">as_str</span>());
+}
+
+<span class="doccomment">/// # description</span>
+<span class="doccomment">/// sample ImpF vec used for existence values of &lt;impli::Impli&gt; kernel size of 4;</span>
+<span class="doccomment">/// non-uniform generators. </span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample_ImpF_vec_i_1_save_to_file</span>(<span class="ident">base_fp</span>: <span class="ident">String</span>) {
+    <span class="kw">let</span> <span class="ident">i1</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="macro">vec!</span>[<span class="number">1.</span>],<span class="macro">vec!</span>[<span class="number">1.</span>],<span class="number">0.5</span>,<span class="number">0</span>,(<span class="number">0.</span>,<span class="number">2.</span>));
+   
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i1</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;1&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i1</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;2&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i1</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;3&quot;</span>).<span class="ident">as_str</span>());
+    <span class="ident">save_ImpF</span>(<span class="kw-2">&amp;</span><span class="ident">i1</span>,(<span class="ident">base_fp</span>.<span class="ident">clone</span>() <span class="op">+</span> <span class="string">&quot;4&quot;</span>).<span class="ident">as_str</span>());
 }
 
 <span class="kw">impl</span> <span class="ident">ImpF</span> {
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">f32</span> {
+        
         <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">len</span>();
         <span class="self">self</span>.<span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">i</span> <span class="op">%</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">len</span>();
-        <span class="self">self</span>.<span class="ident">v</span> <span class="kw-2">*</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">m</span>[<span class="self">self</span>.<span class="ident">i</span>].<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">v</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">qr</span>.<span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">v</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">qr</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-        }
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">v</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">qr</span>.<span class="number">1</span> {
-            <span class="self">self</span>.<span class="ident">v</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">qr</span>.<span class="number">1</span>.<span class="ident">clone</span>();
-        }
-
+        <span class="self">self</span>.<span class="ident">v</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">m</span>[<span class="self">self</span>.<span class="ident">i</span>].<span class="ident">clone</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">a</span>[<span class="self">self</span>.<span class="ident">i</span>].<span class="ident">clone</span>();
+        <span class="self">self</span>.<span class="ident">v</span> <span class="op">=</span> <span class="ident">strng_srt::f32_mod_in_range</span>(<span class="self">self</span>.<span class="ident">v</span>,<span class="self">self</span>.<span class="ident">qr</span>.<span class="ident">clone</span>());
         <span class="self">self</span>.<span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">clone</span>()
     }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="ident">file_mode</span>:<span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">m</span>.<span class="ident">clone</span>()];
-        <span class="ident">vcsv::arr1_seq_to_csv</span>(<span class="ident">q</span>,<span class="ident">filename</span>,<span class="ident">file_mode</span>);
-    }
-
 }
 
-
-<span class="comment">/////////////////////////////////////////////////////////////</span>
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImpFSeq</span> {
-    <span class="ident">iv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ImpF</span><span class="op">&gt;</span>
+<span class="doccomment">/// i32 version of </span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Savefile</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImpFI32</span> {
+    <span class="ident">i</span> : <span class="ident">ImpF</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">ImpFSeq</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_ImpFI32</span>(<span class="ident">i</span>: <span class="ident">ImpF</span>) -&gt; <span class="ident">ImpFI32</span> {
+    <span class="ident">ImpFI32</span>{<span class="ident">i</span>:<span class="ident">i</span>} 
+}
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">i</span>:<span class="ident">usize</span>) -&gt; <span class="ident">f32</span> {
-        <span class="self">self</span>.<span class="ident">iv</span>[<span class="ident">i</span>].<span class="ident">next</span>()
-    }
+<span class="kw">impl</span> <span class="ident">ImpFI32</span> {
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iv</span>.<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">l</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span>; 
-        }
-
-        <span class="comment">// write the first one</span>
-        <span class="self">self</span>.<span class="ident">iv</span>[<span class="number">0</span>].<span class="ident">to_file</span>(<span class="ident">filename</span>,<span class="string">&quot;w&quot;</span>);
-
-        <span class="comment">// append the rest</span>
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">l</span> {
-            <span class="self">self</span>.<span class="ident">iv</span>[<span class="ident">i</span>].<span class="ident">to_file</span>(<span class="ident">filename</span>,<span class="string">&quot;a&quot;</span>);
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i32</span> {
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">next</span>();
+        <span class="ident">n</span>.<span class="ident">round</span>() <span class="kw">as</span> <span class="ident">i32</span>
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_ImpF</span>(<span class="ident">m</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,<span class="ident">v</span>:<span class="ident">f32</span>,<span class="ident">qr</span>:(<span class="ident">f32</span>,<span class="ident">f32</span>)) -&gt; <span class="ident">ImpF</span> {
-    <span class="ident">ImpF</span>{<span class="ident">m</span>:<span class="ident">m</span>,<span class="ident">v</span>:<span class="ident">v</span>,<span class="ident">i</span>:<span class="number">0</span>,<span class="ident">qr</span>:<span class="ident">qr</span>}
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_to_ImpFSeq</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="ident">vv</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,<span class="ident">qr</span>:(<span class="ident">f32</span>,<span class="ident">f32</span>)) -&gt; <span class="ident">ImpFSeq</span> {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">vcsv::csv_to_arr1_seq</span>(<span class="ident">f</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">vv</span>.<span class="ident">len</span>();
-    <span class="macro">assert!</span>(<span class="ident">s</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">l</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ImpF</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>(); 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">l</span> {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">build_ImpF</span>(<span class="ident">s</span>[<span class="ident">i</span>].<span class="ident">clone</span>(),<span class="ident">vv</span>[<span class="ident">i</span>],<span class="ident">qr</span>.<span class="ident">clone</span>());
-        <span class="ident">d</span>.<span class="ident">push</span>(<span class="ident">f</span>);
-    }
-
-    <span class="ident">ImpFSeq</span>{<span class="ident">iv</span>:<span class="ident">d</span>}
-}  
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test__file_to_ImpFSeq</span>() {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="string">&quot;src/data/i_f1.csv&quot;</span>;
-        <span class="kw">let</span> <span class="ident">vv</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0.2</span>,<span class="number">0.4</span>,<span class="number">0.5</span>,<span class="number">0.6</span>];
-        <span class="kw">let</span> <span class="ident">qr</span> <span class="op">=</span> (<span class="number">0.</span>,<span class="number">1.</span>);
-        <span class="kw">let</span> <span class="ident">ifs</span> <span class="op">=</span> <span class="ident">file_to_ImpFSeq</span>(<span class="ident">f</span>,<span class="ident">vv</span>,<span class="ident">qr</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test__ImpFSeq__next</span>() {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="string">&quot;src/data/i_f1.csv&quot;</span>;
-        <span class="kw">let</span> <span class="ident">vv</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0.2</span>,<span class="number">0.4</span>,<span class="number">0.5</span>,<span class="number">0.6</span>];
-        <span class="kw">let</span> <span class="ident">qr</span> <span class="op">=</span> (<span class="number">0.</span>,<span class="number">1.</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ifs</span> <span class="op">=</span> <span class="ident">file_to_ImpFSeq</span>(<span class="ident">f</span>,<span class="ident">vv</span>,<span class="ident">qr</span>);
-        
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">4</span> {
-            <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">round</span>(<span class="ident">ifs</span>.<span class="ident">next</span>(<span class="ident">i</span>) <span class="kw">as</span> <span class="ident">f64</span>,<span class="number">5</span>) <span class="kw">as</span> <span class="ident">f32</span>;
-            <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">q</span>); 
-        }
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>,<span class="macro">vec!</span>[<span class="number">0.6</span>, <span class="number">0.2</span>, <span class="number">1.0</span>, <span class="number">0.48</span>]);
-    }
-}</code></pre></div>
+</code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="impliar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (Fedora 1.63.0-1.fc36)" ></div>
 </body></html>
