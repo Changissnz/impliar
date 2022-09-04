@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["build_Impli",""]],"struct":[["Impli","TODO: make each initial element an ImpSetSource REQUIRES REFORMATTING OF STRING notation: merging two elements e, e2 e + e2  new element x for e e__x"]]};
+window.SIDEBAR_ITEMS = {"fn":[["build_Impli",""],["is_proper_kernel_value","TODO "],["sample_Impli_1",""]],"struct":[["Impli",""]]};

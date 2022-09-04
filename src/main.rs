@@ -51,5 +51,7 @@ extern crate savefile_derive;
 extern crate savefile;
 use savefile::prelude::*;
 
-fn main() {    
+fn main() {  
+    let mut i = setti::impli::sample_Impli_1();
+    i.gather_options(true);    
 }

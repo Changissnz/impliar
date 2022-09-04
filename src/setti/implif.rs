@@ -12,7 +12,18 @@ pub fn impli_element_score_1(e:f32,i:f32,ew: f32,iw: f32,f:f32,l:f32) -> f32  {
         return 0.; 
     }
     (e * ew + i * iw) / d 
-    // denom f / l: 3 / 1 < 3 / 3  
+}
+
+/// # description
+/// used to calculate the score of a set of elements;
+/// outputs the average score of `s`
+pub fn impli_set_score_1(s:Vec<f32>) -> f32 {
+    let el = s.len();
+    if el == 0 {
+        return 0.;
+    }
+
+    s.into_iter().sum::<f32>() / (el as f32) 
 }
 
 /// struct that represents the threshold function for seed elements
@@ -55,8 +66,9 @@ impl ImpElementSeedSizeF {
 /// scores
 pub struct ImpliSSF { 
     pub f: fn(f32,f32,f32,f32,f32,f32) -> f32,
+    pub f2: fn(Vec<f32>) -> f32, 
     /// hashmap remembers element to existence/implication
-    ht: HashMap<String,(f32,f32)>,
+    pub ht: HashMap<String,(f32,f32)>,
     /// vector counter for frequency
     vc1:VectorCounter, 
     /// vector counter for lifespan
@@ -67,13 +79,25 @@ pub struct ImpliSSF {
     pub iw: f32
 }
 
-pub fn build_ImpliSSF(f: fn(f32,f32,f32,f32,f32,f32) -> f32,ew:f32,iw:f32) -> ImpliSSF {
-    ImpliSSF{f:f,ht:HashMap::new(),vc1:build_VectorCounter(),vc2:build_VectorCounter(),
+pub fn build_ImpliSSF(f: fn(f32,f32,f32,f32,f32,f32) -> f32,
+    f2: fn(Vec<f32>) -> f32, ht: HashMap<String,(f32,f32)>,ew:f32,iw:f32) -> ImpliSSF {
+
+    let x: Vec<String> = ht.clone().into_keys().collect();
+    let mut vc1 = build_VectorCounter();
+    let mut vc2 = build_VectorCounter();
+
+    vc1.countv(x.clone());
+    vc2.countv(x.clone());
+
+    ImpliSSF{f:f,f2:f2,ht:ht,vc1:vc1,vc2:vc2,
         ew:ew,iw:iw} 
 }
 
 impl ImpliSSF {
 
+    /// # description
+    /// applies the function `f` to the element `e`; used to determine
+    /// options for next k-statement of <impli::Impli>. 
     pub fn apply(&mut self,e:String) -> f32 {
         let x = self.ht.get_mut(&e); 
         assert!(!x.is_none());
@@ -83,6 +107,14 @@ impl ImpliSSF {
         let d2 = self.vc2.value(e.clone());
 
         (self.f)(x2.0,self.ew,x2.1,self.iw,d1 as f32,d2 as f32) 
+    }
+
+    /// # description
+    /// applies the function `f2` to `ev`, the k-set of an <impli::Impli>
+    /// k-statement.  
+    pub fn apply2(&mut self,ev:Vec<String>) -> f32 {
+        let s:Vec<f32> = ev.into_iter().map(|x| self.apply(x)).collect(); 
+        (self.f2)(s) 
     }
 
     /// # description

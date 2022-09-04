@@ -54,6 +54,10 @@ pub struct ImpSetSource {
     pub l: usize
 }
 
+pub fn build_ImpSetSource(s:String) -> ImpSetSource {
+    ImpSetSource{idn:s,next_counter:0,l:1} 
+}
+
 impl Add for ImpSetSource {
     type Output = Self;
 

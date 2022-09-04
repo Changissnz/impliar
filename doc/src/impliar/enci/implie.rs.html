@@ -114,6 +114,10 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
 </pre><pre class="rust"><code><span class="doccomment">//! struct used to contain element that can</span>
 <span class="doccomment">//! generate new elements based on schematic.</span>
 <span class="doccomment">//! element. Notation of new elements is in the</span>
@@ -168,6 +172,10 @@
     <span class="kw">pub</span> <span class="ident">idn</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">next_counter</span>:<span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">l</span>: <span class="ident">usize</span>
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_ImpSetSource</span>(<span class="ident">s</span>:<span class="ident">String</span>) -&gt; <span class="ident">ImpSetSource</span> {
+    <span class="ident">ImpSetSource</span>{<span class="ident">idn</span>:<span class="ident">s</span>,<span class="ident">next_counter</span>:<span class="number">0</span>,<span class="ident">l</span>:<span class="number">1</span>} 
 }
 
 <span class="kw">impl</span> <span class="ident">Add</span> <span class="kw">for</span> <span class="ident">ImpSetSource</span> {

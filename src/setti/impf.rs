@@ -1,9 +1,10 @@
+//! structs used for constructing modular chain functions
+//! for struct<Impli> and storing them in files
 use crate::metrice::vcsv; 
 use crate::setti::strng_srt;
 use ndarray::Array1;
 extern crate round;
 use round::{round};
-
 extern crate savefile;
 extern crate savefile_derive;
 use savefile::prelude::*;
@@ -25,9 +26,7 @@ pub fn load_ImpFI32(bin_name:&str) -> ImpFI32 {
     build_ImpFI32(impf) 
 }
 
-
-/// structs in file used for constructing modular chain functions
-/// for struct<Impli> and storing them in files
+/// struct used for modular transformation of f32
 #[derive(Savefile)]
 pub struct ImpF {
     /// multiples of length n
@@ -35,7 +34,7 @@ pub struct ImpF {
     /// adders of length n 
     a: Vec<f32>,
     /// current value
-    v: f32,
+    pub v: f32,
     /// current index
     i:usize,
     /// min,max range of v
@@ -73,6 +72,16 @@ pub fn sample_ImpF_vec_i_1_save_to_file(base_fp: String) {
     save_ImpF(&i1,(base_fp.clone() + "4").as_str());
 }
 
+pub fn sample_ImpF_options_ratio_save_to_file(base_fp:String) {
+    let i1 = build_ImpF(vec![0.4,4.,0.1,0.2],vec![0.2,0.5,-0.5,0.05],0.2,0,(0.,1.));
+    save_ImpF(&i1,&base_fp);
+}
+
+pub fn sample_ImpF_closure_ratio_save_to_file(base_fp:String) {
+    let i1 = build_ImpF(vec![1.],vec![0.],1.,0,(0.,1.));
+    save_ImpF(&i1,&base_fp);
+}
+
 impl ImpF {
 
     pub fn next(&mut self) -> f32 {
@@ -86,14 +95,20 @@ impl ImpF {
     }
 }
 
-/// i32 version of 
+/// i32 version of ImpF
 #[derive(Savefile)]
 pub struct ImpFI32 {
     i : ImpF,
 }
 
 pub fn build_ImpFI32(i: ImpF) -> ImpFI32 {
-    ImpFI32{i:i} 
+    ImpFI32{i:i}
+}
+
+pub fn sample_ImpFI32_save_to_file() {
+    let i1 = build_ImpF(vec![0.5,2.,0.5,2.],vec![0.,0.1,0.,0.1],1000.,0,(0.,1000.));
+    let i = build_ImpFI32(i1);
+    save_ImpFI32(&i,"ifk1");
 }
 
 impl ImpFI32 {
