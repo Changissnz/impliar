@@ -63,15 +63,18 @@ impl Add for ImpSetSource {
 
     fn add(self, other: Self) -> Self {
         let mut q1 = self.idn.clone();
+        /*
         if self.l > 1 {
             q1 = "(".to_string() + q1.as_str() + ")";
         }
+        */
 
         let mut q2 = other.idn.clone();
+        /*
         if other.l > 1 {
             q2 = "(".to_string() + q2.as_str() + ")";
         }
-
+        */ 
         let s1:String = q1 + "_" + q2.as_str();
         ImpSetSource{idn:s1,next_counter:0,l: self.l + other.l} 
     }
@@ -103,11 +106,11 @@ mod tests {
 
         // case 2
         let mut iss3 = iss + iss2.clone(); 
-        assert_eq!(iss3.idn, "lussian_(lussian(lussian,0))".to_string()); 
+        assert_eq!(iss3.idn, "lussian_lussian(lussian,0)".to_string()); 
         assert_eq!(3,iss3.l); 
 
         let mut iss4 = iss2 + iss3; 
-        assert_eq!(iss4.idn, "(lussian(lussian,0))_(lussian_(lussian(lussian,0)))".to_string()); 
+        assert_eq!(iss4.idn, "lussian(lussian,0)_lussian_lussian(lussian,0)".to_string()); 
         assert_eq!(5,iss4.l);
     }
 

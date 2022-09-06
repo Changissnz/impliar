@@ -6,6 +6,7 @@ use crate::setti::impf;
 use crate::setti::implif;
 use crate::setti::set_gen;
 use crate::setti::setf;
+use crate::setti::setf::Count;
 use std::collections::{HashMap,HashSet};
 use crate::metrice::vcsv;
 use crate::setti::strng_srt;
@@ -13,13 +14,15 @@ use crate::enci::implie;
 use crate::enci::ohop; 
 use ndarray::Array1;
 
+//// BOOKMARK: .countv
+
 pub struct Impli {
     /// starting elements
     pub kernel: Vec<String>,
     /// kernel new element existence value generator
-    impfvec_e: HashMap<String,impf::ImpF>,
+    pub impfvec_e: HashMap<String,impf::ImpF>,
     /// kernel new element implication value generator
-    impfvec_i: HashMap<String,impf::ImpF>, 
+    pub impfvec_i: HashMap<String,impf::ImpF>, 
     /// filenames for existence/implication function vectors 
     impfvec_fn: Vec<(String,String)>,
     /// used to determine the k-value of next statement's vectors 
@@ -101,6 +104,17 @@ pub fn build_Impli(kernel: Vec<String>,
 
 impl Impli {
 
+    pub fn output_ei_generated(&mut self,k:String,n: usize) -> Vec<(f32,f32)> {
+        let mut v: Vec<(f32,f32)> = Vec::new();
+        for i in 0..n {
+            let f1 = self.impfvec_e.get_mut(&k).unwrap().next();
+            let f2 = self.impfvec_i.get_mut(&k).unwrap().next();
+            v.push((f1,f2));
+        }
+        v
+
+    }
+
     /// # description
     pub fn output_statement(&mut self,verbose:bool) {
 
@@ -109,28 +123,31 @@ impl Impli {
 
         // fetch k
         let mut k = self.kstatement_fn.0.next() as usize; 
-        k = vec![k,self.iss_hash.len()].into_iter().min().unwrap(); 
+        k = vec![k,o.len()].into_iter().min().unwrap(); 
 
         // calculate (n,k)
         let m = setc::nCr(o.len(),k);
 
         // fetch closure
         let c = self.closure_ratio_fn.0.next();
+        if verbose {
+            println!("closure ratio for {} elements: {}",m,c);
+        }
 
         // calculate required number of k-vectors
         let rn = (c * m as f32).round() as usize; 
 
         // fetch the k-vectors
-        self.gather_k_vectors(o,rn,k);
+        self.gather_k_vectors(o,rn,k,verbose);
 
         // gather new elements from previous k-statement
-        self.gather_new_elements();
+        self.gather_new_elements(verbose);
     
     }
 
     /// # description
     /// calculates new elements from k-statement to be loaded. 
-    pub fn gather_new_elements(&mut self) {
+    pub fn gather_new_elements(&mut self,verbose:bool) {
         let l = self.current_set_scores.len();
         if l == 0 {
             return ;
@@ -138,8 +155,12 @@ impl Impli {
 
         let mut s:Vec<Vec<String>> = Vec::new();
         for l_ in self.current_set_scores.clone().iter() {
-            self.add_new_element((*l_).0.clone(),(*l_).1.clone()); 
-            s.push((*l_).0.clone()); 
+            self.add_new_element((*l_).0.clone(),(*l_).1.clone(),verbose); 
+            s.push((*l_).0.clone());
+
+            for lx in (*l_).0.iter() {
+                self.issf.update_element((*lx).clone(),None);
+            }
         }
 
         // clear 
@@ -150,10 +171,15 @@ impl Impli {
     /// # description
     /// creates a new <implie::ImpSetSource> for `s`
     /// and adds `s` to <impf::ImpliSSF> 
-    pub fn add_new_element(&mut self,s:Vec<String>,f:f32) {
+    pub fn add_new_element(&mut self,s:Vec<String>,f:f32,verbose:bool) {
 
         // get new element size
         let q = self.ssf.size(f,s.len() as i32);
+        let x = self.strvec_to_impsetsource(s.clone());
+
+        if verbose {
+            println!("* gathering new elements for {}: {}",x.idn.clone(),q);
+        }
 
         // case: no new elements
         if q == 0 {
@@ -161,11 +187,14 @@ impl Impli {
         }
 
         // check if s is an element
-        let x = self.strvec_to_impsetsource(s.clone());
         let stat = self.iss_hash.contains_key(&(x.idn)); 
 
         // case: make new ImpSetSource for `s`
         if !stat {
+            if verbose {
+                println!("\t\t* new key")
+            }
+
             self.iss_hash.insert(x.idn.clone(),x.clone()); 
         }
         
@@ -178,19 +207,32 @@ impl Impli {
 
             // insert the new element's existence and implication 
             let (es_,is_) = self.ei_of_new_element(vxq.clone()); 
-            self.issf.ht.insert(vxq,(es_,is_));   
+            
+            if verbose {
+                println!("{}: {},{}",vxq.clone(),es_.clone(),is_.clone());
+            }
+
+            self.issf.update_element(vxq.clone(),Some((es_,is_)));
         }
     }
 
     /// # description
     /// gather all k-vectors (stringized) and their <impli::ImpliSSF.f>
     /// scores. 
-    pub fn gather_k_vectors(&mut self,o: Vec<String>,rn:usize,k:usize) {
-
+    pub fn gather_k_vectors(&mut self,o: Vec<String>,rn:usize,k:usize,verbose:bool) {
+        if verbose {
+            println!("$ gathering k-vectors of size {}",rn);
+        }
+        
+        self.current_set_scores = Vec::new();
+        if k == 0 {
+            return; 
+        }
         // gather elements
         let mut v: Vec<Vec<String>> = Vec::new();
-        let l = o.len() - k;
+        let l = o.len() - k + 1;
         for i in 0..l {
+            
             let x = set_gen::fcollect_vec(o.clone(),i,k);
             let rem = rn as i32 - v.len() as i32;
             if rem <= 0 {
@@ -200,10 +242,12 @@ impl Impli {
         }
 
         // reformat each vec into a impsetsource and calculate its score 
-        self.current_set_scores = Vec::new();
         for v_ in v.iter() {
             let s = self.issf.apply2((*v_).clone());
             self.current_set_scores.push(((*v_).clone(),s));
+            if verbose {
+                println!("\tstatement:\n{:?}\n\tscore: {}",v_,s);
+            }
         }
     }
 
@@ -237,8 +281,13 @@ impl Impli {
 
         // get the number of elements to consider based on 
         let o = self.options_ratio_fn.0.next();
+
         let o_ = (o * v.len() as f32).round() as usize;
-        v = v[0..o_].to_vec(); 
+        v = v[0..o_].to_vec();
+        if verbose {
+            println!("number of options: {}",v.len());
+        }
+
         v.into_iter().map(|x| x.0).collect() 
     }
 
@@ -246,18 +295,24 @@ impl Impli {
     /// calculates the (existence,implication) pair of new element with idn `stridn`
     pub fn ei_of_new_element(&mut self,stridn:String) -> (f32,f32) {
         // parse `stridn`
-        let mut x2 = ohop::build_order_of_operator(stridn);
+        let mut x2 = ohop::build_order_of_operator(stridn.clone());
         x2.process();
+        println!("STRIDN");
+        println!("\t\t{}",stridn.clone());
+
         let cf = ohop::parse_OrderOfOperator__comma_format(&mut x2,ohop::str_alphabebetical_filter);
         self.ei_pair_by_generator_sequence(cf)  
     }
 
     pub fn ei_pair_by_generator_sequence(&mut self,v:Vec<String>) -> (f32,f32) {
         let (mut e,mut i): (f32,f32) = (0.,0.);
+        println!("V: {:?}",v.clone());
         let l = v.len();
         if l == 0 {
             return (0.,0.);
         }
+
+        println!("EIPAIR");
 
         for v_ in v.iter() {
             let e_ = self.impfvec_e.get_mut(v_).unwrap().next(); 
@@ -266,6 +321,8 @@ impl Impli {
             i += i_;
         }
         
+        println!("\t\tE: {} I: {}",e,i);
+
         (e / l as f32,i / l as f32) 
     }
 }
@@ -283,6 +340,6 @@ pub fn sample_Impli_1() -> Impli {
 
     let iessf = implif::build_ImpElementSeedSizeF(1.,0.3);
     build_Impli(k,ifns,
-        "ifk1".to_string(),"ifo".to_string(),"ifc".to_string(),
+        "ifk1".to_string(),"ifo2".to_string(),"ifc".to_string(),
         iessf,implif::impli_element_score_1,implif::impli_set_score_1,1.,1.)
 }

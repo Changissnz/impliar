@@ -52,6 +52,13 @@ extern crate savefile;
 use savefile::prelude::*;
 
 fn main() {  
+    
     let mut i = setti::impli::sample_Impli_1();
-    i.gather_options(true);    
+    let v = i.output_ei_generated("abasco".to_string(),10); 
+    println!("{:?}",v);
+    i.output_statement(true);    
+    println!("---");
+    i.output_statement(true);
+    println!("---");
+    i.output_statement(true); 
 }

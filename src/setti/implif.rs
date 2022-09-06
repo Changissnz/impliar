@@ -102,6 +102,9 @@ impl ImpliSSF {
         let x = self.ht.get_mut(&e); 
         assert!(!x.is_none());
         let x2 = x.unwrap().clone();
+        //println!("VALUE OF: {} ",e.clone());
+        //println!("VC1");
+        //println!("{:?}",self.vc1.data);
         
         let d1 = self.vc1.value(e.clone());
         let d2 = self.vc2.value(e.clone());
@@ -115,6 +118,16 @@ impl ImpliSSF {
     pub fn apply2(&mut self,ev:Vec<String>) -> f32 {
         let s:Vec<f32> = ev.into_iter().map(|x| self.apply(x)).collect(); 
         (self.f2)(s) 
+    }
+
+    pub fn update_element(&mut self,s:String,ei: Option<(f32,f32)>) {
+        // case: new element
+        if !ei.is_none() {
+            self.ht.insert(s.clone(),ei.unwrap());
+        }
+
+        self.vc1.countv(vec![s.clone()]); 
+        self.vc2.countv(vec![s]); 
     }
 
     /// # description

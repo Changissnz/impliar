@@ -64,7 +64,8 @@ pub fn decompose_set(s:HashSet<String>, ns:usize) -> Vec<HashSet<String>> {
 }
 
 pub fn nCr(n: usize,r: usize) -> usize {
-    assert!(n > 0 && r > 0);
+    if n == 0 || r == 0 {return 0;}
+
     assert!(n >= r, "got {} {}",n,r);
     n.factorial() / (r.factorial() * (n - r).factorial())
 }

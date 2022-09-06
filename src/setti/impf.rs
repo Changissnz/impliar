@@ -77,6 +77,11 @@ pub fn sample_ImpF_options_ratio_save_to_file(base_fp:String) {
     save_ImpF(&i1,&base_fp);
 }
 
+pub fn sample_ImpF_options_ratio_save_to_file2(base_fp:String) {
+    let i1 = build_ImpF(vec![1.],vec![0.],1.0,0,(0.,1.));
+    save_ImpF(&i1,&base_fp);
+}
+
 pub fn sample_ImpF_closure_ratio_save_to_file(base_fp:String) {
     let i1 = build_ImpF(vec![1.],vec![0.],1.,0,(0.,1.));
     save_ImpF(&i1,&base_fp);
