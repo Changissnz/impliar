@@ -104,17 +104,19 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     // initialize the queue and dictionary
     let d2: Vec<String> = vec![s[r].clone()];
     let d3 = vec![r,r+1];
-    d.insert(setf::vec_to_str(d2,'_'),d3);
+    d.insert(setf::vec_to_str(d2,'+'),d3);
     q.push(s[r].clone());
 
     while q.len() > 0 {
+        //println!("LENGO:\t\t{}",q.len());
+        //println!("LENGO Q:\t\t{:?} ",q.clone());
         // fetch next base
         let x = q[0].clone();
         q = q[1..].to_vec();
 
         // get info for add-on
         let mut ni = (d.get_mut(&x).unwrap()).clone();
-        let mut x3 = setf::str_to_vec(x.clone(),'_');
+        let mut x3 = setf::str_to_vec(x.clone(),'+');
 
             // determine if terminate
         let slen = s.len() + 1;
@@ -133,13 +135,13 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     		x3.push(n);
 
     		// UPDATE OLD KEY
-    		let ok = setf::vec_to_str(x32,'_');
+    		let ok = setf::vec_to_str(x32,'+');
 	        let mut nok = (d.get_mut(&(ok.to_string())).unwrap()).clone();
     		nok[1] = nok[1] + 1;
     		d.insert(ok.to_string(),nok);
 
     		// UPDATE NEW KEY
-    		let nk = setf::vec_to_str(x3.clone(),'_');
+    		let nk = setf::vec_to_str(x3.clone(),'+');
             let nk2 = nk.clone();
     			// case: new key does not exist
     		if !d.contains_key(&(nk.clone())) {
@@ -166,7 +168,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     		q.push(nk.to_string());
         }
 
-        let nk = setf::vec_to_str(x3.clone(),'_');
+        let nk = setf::vec_to_str(x3.clone(),'+');
         result.push(x3);
         q.push(x.clone());
    }

@@ -14,8 +14,72 @@ use crate::enci::implie;
 use crate::enci::ohop; 
 use ndarray::Array1;
 
-//// BOOKMARK: .countv
+pub struct EIStatement {
+    pub statement: Vec<Vec<Vec<String>>>,
+    pub statement_options:Vec<Vec<String>>,
+    pub statement_closure: Vec<f32>,
+    pub ei_scores: Vec<Vec<f32>>
+}
 
+pub fn build_new_EIStatement() -> EIStatement {
+    EIStatement{statement: Vec::new(), statement_options: Vec::new(),
+        statement_closure:Vec::new(),ei_scores:Vec::new()}
+}
+
+impl EIStatement {
+
+    pub fn summarize_at(&mut self,i: usize) {
+        let n1 = self.statement[i].len(); 
+        let n2 = self.statement_options[i].len(); 
+        let n3 = self.statement_closure[i].clone();
+        let n4 = self.statement[i][0].len();
+
+        println!("- statement info @ {}",i);
+        println!("* number of nodes: {}",n1);
+        println!("* number of options: {}",n2);
+        println!("* closure rate: {}",n3);
+        println!("* k value: {}",n4);
+        println!("---------------------------");
+    } 
+}
+
+
+
+
+/// Struct used for implication structure <impli::Impli>.
+/// 
+/// # terminology
+/// Generates a sequence of k-statements from an initial
+/// kernel of elements. The sequence is called the `ei_statement`. 
+/// 
+/// Each k-statement is a sequence of k-vectors (called k-nodes),
+/// and k is an arbitrary usize less than or equal to the number of
+/// total unique elements.
+/// The unique elements of <impli::Impli> are the kernel 
+/// elements and the elements generated from qualifying k-nodes
+/// in each generated k-statement.
+///
+/// Uses the following generators to aid in generating the next k-statement:
+/// - k-value generator (i32): determine the value of k for the next k-statement. 
+/// - options ratio generator (f32): in range \[0,1\], determine the total number of
+/// unique elements to consider for k-statement.
+/// - closure ratio generator (f32): in range \[0,1\], determine the ratio of total number of
+/// combinations of `nCr`, where `n` is the number of options and `r` is the k value.
+/// - seed size generator (i32): determines the number of new elements generated from
+/// each k-node in the previous k-statement.
+/// 
+/// # algorithm description
+/// for a k-statement, do the following: 
+/// - fetch options ratio from generator. 
+/// - rank unique elements of <impli::Impli> according to the
+/// function of <implif::ImpliSSf>, and fetch those x number of
+/// elements according to options ratio.
+/// - fetch k-value from generator.
+/// - fetch closure ratio from generator.
+/// - fetch the appropriate number of combinations according to the
+///   `nCr` and closure ratio values, which constitutes the
+///     ei-statement. 
+/// - update <implif::ImpliSSF> according to the generated ei-statement.
 pub struct Impli {
     /// starting elements
     pub kernel: Vec<String>,
@@ -38,18 +102,26 @@ pub struct Impli {
     /// elements -> their <implie::ImpSetSource> counter
     iss_hash: HashMap<String,implie::ImpSetSource>,
     /// output of <impli::Impli> 
-    ei_statement: Vec<Vec<Vec<String>>>,
+    pub ei_statement: EIStatement,
+    
     /// set scores of last statement
     /// sequence of (Vec,f32) pairs. 
     current_set_scores: Vec<(Vec<String>,f32)>
-
-    // TODO: save file
-
 }
 
-/// TODO 
 pub fn is_proper_kernel_value(s:String) -> bool {
-    false 
+
+    for c in s.chars() {
+        if char::is_numeric(c) {
+            return false;
+        }
+
+        if c == '_' || c == ',' {
+            return false;
+        }
+    }
+
+    true 
 }
 
 pub fn build_Impli(kernel: Vec<String>, 
@@ -57,6 +129,9 @@ pub fn build_Impli(kernel: Vec<String>,
     ssf: implif::ImpElementSeedSizeF,ifn:fn(f32,f32,f32,f32,f32,f32) -> f32,
     ifn2: fn(Vec<f32>) -> f32, ew:f32,iw:f32) -> Impli {
     // TODO: check kernel for proper values
+    for k in kernel.iter() {
+        assert!(is_proper_kernel_value((*k).clone())); 
+    }
     
     // declare the 2 vectors of ImpF for existence and implication generation
     // and make the kernel table
@@ -96,14 +171,15 @@ pub fn build_Impli(kernel: Vec<String>,
     Impli{kernel:kernel,
         impfvec_e:v1,impfvec_i:v2,impfvec_fn:impfvec_fn,
         kstatement_fn:(fk,kfn), options_ratio_fn:(fo,ofn), closure_ratio_fn:(fc,cfn),
-        ssf:ssf,issf:issf,iss_hash:issv,ei_statement:Vec::new(),current_set_scores:Vec::new()}
+        ssf:ssf,issf:issf,iss_hash:issv,
+        ei_statement: build_new_EIStatement(),current_set_scores:Vec::new()}
 }
-
-
-///////// implication goes here
 
 impl Impli {
 
+    /// # description
+    /// outputs the first `n` (existence,implication) values from
+    /// the generator of element `k`. 
     pub fn output_ei_generated(&mut self,k:String,n: usize) -> Vec<(f32,f32)> {
         let mut v: Vec<(f32,f32)> = Vec::new();
         for i in 0..n {
@@ -112,10 +188,28 @@ impl Impli {
             v.push((f1,f2));
         }
         v
-
     }
 
     /// # description
+    /// outputs the first `n` values from the k-value generator. 
+    pub fn output_k_generated(&mut self,n:usize) -> Vec<i32> {
+        (0..n).into_iter().map(|x| self.kstatement_fn.0.next()).collect()
+    }
+
+    /// # description
+    /// outputs the first `n` values from the options-ratio generator. 
+    pub fn output_options_ratio_generated(&mut self,n:usize) -> Vec<f32> {
+        (0..n).into_iter().map(|x| self.options_ratio_fn.0.next()).collect()
+    }
+
+    /// # description
+    /// outputs the first `n` values from the closure-ratio generator. 
+    pub fn output_closure_ratio_generated(&mut self,n:usize) -> Vec<f32> {
+        (0..n).into_iter().map(|x| self.closure_ratio_fn.0.next()).collect() 
+    }
+
+    /// # description
+    /// calculates the next ei-statement. 
     pub fn output_statement(&mut self,verbose:bool) {
 
         // fetch available options
@@ -138,22 +232,24 @@ impl Impli {
         let rn = (c * m as f32).round() as usize; 
 
         // fetch the k-vectors
-        self.gather_k_vectors(o,rn,k,verbose);
+        self.gather_k_vectors(o.clone(),rn,k,verbose);
 
         // gather new elements from previous k-statement
-        self.gather_new_elements(verbose);
-    
+        self.gather_new_elements(c,o,verbose);
     }
 
     /// # description
-    /// calculates new elements from k-statement to be loaded. 
-    pub fn gather_new_elements(&mut self,verbose:bool) {
+    /// calculates new elements from k-statement to be loaded, and
+    /// updates `ie_statement`.  
+    pub fn gather_new_elements(&mut self,c: f32, o:Vec<String>,verbose:bool) {
         let l = self.current_set_scores.len();
         if l == 0 {
             return ;
         }
 
         let mut s:Vec<Vec<String>> = Vec::new();
+        let mut x2: Vec<f32> = Vec::new();
+        
         for l_ in self.current_set_scores.clone().iter() {
             self.add_new_element((*l_).0.clone(),(*l_).1.clone(),verbose); 
             s.push((*l_).0.clone());
@@ -161,11 +257,17 @@ impl Impli {
             for lx in (*l_).0.iter() {
                 self.issf.update_element((*lx).clone(),None);
             }
+
+            x2.push((*l_).1.clone());
         }
+
+        self.ei_statement.statement.push(s);
+        self.ei_statement.statement_options.push(o);
+        self.ei_statement.statement_closure.push(c);
+        self.ei_statement.ei_scores.push(x2);
 
         // clear 
         self.current_set_scores = Vec::new();
-        self.ei_statement.push(s); 
     }
 
     /// # description
@@ -232,12 +334,12 @@ impl Impli {
         let mut v: Vec<Vec<String>> = Vec::new();
         let l = o.len() - k + 1;
         for i in 0..l {
-            
             let x = set_gen::fcollect_vec(o.clone(),i,k);
-            let rem = rn as i32 - v.len() as i32;
+            let mut rem = rn as i32 - v.len() as i32;
             if rem <= 0 {
                 break;
             }
+            rem = vec![rem,x.len() as i32].into_iter().min().unwrap();
             v.extend(x[0..rem as usize].to_vec()); 
         }
 
@@ -281,13 +383,13 @@ impl Impli {
 
         // get the number of elements to consider based on 
         let o = self.options_ratio_fn.0.next();
+        let o_ = vec![(o * v.len() as f32).round() as usize,20].into_iter().min().unwrap();
 
-        let o_ = (o * v.len() as f32).round() as usize;
-        v = v[0..o_].to_vec();
         if verbose {
-            println!("number of options: {}",v.len());
+            println!("number of options for {}: {}",v.len(),o_);
         }
 
+        v = v[0..o_].to_vec();
         v.into_iter().map(|x| x.0).collect() 
     }
 
@@ -297,22 +399,16 @@ impl Impli {
         // parse `stridn`
         let mut x2 = ohop::build_order_of_operator(stridn.clone());
         x2.process();
-        println!("STRIDN");
-        println!("\t\t{}",stridn.clone());
-
         let cf = ohop::parse_OrderOfOperator__comma_format(&mut x2,ohop::str_alphabebetical_filter);
         self.ei_pair_by_generator_sequence(cf)  
     }
 
     pub fn ei_pair_by_generator_sequence(&mut self,v:Vec<String>) -> (f32,f32) {
         let (mut e,mut i): (f32,f32) = (0.,0.);
-        println!("V: {:?}",v.clone());
         let l = v.len();
         if l == 0 {
             return (0.,0.);
         }
-
-        println!("EIPAIR");
 
         for v_ in v.iter() {
             let e_ = self.impfvec_e.get_mut(v_).unwrap().next(); 
@@ -321,8 +417,6 @@ impl Impli {
             i += i_;
         }
         
-        println!("\t\tE: {} I: {}",e,i);
-
         (e / l as f32,i / l as f32) 
     }
 }

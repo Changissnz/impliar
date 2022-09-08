@@ -53,12 +53,28 @@ use savefile::prelude::*;
 
 fn main() {  
     
+    let q = setti::setc::nCr(8,4);
+    println!("Q: {}",q); 
+
     let mut i = setti::impli::sample_Impli_1();
     let v = i.output_ei_generated("abasco".to_string(),10); 
     println!("{:?}",v);
+
+    let v2 = i.output_k_generated(10);
+    println!("{:?}",v2);
+
+    let v3 = i.output_options_ratio_generated(10);
+    println!("{:?}",v3);
+
+    let v4 = i.output_closure_ratio_generated(10);
+    println!("{:?}",v4);
+
     i.output_statement(true);    
     println!("---");
     i.output_statement(true);
     println!("---");
-    i.output_statement(true); 
+    i.output_statement(true);
+    i.ei_statement.summarize_at(0);
+    i.ei_statement.summarize_at(1);
+    i.ei_statement.summarize_at(2);
 }

@@ -111,7 +111,7 @@ pub fn build_ImpFI32(i: ImpF) -> ImpFI32 {
 }
 
 pub fn sample_ImpFI32_save_to_file() {
-    let i1 = build_ImpF(vec![0.5,2.,0.5,2.],vec![0.,0.1,0.,0.1],1000.,0,(0.,1000.));
+    let i1 = build_ImpF(vec![0.5,2.,0.5,2.],vec![0.,0.1,0.,0.1],1000.,0,(3.,1000.));
     let i = build_ImpFI32(i1);
     save_ImpFI32(&i,"ifk1");
 }
