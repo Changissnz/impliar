@@ -177,6 +177,19 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::setti::setf</span>::{<span class="ident">build_VectorCounter</span>,<span class="ident">VectorCounter</span>,<span class="ident">Count</span>};
 <span class="comment">//use crate::enci::imp_element; </span>
@@ -281,6 +294,9 @@
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ht</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>); 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">x</span>.<span class="ident">is_none</span>());
         <span class="kw">let</span> <span class="ident">x2</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">unwrap</span>().<span class="ident">clone</span>();
+        <span class="comment">//println!(&quot;VALUE OF: {} &quot;,e.clone());</span>
+        <span class="comment">//println!(&quot;VC1&quot;);</span>
+        <span class="comment">//println!(&quot;{:?}&quot;,self.vc1.data);</span>
         
         <span class="kw">let</span> <span class="ident">d1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vc1</span>.<span class="ident">value</span>(<span class="ident">e</span>.<span class="ident">clone</span>());
         <span class="kw">let</span> <span class="ident">d2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vc2</span>.<span class="ident">value</span>(<span class="ident">e</span>.<span class="ident">clone</span>());
@@ -294,6 +310,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply2</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">ev</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">f32</span> {
         <span class="kw">let</span> <span class="ident">s</span>:<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ev</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">apply</span>(<span class="ident">x</span>)).<span class="ident">collect</span>(); 
         (<span class="self">self</span>.<span class="ident">f2</span>)(<span class="ident">s</span>) 
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_element</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>,<span class="ident">s</span>:<span class="ident">String</span>,<span class="ident">ei</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">f32</span>,<span class="ident">f32</span>)<span class="op">&gt;</span>) {
+        <span class="comment">// case: new element</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">ei</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">ht</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">clone</span>(),<span class="ident">ei</span>.<span class="ident">unwrap</span>());
+        }
+
+        <span class="self">self</span>.<span class="ident">vc1</span>.<span class="ident">countv</span>(<span class="macro">vec!</span>[<span class="ident">s</span>.<span class="ident">clone</span>()]); 
+        <span class="self">self</span>.<span class="ident">vc2</span>.<span class="ident">countv</span>(<span class="macro">vec!</span>[<span class="ident">s</span>]); 
     }
 
     <span class="doccomment">/// # description</span>

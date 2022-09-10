@@ -108,7 +108,7 @@ pub fn fcollect_vec(s: Vec<String>, r: usize, k: usize) -> Vec<Vec<String>> {
     q.push(s[r].clone());
 
     while q.len() > 0 {
-        //println!("LENGO:\t\t{}",q.len());
+        println!("LENGO:\t\t{}",q.len());
         //println!("LENGO Q:\t\t{:?} ",q.clone());
         // fetch next base
         let x = q[0].clone();

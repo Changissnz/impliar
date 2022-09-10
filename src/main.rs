@@ -4,6 +4,7 @@
 mod setti;
 mod enci;
 mod metrice;
+mod pbobot;
 
 use std::collections::HashSet;
 use std::collections::HashMap;
@@ -52,6 +53,9 @@ extern crate savefile;
 use savefile::prelude::*;
 
 fn main() {  
+    ///////
+    //setti::impf::sample_ImpFI32_save_to_file();
+
     
     let q = setti::setc::nCr(8,4);
     println!("Q: {}",q); 
@@ -77,4 +81,6 @@ fn main() {
     i.ei_statement.summarize_at(0);
     i.ei_statement.summarize_at(1);
     i.ei_statement.summarize_at(2);
+     
+    //////////
 }

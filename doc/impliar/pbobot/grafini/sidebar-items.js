@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["edge_to_str",""],["is_proper_node",""]],"struct":[["GraphBasedEntity","entity that is represented as a graph, consists of nodes and edges that follow the rule: if entity has edge e from nodes n1 to n2, then entity must own nodes n1 and n2. "],["UndirectedGraph","undirected graph representation using a"]]};

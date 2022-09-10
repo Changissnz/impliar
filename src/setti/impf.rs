@@ -45,6 +45,44 @@ pub fn build_ImpF(m:Vec<f32>,a:Vec<f32>,v:f32,i:usize,qr:(f32,f32)) -> ImpF {
     ImpF{m:m,a:a,v:v,i:i,qr:qr} 
 }
 
+impl ImpF {
+
+    pub fn next(&mut self) -> f32 {
+        
+        let l = self.m.len();
+        self.i = self.i % self.m.len();
+        self.v = self.v * self.m[self.i].clone() + self.a[self.i].clone();
+        self.v = strng_srt::f32_mod_in_range(self.v,self.qr.clone());
+        self.i += 1;
+        self.v.clone()
+    }
+}
+
+/// i32 version of ImpF
+#[derive(Savefile)]
+pub struct ImpFI32 {
+    i : ImpF,
+}
+
+pub fn build_ImpFI32(i: ImpF) -> ImpFI32 {
+    ImpFI32{i:i}
+}
+
+impl ImpFI32 {
+
+    pub fn next(&mut self) -> i32 {
+        let n = self.i.next();
+        n.round() as i32
+    }
+}
+
+
+pub fn sample_ImpFI32_save_to_file() {
+    let i1 = build_ImpF(vec![0.5,2.,0.5,2.],vec![0.,0.1,0.,0.1],1000.,0,(3.,8.));
+    let i = build_ImpFI32(i1);
+    save_ImpFI32(&i,"ifk1");
+}
+
 /// # description
 /// sample ImpF vec used for existence values of <impli::Impli> kernel size of 4;
 /// non-uniform generators. 
@@ -85,42 +123,5 @@ pub fn sample_ImpF_options_ratio_save_to_file2(base_fp:String) {
 pub fn sample_ImpF_closure_ratio_save_to_file(base_fp:String) {
     let i1 = build_ImpF(vec![1.],vec![0.],1.,0,(0.,1.));
     save_ImpF(&i1,&base_fp);
-}
-
-impl ImpF {
-
-    pub fn next(&mut self) -> f32 {
-        
-        let l = self.m.len();
-        self.i = self.i % self.m.len();
-        self.v = self.v * self.m[self.i].clone() + self.a[self.i].clone();
-        self.v = strng_srt::f32_mod_in_range(self.v,self.qr.clone());
-        self.i += 1;
-        self.v.clone()
-    }
-}
-
-/// i32 version of ImpF
-#[derive(Savefile)]
-pub struct ImpFI32 {
-    i : ImpF,
-}
-
-pub fn build_ImpFI32(i: ImpF) -> ImpFI32 {
-    ImpFI32{i:i}
-}
-
-pub fn sample_ImpFI32_save_to_file() {
-    let i1 = build_ImpF(vec![0.5,2.,0.5,2.],vec![0.,0.1,0.,0.1],1000.,0,(3.,1000.));
-    let i = build_ImpFI32(i1);
-    save_ImpFI32(&i,"ifk1");
-}
-
-impl ImpFI32 {
-
-    pub fn next(&mut self) -> i32 {
-        let n = self.i.next();
-        n.round() as i32
-    }
 }
 

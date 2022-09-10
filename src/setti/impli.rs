@@ -80,6 +80,9 @@ impl EIStatement {
 ///   `nCr` and closure ratio values, which constitutes the
 ///     ei-statement. 
 /// - update <implif::ImpliSSF> according to the generated ei-statement.
+///
+/// # NOTE:
+/// maximum number of options set at 10 due to computation issue. 
 pub struct Impli {
     /// starting elements
     pub kernel: Vec<String>,
@@ -334,6 +337,7 @@ impl Impli {
         let mut v: Vec<Vec<String>> = Vec::new();
         let l = o.len() - k + 1;
         for i in 0..l {
+            println!("EXTENDIA"); 
             let x = set_gen::fcollect_vec(o.clone(),i,k);
             let mut rem = rn as i32 - v.len() as i32;
             if rem <= 0 {
@@ -383,7 +387,7 @@ impl Impli {
 
         // get the number of elements to consider based on 
         let o = self.options_ratio_fn.0.next();
-        let o_ = vec![(o * v.len() as f32).round() as usize,20].into_iter().min().unwrap();
+        let o_ = vec![(o * v.len() as f32).round() as usize,10].into_iter().min().unwrap();
 
         if verbose {
             println!("number of options for {}: {}",v.len(),o_);

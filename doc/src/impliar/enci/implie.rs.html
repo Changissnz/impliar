@@ -118,6 +118,9 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="doccomment">//! struct used to contain element that can</span>
 <span class="doccomment">//! generate new elements based on schematic.</span>
 <span class="doccomment">//! element. Notation of new elements is in the</span>
@@ -183,15 +186,18 @@
 
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">idn</span>.<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">l</span> <span class="op">&gt;</span> <span class="number">1</span> {
-            <span class="ident">q1</span> <span class="op">=</span> <span class="string">&quot;(&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">q1</span>.<span class="ident">as_str</span>() <span class="op">+</span> <span class="string">&quot;)&quot;</span>;
+        <span class="comment">/*
+        if self.l &gt; 1 {
+            q1 = &quot;(&quot;.to_string() + q1.as_str() + &quot;)&quot;;
         }
+        */</span>
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q2</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">idn</span>.<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">l</span> <span class="op">&gt;</span> <span class="number">1</span> {
-            <span class="ident">q2</span> <span class="op">=</span> <span class="string">&quot;(&quot;</span>.<span class="ident">to_string</span>() <span class="op">+</span> <span class="ident">q2</span>.<span class="ident">as_str</span>() <span class="op">+</span> <span class="string">&quot;)&quot;</span>;
+        <span class="comment">/*
+        if other.l &gt; 1 {
+            q2 = &quot;(&quot;.to_string() + q2.as_str() + &quot;)&quot;;
         }
-
+        */</span> 
         <span class="kw">let</span> <span class="ident">s1</span>:<span class="ident">String</span> <span class="op">=</span> <span class="ident">q1</span> <span class="op">+</span> <span class="string">&quot;_&quot;</span> <span class="op">+</span> <span class="ident">q2</span>.<span class="ident">as_str</span>();
         <span class="ident">ImpSetSource</span>{<span class="ident">idn</span>:<span class="ident">s1</span>,<span class="ident">next_counter</span>:<span class="number">0</span>,<span class="ident">l</span>: <span class="self">self</span>.<span class="ident">l</span> <span class="op">+</span> <span class="ident">other</span>.<span class="ident">l</span>} 
     }
@@ -223,11 +229,11 @@
 
         <span class="comment">// case 2</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iss3</span> <span class="op">=</span> <span class="ident">iss</span> <span class="op">+</span> <span class="ident">iss2</span>.<span class="ident">clone</span>(); 
-        <span class="macro">assert_eq!</span>(<span class="ident">iss3</span>.<span class="ident">idn</span>, <span class="string">&quot;lussian_(lussian(lussian,0))&quot;</span>.<span class="ident">to_string</span>()); 
+        <span class="macro">assert_eq!</span>(<span class="ident">iss3</span>.<span class="ident">idn</span>, <span class="string">&quot;lussian_lussian(lussian,0)&quot;</span>.<span class="ident">to_string</span>()); 
         <span class="macro">assert_eq!</span>(<span class="number">3</span>,<span class="ident">iss3</span>.<span class="ident">l</span>); 
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iss4</span> <span class="op">=</span> <span class="ident">iss2</span> <span class="op">+</span> <span class="ident">iss3</span>; 
-        <span class="macro">assert_eq!</span>(<span class="ident">iss4</span>.<span class="ident">idn</span>, <span class="string">&quot;(lussian(lussian,0))_(lussian_(lussian(lussian,0)))&quot;</span>.<span class="ident">to_string</span>()); 
+        <span class="macro">assert_eq!</span>(<span class="ident">iss4</span>.<span class="ident">idn</span>, <span class="string">&quot;lussian(lussian,0)_lussian_lussian(lussian,0)&quot;</span>.<span class="ident">to_string</span>()); 
         <span class="macro">assert_eq!</span>(<span class="number">5</span>,<span class="ident">iss4</span>.<span class="ident">l</span>);
     }
 
