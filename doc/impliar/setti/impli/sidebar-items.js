@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["build_Impli",""],["build_new_EIStatement",""],["is_proper_kernel_value",""],["sample_Impli_1",""]],"struct":[["EIStatement",""],["Impli","Struct used for implication structure impli::Impli."]]};
+window.SIDEBAR_ITEMS = {"fn":[["build_Impli",""]],"struct":[["Impli",""]]};

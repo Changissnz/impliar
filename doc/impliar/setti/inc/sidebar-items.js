@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Inc1","i32 incrementor"],["Inc1String","alphabetical incrementor"],["Incr",""]],"trait":[["Inc",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["Inc1",""],["Inc1String",""],["Incr",""]],"trait":[["Inc",""]]};
