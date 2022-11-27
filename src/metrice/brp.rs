@@ -9,6 +9,10 @@ use round::{round, round_up, round_down};
 
 /// A struct that calculates an <fs::FSelect> instance 
 /// that fits `f32_vec` with its corresponding `binary_labels` (0|1). 
+/// 
+/// The search for this solution can be one of:
+/// - greedy approach (see <RangePartitionGF2::greedy_search__decision>)
+/// - brute-force approach (see <RangePartitionGF2::brute_force_search__decision>)
 pub struct RangePartitionGF2 {
     /// target vector of f32, elements in \[0,1\]
     pub f32_vec: Array1<f32>,

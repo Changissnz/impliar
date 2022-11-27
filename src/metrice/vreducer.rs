@@ -39,32 +39,24 @@ impl FCastF32 {
 
 /// structure that acts as a chained-function (a sequence of functions).
 /// Each function in the sequence can be of type <vreducer::FCast> or
-/// type <skewf32::SkewF32>. Main function is <apply>. 
-/// 
-///
-/// variables:
-/// ---------------
-/// fvec := sequence of <vreducer::FCast>.
-/// svec := sequence of <skewf32::SkewF32>. 
-/// directions := binary sequence, used to determine  
-/// switch_f := 0 for <vreducer::FCast> function, 1 for <skewf32::SkewF32> function.
-/// fi := current index in `fvec`.
-/// si := current index in `svec`. 
-/// tail1 := <vreducer::FCastF32> skew applied after fvec|svec functions. 
-/// tailn := <skewf32::SkewF32> skew applied after fvec|svec functions. 
-/// 
+/// type <skewf32::SkewF32>. Main function is <VRed::apply>. 
 #[derive(Clone)]
 pub struct VRed  {
+    /// sequence of <vreducer::FCast>.
     pub fvec: Vec<FCast>,
+    /// sequence of <skewf32::SkewF32>. 
     pub svec: Vec<skewf32::SkewF32>,
+    /// binary sequence with value at each index signifying if fvec function (0) or svec function (1) is used.
     pub directions: Vec<usize>,
+    /// boolean used to switch between fvec and svec
     pub switch_f: usize,
-
+    /// index of fvec function during <vreducer::VRed> apply function
     pub fi:usize,
+    /// index of svec function during <vreducer::VRed> apply function
     pub si:usize,
-
-    // tail is the skew
+    /// last function in apply, produces a f32 singleton.
     pub tail1: Option<FCastF32>,
+    /// last function in apply, produces a f32 vector.
     pub tailn: Option<skewf32::SkewF32>
 }
 
@@ -279,6 +271,7 @@ pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
     (fv,sv)
 }
 
+/// # description
 /// average for gorilla euclid additive vector A and coefficient vector C
 pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
@@ -286,11 +279,20 @@ pub fn std_euclids_reducer(s:Array1<f32>) -> Array1<f32> {
     (g1 + g2) / 2.0
 }
 
-/// 
+/// # description
+/// uses greatest common denominator to reduce
 pub fn std_gcd_reducer(s:Array1<f32>) -> Array1<f32> {
     let s1: Array1<i32> = s.into_iter().map(|x| x as i32).collect();
     gorillasf::gorilla_touch_arr1_gcd(s1,0.5)
 }
+
+/// # description
+/// mainly used for purpose of testing skews.
+pub fn identity_reducer(s: Array1<f32>) -> Array1<f32> {
+    s
+}
+
+
 
 #[cfg(test)]
 mod tests {

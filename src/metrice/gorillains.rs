@@ -20,21 +20,15 @@ pub fn f9(x:Array1<f32>) -> f32 {
 /// Gorilla instructor GorillaIns is a "normal"-detection algorithm that determines
 /// if attribute "sequence" (arr1\<f32\>) is normal. 
 /// 
-/// For a sequence S, applies the approach A, a <vreducer::VRed>  
-///     pub man_sol: Option<brp::RangePartitionGF2>,
-/// auto_sol: Option<arp::ArbitraryRangePartition>, 
-///
-///
-///
-/// Given a sequence S of f32, and determines a mapping
-///
-///                f: s in S --> {0,1}^|S| OR (0|1),
+/// For a sequence S, applies the approach A, a <vreducer::VRed>  on S by the following
+///                A: S --> {0,1}^|S| OR (0|1),
 /// based on user arg. (vector of boolean values denoting normal).
 /// .....
 /// GorillaIns can proceed by one of the following:
 /// pre-labelled data (normal values) for sequence S using data struct RangePartitionGF2
 /// non-labelled data, hypothesis computed by ArbitraryRangePartition
-/// ...
+/// .....
+/// GorillaIns can calculate a correction vector (if tail-n) or correction float (if tail-1).
 pub struct GorillaIns {
     /// target of "normal"-analysis
     sequence: Array1<f32>,
@@ -110,7 +104,6 @@ impl GorillaIns {
         }
 
         if x1 < 0.5 {(Some(0),None)} else {(Some(1),None)}
-
     }
 
     /// # description
@@ -195,7 +188,8 @@ impl GorillaIns {
     }
 
     /// # description
-    /// improves approach by VRed on tailn
+    /// improves approach by making a <vreducer::VRed> adder skew out of `v` 
+    /// and updating its tailn w/ it.
     pub fn improve_vred__tailn(&mut self,v:Array1<f32>) {
         self.corr = Some(v.clone());
 

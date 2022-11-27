@@ -4,7 +4,7 @@
 mod setti;
 mod enci;
 mod metrice;
-mod pbobot;
+//mod pbobot;
 
 use std::collections::HashSet;
 use std::collections::HashMap;
@@ -16,6 +16,8 @@ use factorial::Factorial;
 use asciis::asc::Asciis;
 use ndarray::array;
 use ndarray::{Array2, Array1,arr1,arr2,arr3, stack,s,Axis,Dim};
+
+use std::io::Read;
 
 use crate::setti::strng_srt;
 use crate::setti::selection_rule;
@@ -52,35 +54,5 @@ extern crate savefile_derive;
 extern crate savefile;
 use savefile::prelude::*;
 
-fn main() {  
-    ///////
-    //setti::impf::sample_ImpFI32_save_to_file();
-
-    
-    let q = setti::setc::nCr(8,4);
-    println!("Q: {}",q); 
-
-    let mut i = setti::impli::sample_Impli_1();
-    let v = i.output_ei_generated("abasco".to_string(),10); 
-    println!("{:?}",v);
-
-    let v2 = i.output_k_generated(10);
-    println!("{:?}",v2);
-
-    let v3 = i.output_options_ratio_generated(10);
-    println!("{:?}",v3);
-
-    let v4 = i.output_closure_ratio_generated(10);
-    println!("{:?}",v4);
-
-    i.output_statement(true);    
-    println!("---");
-    i.output_statement(true);
-    println!("---");
-    i.output_statement(true);
-    i.ei_statement.summarize_at(0);
-    i.ei_statement.summarize_at(1);
-    i.ei_statement.summarize_at(2);
-     
-    //////////
+fn main() { 
 }

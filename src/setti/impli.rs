@@ -43,9 +43,6 @@ impl EIStatement {
     } 
 }
 
-
-
-
 /// Struct used for implication structure <impli::Impli>.
 /// 
 /// # terminology
@@ -314,7 +311,7 @@ impl Impli {
             let (es_,is_) = self.ei_of_new_element(vxq.clone()); 
             
             if verbose {
-                println!("{}: {},{}",vxq.clone(),es_.clone(),is_.clone());
+                println!("\t- e {},i {}",es_.clone(),is_.clone());
             }
 
             self.issf.update_element(vxq.clone(),Some((es_,is_)));
@@ -337,7 +334,6 @@ impl Impli {
         let mut v: Vec<Vec<String>> = Vec::new();
         let l = o.len() - k + 1;
         for i in 0..l {
-            println!("EXTENDIA"); 
             let x = set_gen::fcollect_vec(o.clone(),i,k);
             let mut rem = rn as i32 - v.len() as i32;
             if rem <= 0 {

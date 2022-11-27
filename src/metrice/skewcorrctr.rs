@@ -1,4 +1,4 @@
-///skew corrector contains functions for improving approach by GorillaIns
+//! skew corrector contains functions for improving approach by GorillaIns
 use crate::setti::matrixf;
 use crate::setti::bfngsrch;
 use crate::metrice::bmeas;
@@ -7,9 +7,10 @@ use std::collections::{HashSet,HashMap};
 use ndarray::{arr1,Array1};
 use round::round;
 
+/// # description 
 /// outputs interval points in \[0,1\] given l labels.
-/// EX: l = 4 -> 
-/// [0.125,0.375,0.625,0.875] 
+/// - EX: l = 4 -> 
+///             [0.125,0.375,0.625,0.875] 
 pub fn label_intervals(l:usize) -> Array1<f32> {
     if l == 0 {
         return Array1::zeros(0);
@@ -27,10 +28,9 @@ pub fn label_intervals(l:usize) -> Array1<f32> {
     sol.into_iter().collect()
 }
 
-/*
-updates the selection rule score by performing function on target li using
-bfngsrch.sr.choice
-*/
+/// # description
+/// updates the selection rule score by performing function on target li using
+/// bfngsrch.sr.choice
 pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approach_out: Array1<f32>,
     mut im: HashMap<usize,Vec<usize>>, li:f32) {
 
@@ -62,7 +62,15 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
     }
 }
 
-/// iterate through and scores
+/// # description
+/// iterate through <bfngsrch::BFGSearcher> and scores each <bfngsrch::BFGSelectionRule> 
+///
+/// # arguments
+/// - bs := target BFGSearcher 
+/// - approach_out := transformed values before labelling
+/// - im := key is label, value is vector of indices corresponding to `li`
+/// - li := interval label values (typically in range 0-1)
+///         EX: if 2 labels and range is \[0,1\], then \[0.25,0.75\]
 pub fn score_bfgs_tmpcache(bs: &mut bfngsrch::BFGSearcher,approach_out: Array1<f32>,
     im: HashMap<usize,Vec<usize>>,li:Array1<f32>) {
 
@@ -77,6 +85,8 @@ pub fn score_bfgs_tmpcache(bs: &mut bfngsrch::BFGSearcher,approach_out: Array1<f
     }
 }
 
+/// # description
+/// helper method for <skewcorrctr::gorilla_improve_approach_tailn__labels>
 pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSearcher {
 
     // get map : label -> index of wanted normaln
@@ -100,12 +110,13 @@ pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normal
     fgs
 }
 
-/*
-*/
+/// # description
+/// calculates the cheapest array f that when added to `approach_out` results in a labelling ~ `wanted_normaln`. 
+/// 
+/// # note
+/// code could be simplified
 pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
     wanted_normaln:Array1<usize>) -> Array1<f32> {
-//pub fn correction_for_bfgrule_approach_tailn__labels(approach_out:Array1<f32>,
-//    wanted_normaln:Array1<usize>) -> Array1<f32> {
 
     pub fn bounded_cheapest_add_target_i32__(v1:Array1<f32>,li:f32) -> Array1<f32> {
         // convert to i32 form
@@ -144,11 +155,11 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
     soln
 }
 
-/*
-*/
+/// # description
+/// calculates the best <bfngsrch::BFGSelectionRule> such that for `approach_out` and its `wanted_normaln`,
+/// the rule is the best `label -> f32` mapping, in which `label = unique(wanted_normaln)`. 
 pub fn gorilla_improve_approach_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSelectionRule {
     let fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
-    //println!("{} RESULTS",fgs.all_cache.len());
     let q = fgs.all_cache[0].clone();
     fgs.all_cache.into_iter().fold(q, |v1: bfngsrch::BFGSelectionRule,v2: bfngsrch::BFGSelectionRule| if v1.score.unwrap() < v2.score.unwrap() {v1} else {v2})
 }

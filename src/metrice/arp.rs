@@ -59,7 +59,7 @@ pub struct ArbitraryRangePartition {
     /// used to collect partitions over\[0,1\] range
     rpgf2: brp::RangePartitionGF2,
     /// solution
-    pub fselect:Option<fs::FSelect>, // used to keep track of distance score: mean and frequency for each range
+    pub fselect:Option<fs::FSelect>,
     /// maximum number of partitions allowed
     t:usize,
     /// used for determining best <fs::FSelect> solution
@@ -81,6 +81,8 @@ pub fn build_ArbitraryRangePartition(f32_vec: Array1<f32>,szt:usize) -> Arbitrar
 
 impl ArbitraryRangePartition {
 
+    /// # description
+    /// 
     pub fn brute_force_search__decision(&mut self) {
         let f_ = self.rpgf2.brute_force_search__decision();
         if f_.is_none() {

@@ -45,7 +45,6 @@ pub struct FSelect {
     /// storage value assigned to <fs::FSelect> instance;
     /// used for purposes such as ranking. 
     pub score:Option<f32>,
-
     /// "basic" | "fm"
     pub mode: String,
     /// used in the event of fm mode

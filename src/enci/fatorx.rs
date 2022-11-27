@@ -182,7 +182,9 @@ pub fn cheapest_multiple_vec(v1:Array1<i32>,v2:Array1<i32>) ->Array1<i32> {
 }
 
 /// # return 
-/// multiple `m` such that `m` * `v1` is 
+/// multiple m for v1 x m "approximately equals" v2 by the rule
+/// 
+///             m = |v2| / |v1|
 pub fn cheapest_multiple(v1:Array1<i32>,v2:Array1<i32>) -> i32 {
     let f1:f32 = v1.sum() as f32;
     let f2:f32 = v2.sum() as f32;

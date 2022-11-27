@@ -54,14 +54,13 @@ impl ImpElementSeedSizeF {
 }
 
 /// struct used by Impli, set source function. 
-/// ----------------------------------------------------------------------
 /// input of arguments to function `f` are:
-///     - unique element
-///     - element existence
-///     - element implication
-///     - element frequency
-///     - element lifespan
-/// ----------------------------------------------------------------------
+/// 
+///             - unique element
+///             - element existence
+///             - element implication
+///             - element frequency
+///             - element lifespan
 /// struct is also used to record existence/implication/frequency/lifespan
 /// scores
 pub struct ImpliSSF { 
@@ -101,11 +100,7 @@ impl ImpliSSF {
     pub fn apply(&mut self,e:String) -> f32 {
         let x = self.ht.get_mut(&e); 
         assert!(!x.is_none());
-        let x2 = x.unwrap().clone();
-        //println!("VALUE OF: {} ",e.clone());
-        //println!("VC1");
-        //println!("{:?}",self.vc1.data);
-        
+        let x2 = x.unwrap().clone();        
         let d1 = self.vc1.value(e.clone());
         let d2 = self.vc2.value(e.clone());
 
@@ -131,22 +126,6 @@ impl ImpliSSF {
     }
 
     /// # description
-    /// records all elements in k-statement into `ht` and
-    /// outputs the set-source with the highest score
-    pub fn record_k_statement(&mut self, k:Vec<Vec<String>>) -> Vec<String> {
-        
-        // iterate through and 
-        Vec::new()
-    }
-
-    /// # description
-    /// 
-    pub fn record_k_node(&mut self,k: Vec<String>) -> Vec<String> {
-        let ne = self.new_elements_from_k_node(k); 
-        Vec::new()
-    }
-
-    /// # description
     /// 
     pub fn new_elements_from_k_node(&mut self,k:Vec<String>) -> Vec<String> {
         // get new elements
@@ -164,23 +143,4 @@ impl ImpliSSF {
         x
 
     }
-
-    /*
-    /// # description 
-    /// 
-    pub fn max_ssnode(&mut self,k:Vec<Vec<String>>) -> Vec<String> {
-    }
-
-    /// # description
-    /// derives the existence and implication of new element `s` from its
-    /// parents. 
-    pub fn bayesian_derive(&mut self,s:String) -> (f32,f32) {
-
-        // get the pre-string 
-        let mut pre = imp_element::last_parse_impli_ss_string(s); 
-
-        (0.,0.)
-    }
-    */ 
-
 }

@@ -35,7 +35,6 @@ pub struct GorillaJudge {
 
     tailn_skew:Vec<skewf32::SkewF32>,
     tail1_skew:Vec<f32>,
-    ////tail1_skew_storage_index:usize,
 
     // score metrics of Gorilla Judge instance
         // metrics used for brute force skew
@@ -146,12 +145,12 @@ impl GorillaJudge {
         (None,Some(vreducer::sample_vred_adder_skew(x2.unwrap(),self.k)),giscore)
     }
 
-    /*
-    Apply VRed on data load to collect
-    VRed output and improvement.
-
-    outputs (f32 correction vec, skew f32 correction vec)
-    */
+    /// # description
+    /// Apply VRed on data load to collect
+    /// VRed output and improvement.
+    /// 
+    /// # return 
+    /// - (f32 correction vec if tail-1, skew f32 correction vec if tail-n)
     pub fn gorilla_apply_vred(&mut self) ->
         (Option<Vec<f32>>,Option<Vec<skewf32::SkewF32>>) {
         let l = self.data_load.as_ref().unwrap().len();
@@ -190,26 +189,10 @@ impl GorillaJudge {
             return true;
         }
         false
-        /*
-        let (x1,x2,x3) = self.refactor_batch_tail1();
-
-        if x3 == 0. {
-            return false;
-        }
-        self.skew_score0 = Some(x1);
-        self.skew_score = Some(x2);
-
-        //// TODO here
-        println!("SKEW");
-
-        true
-        */
     }
 
-    /*
-    return:
-    - current skew score, skew score after update, skew factor
-    */
+    /// # return:
+    /// current skew score, skew score after update, skew factor
     pub fn refactor_batch_tailn(&mut self) -> (f32,f32,Option<skewf32::SkewF32>) {
         let (_,r) = self.vred_on_data();
         let (_,x) = self.gorilla_apply_vred();
@@ -240,12 +223,11 @@ impl GorillaJudge {
         (ps,x2.unwrap(),Some(skewf32::SkewF32{sk:sk,s:self.k}))
     }
 
-    /*
-    uses min,max,mean as points of interest
-
-    return:
-    - current score, score after adder, adder
-    */
+    /// # description
+    /// uses min,max,mean as points of interest
+    /// 
+    /// # return:
+    /// - current score, score after adder, adder
     pub fn refactor_batch_tail1(&mut self) -> (f32,f32,f32) {
         let (r,_) = self.vred_on_data();
         let (x,_) = self.gorilla_apply_vred();
