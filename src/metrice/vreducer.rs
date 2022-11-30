@@ -243,14 +243,14 @@ pub fn sample_vred_addit_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
 }
 
 /// constructs adder <skewf32::SkewF32>.
-pub fn sample_vred_adder_skew(a:f32,t:usize) -> skewf32::SkewF32 {
+pub fn sample_vred_adder_skew(a:i32,t:usize) -> skewf32::SkewF32 {
     // get size
     let sk = skew::build_skew(Some(a),None,None,None,vec![0],None);
     skewf32::SkewF32{sk:sk,s:t}
 }
 
 /// constructs multer <skewf32::SkewF32>.
-pub fn sample_vred_multer_skew(m:f32) -> skewf32::SkewF32 {
+pub fn sample_vred_multer_skew(m:i32) -> skewf32::SkewF32 {
     // get size
     let sk = skew::build_skew(None,Some(m),None,None,vec![1],None);
     skewf32::SkewF32{sk:sk,s:1}

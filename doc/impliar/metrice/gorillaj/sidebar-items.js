@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["build_GorillaJudge",""]],"struct":[["GorillaJudge",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["build_GorillaJudge",""]],"struct":[["GorillaJudge","gorillaj::GorillaJudge uses gorillains::GorillaIns to learn each sample it processes. Samples are loaded into this data structure by its x-data vcsv::BatchReader and ?y-data? vcsv::BatchReader. "]]};

@@ -111,9 +111,9 @@ impl GorillaJudge {
             let b2 = self.bry.as_mut().unwrap().read_batch_numerical();
 
             if self.is_tailn {
-                self.label_loadn = b2.1.unwrap();
+                self.label_loadn = Some(b2.1.unwrap());
             } else {
-                self.label_load1 = b2.0.unwrap();
+                self.label_load1 = Some(b2.0.unwrap());
             }
         }
 
@@ -185,15 +185,15 @@ impl GorillaJudge {
     pub fn refactor(&mut self) -> Option<f32> {
         if self.is_tailn {
             let (_,_,x3,x4) = self.refactor_batch_tailn();
-            let q = if x4 {vreducer::sample_vred_adder_skew(x3.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(x3.unwrap(),self.k)};
+            let q = if x4 {vreducer::sample_vred_adder_skew(x3.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(x3.unwrap())};
             self.base_vr.add_s(q);
             return None;
         } 
-        (_,_,x3) = self.refactor_batch_tail1();
+        let (_,_,x3) = self.refactor_batch_tail1();
         Some(x3)
-        }
-
     }
+
+    
 
     /// # description
     /// 
@@ -236,7 +236,7 @@ impl GorillaJudge {
 
         // new score
         let sm = self.skew_mtr.clone();
-        self.skew_mtr = x3.unwrap(); 
+        self.skew_mtr = x2.unwrap(); 
 
         (sm,self.skew_mtr.clone(),x1,x3)
     }
@@ -257,7 +257,7 @@ impl GorillaJudge {
         // refactor tail1-skew
         let q = arr1(&self.tail1_skew);
         self.tail1_skew = (q - x3).into_iter().collect();
-        self.vr_output1 = (arr(&self.vr_output1) + x3).into_iter().collect();
+        self.vr_output1 = (arr1(&self.vr_output1) + x3).into_iter().collect();
         self.skew_mtr = x2;
 
         (x1,x2,x3)
@@ -292,7 +292,7 @@ impl GorillaJudge {
         let rs = vec![x1,x2,x3,x4];
 
         // get (index, score) w/ lowest score
-        let rsm = rs.iter().enumerate().fold(x1, |min, &val| if val.1 < min.1 { val } else{ min });
+        let rsm = rs.into_iter().enumerate().fold((0,x1), |min, val| if val.1 < min.1 { val } else{ min });
 
         if rsm.0 == 0 {
             return (x1,x1,0.);
@@ -318,8 +318,8 @@ impl GorillaJudge {
         // add the last batch of size lbs
         let l = self.vr_outputn.len();
 
-        self.bc.load_next_batch(self.tailn_skew[l - lbs..l].to_vec().clone(),
-            self.vr_outputn[l - lbs..l].to_vec().clone());
+        self.bc.load_next_batch(self.tailn_skew[l - self.lbs..l].to_vec().clone(),
+            self.vr_outputn[l - self.lbs..l].to_vec().clone());
 
     }
 
@@ -347,3 +347,4 @@ impl GorillaJudge {
     }
 
 }
+

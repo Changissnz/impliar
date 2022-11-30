@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["empty_GBatchCorrector",""]],"struct":[["GBatchCorrector","sb is skewf32 batch type a, ref is the operand priori."]]};
+window.SIDEBAR_ITEMS = {"fn":[["empty_GBatchCorrector",""]],"struct":[["GBatchCorrector","btchcorrctr::GBatchCorrector is a data structure used to refactor batches of skew data given their corresponding references. For each batch, structure saves all a-candidate (adders) and m-candidate (multers) scores into its memory, and updates its memory of existing candidates and new candidates for every next batch."]]};
