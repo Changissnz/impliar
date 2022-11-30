@@ -234,13 +234,29 @@ impl VRed {
     }
 }
 
-/// sample <skewf32::SkewF32> used for testing. 
-pub fn sample_vred_adder_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
+/// constructs addit <skewf32::SkewF32>.
+pub fn sample_vred_addit_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
     // get size
     let v_:Array1<i32> = a.into_iter().map(|x1| ((x1 * f32::powf(10.,t as f32))).round() as i32).collect();
     let sk = skew::build_skew(None,None,Some(v_),None,vec![2],None);
     skewf32::SkewF32{sk:sk,s:t}
 }
+
+/// constructs adder <skewf32::SkewF32>.
+pub fn sample_vred_adder_skew(a:f32,t:usize) -> skewf32::SkewF32 {
+    // get size
+    let sk = skew::build_skew(Some(a),None,None,None,vec![0],None);
+    skewf32::SkewF32{sk:sk,s:t}
+}
+
+/// constructs multer <skewf32::SkewF32>.
+pub fn sample_vred_multer_skew(m:f32) -> skewf32::SkewF32 {
+    // get size
+    let sk = skew::build_skew(None,Some(m),None,None,vec![1],None);
+    skewf32::SkewF32{sk:sk,s:1}
+}
+
+
 
 /// sample `fvec`, `svec` used for testing.
 pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
@@ -265,8 +281,8 @@ pub fn sample_fsvecs() -> (Vec<FCast>,Vec<skewf32::SkewF32>) {
     let mut sv: Vec<skewf32::SkewF32> = Vec::new();
     let m1:Array1<f32> = arr1(&[1.,3.134,54.12,60.11111,-55.2]);
     let m2:Array1<f32> = arr1(&[3.134,1.,-55.2,60.11111,54.12]);
-    sv.push(sample_vred_adder_skew(m1,5));
-    sv.push(sample_vred_adder_skew(m2,5));
+    sv.push(sample_vred_addit_skew(m1,5));
+    sv.push(sample_vred_addit_skew(m2,5));
 
     (fv,sv)
 }
@@ -324,7 +340,7 @@ mod tests {
 
         // add skew
         let yx = arr1(&[-0.268, -0.568, -0.84, -0.10445, -0.15312]);
-        let rxx = sample_vred_adder_skew(yx,5);
+        let rxx = sample_vred_addit_skew(yx,5);
         vr.mod_tailn(rxx);
 
 

@@ -5,20 +5,33 @@ use crate::setti::dessi;
 use ndarray::{arr1,Array1};
 use std::collections::{HashMap,HashSet};
 
-/// sb is skewf32 batch type a,
-/// ref is the operand priori.
+/// <btchcorrctr::GBatchCorrector> is a data structure used
+/// to refactor batches of skew data given their corresponding references.
+/// For each batch, structure saves all a-candidate (adders) and m-candidate (multers)  
+/// scores into its memory, and updates its memory of existing candidates and new candidates
+/// for every next batch.
+///
+/// - To load a new batch, call `.load_next_batch()`.
+/// 
+/// - To find the best factor candidate from the beginning, call `.refactor(...)`.
+///
+/// - To keep track of the best factor candidate after every batch, call `.process_batch_(...)`.
 #[derive(Clone)]
 pub struct GBatchCorrector {
-    /// 
+    /// all addit skews
     sb: Vec<skewf32::SkewF32>,
+    /// addit skews in batch
     b: Vec<skewf32::SkewF32>,
-
+    /// all reference vectors, operand priori
     refn: Vec<Array1<f32>>,
+    /// batch reference vectors, operand priori
     refn1: Vec<Array1<f32>>,
+    /// (best factor, score after, factor is adder?)
     pub best_refactor: (Option<i32>,Option<f32>,bool),
+    /// multer candidate scores
     pub m_candidate_scores:HashMap<i32,f32>,
+    /// adder candidate scores
     pub a_candidate_scores:HashMap<i32,f32>,
-
     /// decimal places
     k:usize
 }

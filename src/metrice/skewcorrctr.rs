@@ -115,8 +115,11 @@ pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normal
 /// 
 /// # note
 /// code could be simplified
+///
+/// # return
+/// (skew correction vector, wanted f32 vector)
 pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
-    wanted_normaln:Array1<usize>) -> Array1<f32> {
+    wanted_normaln:Array1<usize>) -> (Array1<f32>,Array1<f32>) {
 
     pub fn bounded_cheapest_add_target_i32__(v1:Array1<f32>,li:f32) -> Array1<f32> {
         // convert to i32 form
@@ -135,6 +138,7 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
     let mut hm = matrixf::label_to_iset_map(wanted_normaln.clone().into_iter().collect());
     let li = label_intervals(hm.len());
     let mut soln: Array1<f32> = Array1::zeros(approach_out.len());
+    let mut wanted: Array1<f32> = Array1::zeros(approach_out.len());
 
     // iterate through interval points
     for (i,l) in li.into_iter().enumerate() {
@@ -149,10 +153,11 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
         let v2 = bounded_cheapest_add_target_i32__(sv,l);
         for (i_,i2) in ist.into_iter().enumerate() {
             soln[i2] = v2[i_].clone();
+            wanted[i2] = l.clone();
         }
     }
 
-    soln
+    (soln,wanted) 
 }
 
 /// # description
@@ -174,15 +179,15 @@ mod tests {
         let ao:Array1<f32> = arr1(&[0.05,0.2,0.3,0.32,0.4,0.5,0.7,0.8]);
         let l:Array1<usize> = arr1(&[0,1,0,1,0,1,0,1]);
         let bfgsr = gorilla_improve_approach_tailn__labels(ao.clone(),l.clone());
-        let corr = correction_for_bfgrule_approach_tailn__labels(bfgsr,ao.clone(),l.clone());
+        let (corr,_) = correction_for_bfgrule_approach_tailn__labels(bfgsr,ao.clone(),l.clone());
 
         let sol1:Array1<f32> = arr1(&[0.2, 0.55, -0.05, 0.43, -0.15, 0.25, -0.45, -0.05]);
         assert_eq!(corr,sol1);
 
         let mut x = ao + corr;
-        let mut x2:Array1<f32> = x.into_iter().map(|y| bmeas::calibrate_in_bounds((0.,1.),y)).collect();
+        //let mut x2:Array1<f32> = x.into_iter().map(|y| bmeas::calibrate_in_bounds((0.,1.),y)).collect();
         let sol2:Array1<f32> = arr1(&[0.25, 0.75, 0.25, 0.75, 0.25, 0.75, 0.25, 0.75]);
-        assert_eq!(x2,sol2);
+        assert_eq!(x,sol2);
     }
 
 }

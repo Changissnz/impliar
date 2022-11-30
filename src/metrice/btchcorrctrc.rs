@@ -1,5 +1,5 @@
 //! skew re-factorization algorithms for cost efficiency
-//! type-a skew is addit only, type-m skew is multi only.
+//! type-a skew is addit only, type-m skew is multit only.
 extern crate round;
 use round::round;
 use crate::setti::dessi;
@@ -148,6 +148,9 @@ pub fn adder_score_pair_vec_on_skew_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (
 /// # description
 /// chooses the additive factor a out of the  options 1|min|max|mean that produces
 /// the lowest type-a skew batch cost, then it outputs an a-factor and the refactored skews of sb.
+/// 
+/// # return
+/// (adder skew, refactored type-a skew batch,score)
 pub fn best_afactor_for_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Option<skewf32::SkewF32>,Vec<skewf32::SkewF32>,f32) {
 
     let (q,k) = adder_score_pair_vec_on_skew_batch_type_a(sb.clone());
@@ -167,8 +170,6 @@ pub fn best_afactor_for_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Opti
 /// # return 
 /// (adder skew, refactored type-a skew batch,score)
 pub fn a_refactor_skewf32_batch_type_a(vs: Vec<skew::Skew>, k:usize,head: i32) -> (skewf32::SkewF32,Vec<skewf32::SkewF32>,f32)  {
-    //println!("HEAD: {} {}",head,k);
-    //let shead = head * i32::pow(10,k as u32) as i32;
     let h1_ = skew::build_skew(Some(head),None,None,None,vec![0],None);
     let mut h1 = skewf32::SkewF32{sk:h1_.clone(),s:k};
     let (vsk,_) = refactor_skew_batch_type_a(h1_.clone(), vs.clone());

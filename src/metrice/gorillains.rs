@@ -37,7 +37,7 @@ pub struct GorillaIns {
     /// the chained function used to "translate" sequence
     approach: vreducer::VRed,
     /// tail-1 case output 
-    app_out1: Option<f32>,
+    pub app_out1: Option<f32>,
     /// tail-n case output 
     pub app_outn: Option<Array1<f32>>,
     /// tail-n case wanted normal 
@@ -166,7 +166,7 @@ impl GorillaIns {
     }
 
     /// # description
-    /// improves solution by the same size threshold t. uses struct<Skew> to
+    /// improves solution by the same size threshold t. uses <skewf32::SkewF32> to
     /// modify values.
     pub fn improve_approach__labels(&mut self,is_multi:bool) -> (Option<f32>,Option<Array1<f32>>) {
 
@@ -181,7 +181,7 @@ impl GorillaIns {
 
         // convert fselect to bfgselect
         let bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
-        let corr = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
+        let (corr,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
 
         // get skew
         (None,Some(corr))
@@ -189,7 +189,7 @@ impl GorillaIns {
 
     /// # description
     /// improves approach by making a <vreducer::VRed> adder skew out of `v` 
-    /// and updating its tailn w/ it.
+    /// and updating its tail-n w/ it.
     pub fn improve_vred__tailn(&mut self,v:Array1<f32>) {
         self.corr = Some(v.clone());
 
@@ -200,7 +200,7 @@ impl GorillaIns {
         }
 
         // make skew
-        let sk = vreducer::sample_vred_adder_skew(v,self.k);
+        let sk = vreducer::sample_vred_addit_skew(v,self.k);
         self.approach.mod_tailn(sk);
     }
 }
@@ -238,8 +238,8 @@ mod tests {
         assert!(gi.soln.clone().unwrap().score.clone().unwrap() <= 2.);
 
         // after improvement
-        let (_,qrx) = gi.improve_approach__labels(true);
-        gi.improve_vred__tailn(qrx.unwrap());
+        let (qrx,x) = gi.improve_approach__labels(true);
+        gi.improve_vred__tailn(x.unwrap());
         gi.brute_process_tailn();
 
         assert_eq!(gi.app_outn,Some(arr1(&[0.75, 0.75, 0.25, 0.25])));
