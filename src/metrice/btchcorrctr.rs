@@ -153,7 +153,7 @@ impl GBatchCorrector {
 
             // add score minus (c / (10 ** k))
             let c_: f32 = (c as f32) / f32::powf(10.,self.k as f32);
-            *self.a_candidate_scores.get_mut(&c).unwrap() += s3 - c_;
+            *self.a_candidate_scores.get_mut(&c).unwrap() += s3;// - c_;
         }  else {
             // do c on all self.sb
             let (s1,s2,s3) = btchcorrctrc::a_refactor_skewf32_batch_type_a(self.bare_skew(false),self.k,c);
@@ -187,7 +187,7 @@ impl GBatchCorrector {
             let (h1,sb1) = btchcorrctrc::m_refactor_skew_batch_type_a(skv,av,c);
             let s12:i32 = sb1.into_iter().map(|x| x.skew_size as i32).into_iter().sum::<i32>();//h1.skew_size as i32;
             self.m_candidate_scores.insert(c,v1_.get(&c).unwrap() + s12 as f32 / f32::powf(10.,self.k as f32));
-            *self.m_candidate_scores.get_mut(&c).unwrap() += c as f32;
+            //*self.m_candidate_scores.get_mut(&c).unwrap() += c as f32;
         }
         *(self.m_candidate_scores.get(&c).clone().unwrap())
     }
@@ -245,7 +245,7 @@ impl GBatchCorrector {
         let v1: HashMap<i32,f32> = HashMap::from_iter(btchcorrctrc::adder_score_pair_vec_on_skew_batch_type_a(self.b.clone()).0.into_iter());
         let v2:HashSet<i32> = v1.clone().into_keys().collect();
         candidates.extend(&v2);
-
+        
         // process each candidate
         for c in candidates.into_iter() {
             let x = self.process_candidate_adder(v1.clone(),c);

@@ -54,7 +54,7 @@ pub fn multiple_score_pair_vec_on_skew_batch_type_a(sb: Vec<skew::Skew>,referenc
         let y2 = fatorx::cheapest_multiple_vec(reference[i].clone(),sb[i].addit.clone().unwrap());
         vm_.extend(y2.into_iter());
     }
-    //vm_.insert(0);
+
     let mut vm: Vec<i32> = vm_.into_iter().collect();
 
     // sort vm by distance to mean
@@ -174,7 +174,7 @@ pub fn a_refactor_skewf32_batch_type_a(vs: Vec<skew::Skew>, k:usize,head: i32) -
     let mut h1 = skewf32::SkewF32{sk:h1_.clone(),s:k};
     let (vsk,_) = refactor_skew_batch_type_a(h1_.clone(), vs.clone());
     let mut sfv = skew_to_skewf32_batch_type_a(vsk, k);
-    let score:f32 = sfv.clone().into_iter().map(|mut x| x.skew_size()).into_iter().sum::<f32>() + h1.skew_size();
+    let score:f32 = sfv.clone().into_iter().map(|mut x| x.skew_size()).into_iter().sum::<f32>();//+ h1.skew_size();
     (h1,sfv,score)
 }
 
@@ -371,7 +371,7 @@ mod tests {
         let (x1,k) = scale_skewf32_batch_type_a(b1);
         let af = a_refactor_skewf32_batch_type_a(x1,k,1000000);
         assert_eq!(af.1,batch_5_a_refactor__10__soln());
-        assert_eq!(af.2,67.);
+        assert_eq!(af.2,57.);
     
     }
 

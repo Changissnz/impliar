@@ -302,6 +302,19 @@ pub fn std_gcd_reducer(s:Array1<f32>) -> Array1<f32> {
     gorillasf::gorilla_touch_arr1_gcd(s1,0.5)
 }
 
+/// # descrption
+/// one-percent reducer; outputs a \<0.01\> vector of equal
+/// length to `s`;
+/// A <gorillains::GorillaIns> that uses a <vreducer::VRed> 
+/// with only this function is able to determine the "baseline"
+/// a-factors and m-factors necessary to correct the skews for
+/// the samples given their labelling.
+pub fn one_reducer(s:Array1<f32>) -> Array1<f32> {
+    s.into_iter().map(|x| 0.01).collect()
+}
+
+
+
 /// # description
 /// mainly used for purpose of testing skews.
 pub fn identity_reducer(s: Array1<f32>) -> Array1<f32> {

@@ -8,7 +8,7 @@ use crate::enci::skewf32;
 use crate::enci::mat2sort;
 
 use ndarray::{Array1,arr1};
-
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex, Once};
 
 /// <gorillaj::GorillaJudge> uses <gorillains::GorillaIns> to
@@ -30,8 +30,6 @@ use std::sync::{Arc, Mutex, Once};
 /// each <gorillains::GorillaIns> solution (a <fs::FSelect> instance). The
 /// `.score` attribute of the <fs::FSelect> instance is its misclassification
 /// for the sample.
-///
-/// 
 pub struct GorillaJudge {
     /// x-data reader
     pub brx: vcsv::BatchReader,
@@ -58,17 +56,19 @@ pub struct GorillaJudge {
     /// tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
     tail1_skew:Vec<f32>,
     /// tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
-    tailn_skew:Vec<skewf32::SkewF32>,
+    pub tailn_skew:Vec<skewf32::SkewF32>,
     /// batch corrector for refactoring skews
-    bc: btchcorrctr::GBatchCorrector,
+    pub bc: btchcorrctr::GBatchCorrector,
     /// tail-n case: output from `base_vr` to value before y-label
-    vr_outputn: Vec<Array1<f32>>,
+    pub vr_outputn: Vec<Array1<f32>>,
     /// tail-1 case: output from `base_vr` to value before y-label
     vr_output1: Vec<f32>,
     /// mis-classification score metric
     misclass_mtr: f32,
     /// skew summation score metric
-    skew_mtr: f32
+    pub skew_mtr: f32,
+    // sequence of adders or multers used in refactoring; these values are used to get the baseline skew of the instance's <vreducer:VRed>.
+    //pub skew_values: Vec<f32>
 }
 
 
@@ -129,12 +129,16 @@ impl GorillaJudge {
 
             // 
             if self.is_tailn {
+                let s = x2.clone().unwrap().skew_size();
                 self.vr_outputn.push(x4.unwrap());
                 self.tailn_skew.push(x2.unwrap());
+                self.skew_mtr += s;
             } else {
                 self.vr_output1.push(x3.unwrap());
                 self.tail1_skew.push(x1.unwrap());
+                self.skew_mtr += x1.unwrap();
             }
+            
             self.misclass_mtr += x5;
         }
         l
@@ -317,7 +321,7 @@ impl GorillaJudge {
     pub fn update_batchcorrctr(&mut self) {
         // add the last batch of size lbs
         let l = self.vr_outputn.len();
-
+        println!("L: {} BS: {}",l,self.lbs);
         self.bc.load_next_batch(self.tailn_skew[l - self.lbs..l].to_vec().clone(),
             self.vr_outputn[l - self.lbs..l].to_vec().clone());
 
@@ -326,16 +330,14 @@ impl GorillaJudge {
     /// # description
     /// main function. 
     pub fn process_next(&mut self,refactor:bool) {
-        self.lbs = self.load_next_batch();
-        if self.lbs == 0 {
-            return; 
+        self.lbs += self.load_next_batch();
+        if self.lbs > 0 {
+            self.gorilla_on_batch();
+            if self.is_tailn {
+                self.update_batchcorrctr();
+                self.bc.process_batch_(true);
+            }
         }
-        
-        if self.is_tailn {
-            self.update_batchcorrctr();
-        }
-
-        self.bc.process_batch_(true);
 
         if refactor {
             self.refactor();
@@ -343,8 +345,44 @@ impl GorillaJudge {
             if self.is_tailn {
                 self.reload_batchcorrctr();
             }
+
+            self.lbs = 0;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    /// # description
+    /// The <vreducer::VRed> function used by this <gorillaj::GorillaJudge> relies
+    /// only on the <vreducer::one_reducer> function.
+    /// Calls `process_next` with argument `refactor=False`. Dataset is 
+    ///             (x -> `f3_x.csv`,y -> `f3_y2.csv`).
+    ///
+    /// Checks for appropriate m-factors and a-factors by <btchcorrctr::BatchCorrector>.
+    #[test]
+    pub fn test__GorillaJudge__process_next___case_1() {
+        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::one_reducer}];
+
+        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
+        0,None,None);
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
+            true, vr21,2,2,20);
+    
+        // second task: add adder_skew vec to VRed and do tail-1
+        gj.process_next(false);
+                
+        let mk:HashSet<i32> = gj.bc.m_candidate_scores.into_keys().collect();
+        
+        let mut mk_sol:HashSet<i32> = HashSet::from_iter([24,74,49]);
+        assert_eq!(mk,mk_sol);
+    
+        let ak:HashSet<i32> = gj.bc.a_candidate_scores.into_keys().collect();
+        let mut ak_sol:HashSet<i32> = HashSet::from_iter([39,74,0]);
+        assert_eq!(ak,ak_sol);
     }
 
 }
-

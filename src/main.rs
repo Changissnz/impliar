@@ -3,6 +3,7 @@
 #[allow(non_snake_case)]
 mod setti;
 mod enci;
+#[allow(non_snake_case)]
 mod metrice;
 //mod pbobot;
 
