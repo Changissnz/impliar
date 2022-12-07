@@ -1,7 +1,7 @@
-//extern crate itertools;
 #[allow(dead_code)]
 #[allow(non_snake_case)]
 mod setti;
+#[allow(non_snake_case)]
 mod enci;
 #[allow(non_snake_case)]
 mod metrice;
@@ -55,5 +55,26 @@ extern crate savefile_derive;
 extern crate savefile;
 use savefile::prelude::*;
 
-fn main() { 
+fn main() {
+
+    ///////
+    /*
+    let x0 = metrice::vcsv::csv_to_arr1_seq("src/data/f3_x.csv").unwrap();
+    let x = metrice::vcsv::csv_to_arr1("src/data/f3_y.csv").unwrap();
+
+    // case 1
+    let t0 = x0[0].clone();
+    let t1 = x[0].clone() as usize;
+
+    let sv1: Vec<metrice::vreducer::FCast> = vec![metrice::vreducer::FCast{f:metrice::vreducer::std_euclids_reducer}];
+
+    let mut vr21 = metrice::vreducer::build_VRed(sv1.clone(),Vec::new(),vec![0,1],
+                0,Some(metrice::vreducer::FCastF32{f:metrice::gorillains::f9,ai:0.}),None);
+
+    let l = x0.len();
+    for i in 0..l {
+        println!("APPLY {}: {:?}",i,vr21.apply(x0[i].clone(),0).0);
+    }
+    */
+
 }

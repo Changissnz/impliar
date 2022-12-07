@@ -99,9 +99,11 @@ impl GorillaIns {
         }
 
         let mut x1 = self.approach.apply(v.clone(),self.tail_mode).0.unwrap();
+        /*
         if !self.corr2.is_none() {
             x1 = x1 + self.corr2.unwrap();
         }
+        */
 
         if x1 < 0.5 {(Some(0),None)} else {(Some(1),None)}
     }
@@ -127,6 +129,7 @@ impl GorillaIns {
         assert!(x >= 0. && x <= 1.);
 
         let y:usize = if x < 0.5 {0} else {1};
+        self.app_out1 = Some(x);
         if self.wanted_normal1.is_none() {
             return (y,None);
         }

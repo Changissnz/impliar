@@ -57,7 +57,9 @@ pub struct VRed  {
     /// last function in apply, produces a f32 singleton.
     pub tail1: Option<FCastF32>,
     /// last function in apply, produces a f32 vector.
-    pub tailn: Option<skewf32::SkewF32>
+    pub tailn: Option<skewf32::SkewF32>,
+    /// vector of adder skews for tail-1
+    pub tail1_skew: Vec<f32>
 }
 
 
@@ -65,7 +67,7 @@ pub fn build_VRed(fv:Vec<FCast>,sv:Vec<skewf32::SkewF32>,
     direction:Vec<usize>,switch_f:usize,
     tail1:Option<FCastF32>, tailn: Option<skewf32::SkewF32>) -> VRed {
     VRed{fvec:fv,svec:sv,directions:direction,switch_f:switch_f,
-    fi:0,si:0,tail1:tail1,tailn:tailn}
+    fi:0,si:0,tail1:tail1,tailn:tailn,tail1_skew:Vec::new()}
 }
 
 
@@ -90,7 +92,8 @@ impl VRed {
                 println!("[!] vred:: unintended output");
                 return (None,Some(a2));
             }
-            let a3 = (self.tail1.clone().unwrap()).apply(a2);
+            let mut a3 = (self.tail1.clone().unwrap()).apply(a2);
+            a3 += self.tail1_skew_sum();
             return (Some(a3),None);
         }
 
@@ -103,7 +106,7 @@ impl VRed {
         (None,Some(a3))
     }
 
-    /// 
+    /// # description
     pub fn apply_body(&mut self,a:Array1<f32>) -> Array1<f32> {
         self.reset_i();
 
@@ -149,6 +152,7 @@ impl VRed {
                 self.si += 1;
             }
         }
+
         sol
     }
 
@@ -218,6 +222,7 @@ impl VRed {
         self.tailn = Some(nt);
     }
 
+    /// # description
     /// adds an existing `tailn` to the end of `svec` and replaces
     /// `tailn` with `nt`. 
     pub fn mod_tailn_(&mut self,nt:skewf32::SkewF32) {
@@ -232,6 +237,17 @@ impl VRed {
     pub fn mod_tail1(&mut self,nt:FCastF32) {
         self.tail1 = Some(nt);
     }
+
+    /// # description
+    pub fn add_tail1_skew(&mut self,f:f32) {
+        self.tail1_skew.push(f);
+    }
+
+    pub fn tail1_skew_sum(&mut self) -> f32 {
+        let x: Array1<f32> = self.tail1_skew.clone().into_iter().collect();
+        x.sum()
+    }
+
 }
 
 /// constructs addit <skewf32::SkewF32>.

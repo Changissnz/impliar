@@ -53,8 +53,8 @@ pub struct GorillaJudge {
     bs:usize,
     /// size of last batch read
     lbs: usize,
-    /// tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
-    tail1_skew:Vec<f32>,
+    // tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
+    pub tail1_skew:Vec<f32>,
     /// tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
     pub tailn_skew:Vec<skewf32::SkewF32>,
     /// batch corrector for refactoring skews
@@ -62,9 +62,9 @@ pub struct GorillaJudge {
     /// tail-n case: output from `base_vr` to value before y-label
     pub vr_outputn: Vec<Array1<f32>>,
     /// tail-1 case: output from `base_vr` to value before y-label
-    vr_output1: Vec<f32>,
+    pub vr_output1: Vec<f32>,
     /// mis-classification score metric
-    misclass_mtr: f32,
+    pub misclass_mtr: f32,
     /// skew summation score metric
     pub skew_mtr: f32,
     // sequence of adders or multers used in refactoring; these values are used to get the baseline skew of the instance's <vreducer:VRed>.
@@ -82,8 +82,8 @@ pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
 
     GorillaJudge{brx:brx, bry:brx2,is_tailn:is_tailn,data_load:Vec::new(),
         label_loadn:Some(Vec::new()),label_load1:Some(Vec::new()),
-        base_vr:base_vr, k:k,reducer_szt:rs,bs:bs,lbs: 0,tail1_skew:Vec::new(),tailn_skew:Vec::new(),
-        bc:gbc,vr_outputn:Vec::new(),vr_output1:Vec::new(),misclass_mtr: 0.,skew_mtr:0.}
+        base_vr:base_vr, k:k,reducer_szt:rs,bs:bs,lbs: 0,tail1_skew:Vec::new(),
+        tailn_skew:Vec::new(),bc:gbc,vr_outputn:Vec::new(),vr_output1:Vec::new(),misclass_mtr: 0.,skew_mtr:0.}
 }
 
 impl GorillaJudge {
@@ -136,7 +136,7 @@ impl GorillaJudge {
             } else {
                 self.vr_output1.push(x3.unwrap());
                 self.tail1_skew.push(x1.unwrap());
-                self.skew_mtr += x1.unwrap();
+                self.skew_mtr += x1.unwrap().abs();
             }
             
             self.misclass_mtr += x5;
@@ -153,14 +153,22 @@ impl GorillaJudge {
     pub fn process_gorilla_at_index(&mut self, i: usize) -> (Option<f32>,Option<skewf32::SkewF32>,Option<f32>,Option<Array1<f32>>,f32) {
         let mut gi = self.gorilla_at_index(i);
         
-        let giscore = gi.soln.as_ref().unwrap().score;
+        let mut giscore:f32 = 0.;
+        
+        if self.is_tailn {
+            giscore = gi.soln.as_ref().unwrap().score.unwrap();
+        } else {
+            //println!("X: ")
+            giscore = if self.label_load1.as_ref().unwrap()[i] as usize != 
+                gi.predict_sequence(self.data_load[i].clone()).0.unwrap() {1.} else {0.};
+        }
 
         let (x1,x2) = gi.improve_approach__labels(self.is_tailn);
         if !self.is_tailn {
-            return (x1,None,gi.app_out1,gi.app_outn,giscore.unwrap());
+            return (x1,None,gi.app_out1,gi.app_outn,giscore);
         }
 
-        (None,Some(vreducer::sample_vred_addit_skew(x2.unwrap(),self.k)),gi.app_out1,gi.app_outn,giscore.unwrap())
+        (None,Some(vreducer::sample_vred_addit_skew(x2.unwrap(),self.k)),gi.app_out1,gi.app_outn,giscore)
 
     }
 
@@ -192,8 +200,16 @@ impl GorillaJudge {
             let q = if x4 {vreducer::sample_vred_adder_skew(x3.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(x3.unwrap())};
             self.base_vr.add_s(q);
             return None;
-        } 
-        let (_,_,x3) = self.refactor_batch_tail1();
+        }
+        
+        let (x1,x2,x3) = self.refactor_batch_tail1();
+        
+        // case: no adder
+        if x3 == 0. {
+            return None;
+        }
+
+        self.base_vr.add_tail1_skew(x3);
         Some(x3)
     }
 
@@ -298,14 +314,17 @@ impl GorillaJudge {
         // get (index, score) w/ lowest score
         let rsm = rs.into_iter().enumerate().fold((0,x1), |min, val| if val.1 < min.1 { val } else{ min });
 
+        // fix skew meter before return
         if rsm.0 == 0 {
             return (x1,x1,0.);
         } else if rsm.0 == 1 {
+            self.skew_mtr = x2;
             return (x1,x2,mn);
         } else if rsm.0 == 2 {
+            self.skew_mtr = x3;
             return (x1,x3,minu);
         }
-
+        self.skew_mtr = x4;
         (x1,x4,maxu)
     }
 
@@ -349,6 +368,13 @@ impl GorillaJudge {
             self.lbs = 0;
         }
     }
+
+    //// # TODO:
+    /*
+    pub fn predict_sequence(&mut self,v: Array1<f32>) -> (Option<usize>,Option<Array1<usize>>)  {
+
+    }
+    */
 }
 
 #[cfg(test)]
@@ -383,6 +409,30 @@ mod tests {
         let ak:HashSet<i32> = gj.bc.a_candidate_scores.into_keys().collect();
         let mut ak_sol:HashSet<i32> = HashSet::from_iter([39,74,0]);
         assert_eq!(ak,ak_sol);
+    }
+
+    /// # description
+    /// tail-1 refactor test
+    #[test]
+    pub fn test__GorillaJudge__process_next___case_2() {
+        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
+        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
+                    0,Some(vreducer::FCastF32{f:gorillains::f9,ai:0.}),None);
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y.csv".to_string()),
+            false, vr21.clone(),2,2,20);
+    
+        
+        // second task: add adder_skew vec to VRed and do tail-1
+        gj.process_next(false);
+ 
+        let mut gj2 = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y.csv".to_string()),
+            false, vr21.clone(),2,2,20);
+        gj2.process_next(true);
+
+        assert!(gj2.skew_mtr <= gj.skew_mtr, "WRONG REFACTOR!"); 
+
+        
+
     }
 
 }
