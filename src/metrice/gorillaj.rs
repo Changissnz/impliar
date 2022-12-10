@@ -69,6 +69,7 @@ pub struct GorillaJudge {
     pub skew_mtr: f32,
     // sequence of adders or multers used in refactoring; these values are used to get the baseline skew of the instance's <vreducer:VRed>.
     //pub skew_values: Vec<f32>
+
 }
 
 
