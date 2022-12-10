@@ -372,9 +372,9 @@ impl GorillaJudge {
     //// # TODO:
     /*
     pub fn predict_sequence(&mut self,v: Array1<f32>) -> (Option<usize>,Option<Array1<usize>>)  {
-
     }
     */
+
 }
 
 #[cfg(test)]
@@ -429,10 +429,7 @@ mod tests {
             false, vr21.clone(),2,2,20);
         gj2.process_next(true);
 
-        assert!(gj2.skew_mtr <= gj.skew_mtr, "WRONG REFACTOR!"); 
-
-        
-
+        assert!(gj2.skew_mtr < gj.skew_mtr, "WRONG REFACTOR!"); 
     }
 
 }

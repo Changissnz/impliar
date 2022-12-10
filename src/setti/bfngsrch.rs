@@ -1,5 +1,6 @@
 use ndarray::{Array1,Array2,arr1};
 use crate::setti::selection_rule;
+use std::fmt;
 
 /// structure used by brute-force greedy searcher; 
 /// uses a selection rule
@@ -92,7 +93,7 @@ impl BFGSearcher {
 
     /// processes one element in cache
     pub fn process(&mut self) -> bool {
-
+        
         if self.cache.len() == 0 {
             return false;
         }
@@ -127,12 +128,22 @@ impl BFGSearcher {
         // iterate through and make SelectionRule sibling for each c in ci
         for c in ci.into_iter() {
             let mut s2 = s.clone();
-            s2.sr.select_choice_at_col_index(s.i,c,true);
+            s2.sr.select_choice_at_col_index(c,s.i,true);
             s2.i += 1;
             sol.push(s2);
         }
 
         self.tmp_cache = sol.clone();
         return sol;
+    }
+}
+
+impl fmt::Display for BFGSelectionRule {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut q = "* BFGSearcher ".to_string();
+        q.push_str(&format!("\n*\tnext path\n"));
+        q.push_str(&format!("{:?}\n",self.next_path));
+        write!(f, "{}", q)
     }
 }

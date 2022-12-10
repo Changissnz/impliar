@@ -33,7 +33,8 @@ pub fn label_intervals(l:usize) -> Array1<f32> {
 /// bfngsrch.sr.choice
 pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approach_out: Array1<f32>,
     mut im: HashMap<usize,Vec<usize>>, li:f32) {
-
+    ////////////
+    
     // look at the last row element (pointset label) in choice
     let l = sr.sr.choice.len();
     if l == 0 {
@@ -52,7 +53,7 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
     let mut s:f32 = 0.;
     for i in iv.into_iter() {
         let x = approach_out[i].clone();
-        s += bmeas::bdistance_of_f32pair((x,li),(0.,1.)).abs();
+        s += (x - li).abs();
     }
 
     if sr.score.is_none() {
@@ -73,7 +74,7 @@ pub fn gorilla_update_selection_rule(sr: &mut bfngsrch::BFGSelectionRule,approac
 ///         EX: if 2 labels and range is \[0,1\], then \[0.25,0.75\]
 pub fn score_bfgs_tmpcache(bs: &mut bfngsrch::BFGSearcher,approach_out: Array1<f32>,
     im: HashMap<usize,Vec<usize>>,li:Array1<f32>) {
-
+    
     let l = bs.tmp_cache.len();
     for i in 0..l {
         let mut s = bs.tmp_cache[i].clone();
@@ -88,7 +89,6 @@ pub fn score_bfgs_tmpcache(bs: &mut bfngsrch::BFGSearcher,approach_out: Array1<f
 /// # description
 /// helper method for <skewcorrctr::gorilla_improve_approach_tailn__labels>
 pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSearcher {
-
     // get map : label -> index of wanted normaln
     let hm = matrixf::label_to_iset_map(wanted_normaln.clone().into_iter().collect());
     let li = label_intervals(hm.len());
@@ -164,7 +164,7 @@ pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRu
 /// calculates the best <bfngsrch::BFGSelectionRule> such that for `approach_out` and its `wanted_normaln`,
 /// the rule is the best `label -> f32` mapping, in which `label = unique(wanted_normaln)`. 
 pub fn gorilla_improve_approach_tailn__labels(approach_out: Array1<f32>,wanted_normaln:Array1<usize>) -> bfngsrch::BFGSelectionRule {
-    let fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);
+    let fgs = process_bfgsearcher_tailn__labels(approach_out,wanted_normaln);    
     let q = fgs.all_cache[0].clone();
     fgs.all_cache.into_iter().fold(q, |v1: bfngsrch::BFGSelectionRule,v2: bfngsrch::BFGSelectionRule| if v1.score.unwrap() < v2.score.unwrap() {v1} else {v2})
 }
@@ -190,4 +190,19 @@ mod tests {
         assert_eq!(x,sol2);
     }
 
+    #[test]
+    pub fn test_gorilla_improve_approach_tailn__labels() {
+        // case 1: binary labels
+        let a:Array1<f32> = arr1(&[0.2,0.4,0.3,0.1,0.5]);
+        let b: Array1<usize> = arr1(&[1,0,0,1,0]);
+        let mut bfgs = gorilla_improve_approach_tailn__labels(a,b);
+
+        assert!(bfgs.sr.choice == vec![1,0]);
+
+        // case 2: trinary labels
+        let a1:Array1<f32> = arr1(&[0.2,0.4,0.3,0.1,0.5]);
+        let b1: Array1<usize> = arr1(&[1,0,2,2,1]);        
+        let mut bfgs2 = gorilla_improve_approach_tailn__labels(a1,b1);
+        assert!(bfgs2.sr.choice == vec![2,1,0]);
+    }
 }

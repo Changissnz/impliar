@@ -219,6 +219,8 @@ impl fmt::Display for SelectionRule {
         q.push_str(&format!("{:?}\n",self.res.data));
         q.push_str(&format!("\n*\trequirement matrix\n"));
         q.push_str(&format!("{:?}",self.req.data));
+        q.push_str(&format!("\n*\tchoice\n"));
+        q.push_str(&format!("{:?}",self.choice));
         write!(f, "{}", q)
     }
 }
