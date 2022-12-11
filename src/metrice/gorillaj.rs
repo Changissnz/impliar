@@ -47,6 +47,7 @@ pub struct GorillaJudge {
     pub base_vr: vreducer::VRed,
     /// decimal length for skew values; used by <gorillains::GorillaIns>
     k:usize,
+    
     // range-space size for `BFGSelectionRule`
     //reducer_szt:usize,
     
