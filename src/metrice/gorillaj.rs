@@ -47,8 +47,9 @@ pub struct GorillaJudge {
     pub base_vr: vreducer::VRed,
     /// decimal length for skew values; used by <gorillains::GorillaIns>
     k:usize,
-    /// range-space size for `BFGSelectionRule`
-    reducer_szt:usize,
+    // range-space size for `BFGSelectionRule`
+    //reducer_szt:usize,
+    
     /// batch size
     bs:usize,
     /// size of last batch read
@@ -83,21 +84,11 @@ pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
 
     GorillaJudge{brx:brx, bry:brx2,is_tailn:is_tailn,data_load:Vec::new(),
         label_loadn:Some(Vec::new()),label_load1:Some(Vec::new()),
-        base_vr:base_vr, k:k,reducer_szt:rs,bs:bs,lbs: 0,tail1_skew:Vec::new(),
+        base_vr:base_vr, k:k,bs:bs,lbs: 0,tail1_skew:Vec::new(),
         tailn_skew:Vec::new(),bc:gbc,vr_outputn:Vec::new(),vr_output1:Vec::new(),misclass_mtr: 0.,skew_mtr:0.}
 }
 
 impl GorillaJudge {
-
-    /*
-    /// # description
-    /// declare a <gorillains::GorillaIns> instance; tail-1 variant has non-null `single` argument
-    /// and tail-n has a non-null `multi`.
-    pub fn make_GorillaIns(&mut self,single:Option<(Array1<f32>,usize)>,multi:Option<(Array1<f32>,Array1<usize>)>) -> gorillains::GorillaIns {
-    }
-    */
-
-    ////////
     
     /// # description
     /// loads next batch (x-data, ?y-data?) of size <= `bs` into memory
@@ -153,7 +144,6 @@ impl GorillaJudge {
     /// (f32 skew for tail-1 case, vector skew for tail-n case, `vred` output-1, `vred` output-n,misclassification score)
     pub fn process_gorilla_at_index(&mut self, i: usize) -> (Option<f32>,Option<skewf32::SkewF32>,Option<f32>,Option<Array1<f32>>,f32) {
         let mut gi = self.gorilla_at_index(i);
-        
         let mut giscore:f32 = 0.;
         
         if self.is_tailn {
@@ -165,6 +155,8 @@ impl GorillaJudge {
         }
 
         let (x1,x2) = gi.improve_approach__labels(self.is_tailn);
+        println!("ORDERING: {:?}",gi.skewn_ordering);
+
         if !self.is_tailn {
             return (x1,None,gi.app_out1,gi.app_outn,giscore);
         }
@@ -183,8 +175,8 @@ impl GorillaJudge {
             yn = Some(self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect());
         }
 
-        let mut gi = gorillains::build_GorillaIns(x,self.k,self.base_vr.clone(), yn,y1,
-            if !self.is_tailn {0} else {1}, self.reducer_szt);
+        let mut gi = gorillains::build_GorillaIns(x,self.k,2,self.base_vr.clone(), yn,y1,
+            if !self.is_tailn {0} else {1},2); //self.reducer_szt);
 
         if self.is_tailn { gi.brute_process_tailn();} else {gi.process_tail1();};
 

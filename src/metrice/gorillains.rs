@@ -43,6 +43,8 @@ pub struct GorillaIns {
     sequence: Array1<f32>,
     /// number of decimal places considered
     k:usize,
+    /// number of labels
+    l:usize,
     /// the chained function used to "translate" sequence
     approach: vreducer::VRed,
     /// tail-1 case output 
@@ -65,22 +67,27 @@ pub struct GorillaIns {
     pub soln:Option<fs::FSelect>,
     /// corrector vector for tail-n mode 
     pub corr:Option<Array1<f32>>,
-    /// corrector vector for tail-1 mode 
-    pub corr2: Option<f32>
+    /// TODO: check this, corrector vector for tail-1 mode 
+    pub corr2: Option<f32>,
+    /// best ordering of label interval values for skew corrector
+    pub skewn_ordering: Option<Vec<usize>>
 }
 
 /// # caution
 /// wanted normal1 intended for gf2.
-pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
+pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,l:usize,approach:vreducer::VRed,wanted_normaln:Option<Array1<usize>>,
     wanted_normal1:Option<usize>,tail_mode:usize,szt:usize) -> GorillaIns {
 
     if !wanted_normal1.is_none() {
         assert!(wanted_normal1.clone().unwrap() < 2);
     }
 
-    GorillaIns{sequence:sequence,k:k,approach:approach,app_out1:None,app_outn:None,
+    assert!(l >= 1);
+
+    GorillaIns{sequence:sequence,k:k,l:l,approach:approach,app_out1:None,app_outn:None,
     wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
-    auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None,corr2:None}
+    auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None,corr2:None,
+    skewn_ordering:None}
 }
 
 impl GorillaIns {
@@ -89,7 +96,7 @@ impl GorillaIns {
     /// Predicts the normality of a sequence v by one of the tail
     /// approaches, singleton or tail-n (vector). 
     ///
-    /// return: 
+    /// # return: 
     /// If tail_mode == 0: \[0\] is solution 
     /// If tail_mode == 1: \[1\] is solution
     pub fn predict_sequence(&mut self,v: Array1<f32>) -> (Option<usize>,Option<Array1<usize>>)  {
@@ -191,12 +198,44 @@ impl GorillaIns {
             return (q2,None);
         }
 
-        // convert fselect to bfgselect
-        let bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
-        let (corr,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),self.wanted_normaln.clone().unwrap());
+        // calculate the best label -> label interval mapping using BFGSelectionRule
+        let bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),
+            self.wanted_normaln.clone().unwrap(),self.l);
+        
+        self.skewn_ordering = Some(self.binary_skewn_ordering(bfgsr.sr.choice.clone()));
+        //self.skewn_ordering = Some(bfgsr.sr.choice.clone());
+
+
+        // calculate the correction vector
+        let (corr,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),
+            self.wanted_normaln.clone().unwrap(),self.l);
 
         // get skew
         (None,Some(corr))
+    }
+
+    /// # description
+    /// 
+    pub fn binary_skewn_ordering(&mut self,s:Vec<usize>) -> Vec<usize> {
+        assert!(!(s.len() > 2), "invalid ordering for binary labels");
+
+        
+        if s.len() == 2 { return s;}
+        let h:usize = self.wanted_normaln.as_ref().unwrap()[0].clone();
+
+        let q:usize = (s[0] + 1) % 2;
+        // case: append q
+        if h == 0 {
+            let s_:Vec<usize> = vec![s[0].clone(),q];
+            return s_;
+        }
+
+        // case: prepend q
+        let s_:Vec<usize> = vec![q,s[0].clone()];
+        s_
+        
+
+        //s
     }
 
     /// # description
@@ -230,7 +269,7 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
-        let mut gi = build_GorillaIns(q,5,vr21,Some(normal),None,1,3);
+        let mut gi = build_GorillaIns(q,5,2,vr21,Some(normal),None,1,3);
 
         gi.brute_process_tailn();
         assert_eq!(gi.app_outn,Some(arr1(&[0.47728175, 0.75453043, 0.75, 0.86111116])));
@@ -243,7 +282,7 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
-        let mut gi = build_GorillaIns(q,5,vr21,Some(normal),None,1,3);
+        let mut gi = build_GorillaIns(q,5,2,vr21,Some(normal),None,1,3);
 
         // before improvement
         gi.brute_process_tailn();
@@ -275,7 +314,7 @@ mod tests {
         let vr21 = vreducer::build_VRed(sv1.clone(),Vec::new(),vec![0,1],
                     0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
 
-        let mut gi = build_GorillaIns(t0.clone(),5,vr21.clone(),None,Some(t1),0,3);
+        let mut gi = build_GorillaIns(t0.clone(),5,2,vr21.clone(),None,Some(t1),0,3);
 
         let (u,o) = gi.process_tail1();
 
@@ -298,7 +337,7 @@ mod tests {
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,None,None);
 
-        let mut gi = build_GorillaIns(t0.clone(),5,vr21,None,None,1,5);
+        let mut gi = build_GorillaIns(t0.clone(),5,2,vr21,None,None,1,5);
         gi.brute_process_tailn();
         let (_,u2) = gi.predict_sequence(x0[0].clone());
         assert_eq!(Some(arr1(&[0, 1, 2, 3, 0])),u2);
@@ -321,7 +360,7 @@ mod tests {
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
                     0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
 
-        let mut gi = build_GorillaIns(t0.clone(),5,vr21,None,Some(t1),0,5);
+        let mut gi = build_GorillaIns(t0.clone(),5,2,vr21,None,Some(t1),0,5);
 
         let (u,o) = gi.process_tail1();
         let (u2,_) = gi.predict_sequence(x0[4].clone());
