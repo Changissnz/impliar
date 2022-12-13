@@ -70,7 +70,7 @@ pub struct GorillaIns {
     /// TODO: check this, corrector vector for tail-1 mode 
     pub corr2: Option<f32>,
     /// best ordering of label interval values for skew corrector
-    pub skewn_ordering: Option<Vec<usize>>
+    pub interval_ordering: Option<Vec<usize>>
 }
 
 /// # caution
@@ -87,7 +87,7 @@ pub fn build_GorillaIns(sequence:Array1<f32>,k:usize,l:usize,approach:vreducer::
     GorillaIns{sequence:sequence,k:k,l:l,approach:approach,app_out1:None,app_outn:None,
     wanted_normaln:wanted_normaln, wanted_normal1:wanted_normal1,man_sol:None,
     auto_sol:None,tail_mode:tail_mode,szt:szt,soln:None,corr:None,corr2:None,
-    skewn_ordering:None}
+    interval_ordering:None}
 }
 
 impl GorillaIns {
@@ -199,43 +199,18 @@ impl GorillaIns {
         }
 
         // calculate the best label -> label interval mapping using BFGSelectionRule
-        let bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),
+        let mut bfgsr = skewcorrctr::gorilla_improve_approach_tailn__labels(self.app_outn.clone().unwrap(),
             self.wanted_normaln.clone().unwrap(),self.l);
         
-        self.skewn_ordering = Some(self.binary_skewn_ordering(bfgsr.sr.choice.clone()));
-        //self.skewn_ordering = Some(bfgsr.sr.choice.clone());
-
+        self.interval_ordering = Some(skewcorrctr::binary_interval_ordering(bfgsr.sr.choice.clone(),self.wanted_normaln.clone().unwrap()));
+        bfgsr.sr.choice = self.interval_ordering.clone().unwrap();
 
         // calculate the correction vector
-        let (corr,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr,self.app_outn.clone().unwrap(),
-            self.wanted_normaln.clone().unwrap(),self.l);
+        let (corr,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(bfgsr.sr.choice.clone(),self.app_outn.clone().unwrap(),
+            self.wanted_normaln.clone().unwrap());
 
         // get skew
         (None,Some(corr))
-    }
-
-    /// # description
-    /// 
-    pub fn binary_skewn_ordering(&mut self,s:Vec<usize>) -> Vec<usize> {
-        assert!(!(s.len() > 2), "invalid ordering for binary labels");
-
-        
-        if s.len() == 2 { return s;}
-        let h:usize = self.wanted_normaln.as_ref().unwrap()[0].clone();
-
-        let q:usize = (s[0] + 1) % 2;
-        // case: append q
-        if h == 0 {
-            let s_:Vec<usize> = vec![s[0].clone(),q];
-            return s_;
-        }
-
-        // case: prepend q
-        let s_:Vec<usize> = vec![q,s[0].clone()];
-        s_
-        
-
-        //s
     }
 
     /// # description
@@ -293,7 +268,7 @@ mod tests {
         gi.improve_vred__tailn(x.unwrap());
         gi.brute_process_tailn();
 
-        assert_eq!(gi.app_outn,Some(arr1(&[0.75, 0.75, 0.25, 0.25])));
+        assert_eq!(gi.app_outn,Some(arr1(&[0.25, 0.25,0.75, 0.75])));
         assert_eq!(Some(0.), gi.soln.clone().unwrap().score);
     }
 

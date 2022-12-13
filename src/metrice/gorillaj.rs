@@ -1,7 +1,7 @@
 use crate::metrice::gorillains;
 use crate::metrice::vreducer;
 use crate::metrice::vcsv;
-use crate::metrice::btchcorrctr;
+use crate::metrice::{skewcorrctr,btchcorrctr};
 
 use crate::enci::skew;
 use crate::enci::skewf32;
@@ -9,282 +9,23 @@ use crate::enci::mat2sort;
 
 use ndarray::{Array1,arr1};
 use std::collections::HashSet;
-use std::sync::{Arc, Mutex, Once};
 
-/// <gorillaj::GorillaJudge> uses <gorillains::GorillaIns> to
-/// learn each sample it processes. Samples are loaded into this
-/// data structure by its x-data <vcsv::BatchReader> and ?y-data?
-/// <vcsv::BatchReader>. 
-///
-/// Two metrics are used to gauge the "goodness-of-fit" of the 
-/// mapping function `base_vr`:
-///         - summation of skew
-///         - summation of mis-classification
-///
-/// Each sample `s` goes through the function `base_vr` and its skew is the vector
-///             `I - base_vr(s)`, 
-/// `I` is the vector of `f32's in [0,1]` such that each i'th value of `base_vr(s)` should
-/// equal the i'th value in `I` for a labelling of `s` with no mis-classification error.
-/// 
-/// Summation of mis-classification is calculated by adding the score of
-/// each <gorillains::GorillaIns> solution (a <fs::FSelect> instance). The
-/// `.score` attribute of the <fs::FSelect> instance is its misclassification
-/// for the sample.
-pub struct GorillaJudge {
-    /// x-data reader
-    pub brx: vcsv::BatchReader,
-    /// y-data reader (for supervised learning)
-    pub bry: Option<vcsv::BatchReader>,
-    /// is output a vector?
-    pub is_tailn: bool,
-    /// batch data from x-data reader
-    pub data_load: Vec<Array1<f32>>,
-    /// batch data from y-data reader (tail-n)
-    pub label_loadn:Option<Vec<Array1<f32>>>,
-    /// batch data from y-data reader (tail-1)
-    pub label_load1:Option<Vec<f32>>,
-    /// base VReducer used to map each x sample into its y label
-    pub base_vr: vreducer::VRed,
-    /// decimal length for skew values; used by <gorillains::GorillaIns>
-    k:usize,
-    
-    // range-space size for `BFGSelectionRule`
-    //reducer_szt:usize,
-    
-    /// batch size
-    bs:usize,
-    /// size of last batch read
-    lbs: usize,
-    // tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
+pub fn basic_binary_function(f:f32) -> usize {
+    if f < 0.5 {return 0;}
+    return 1;
+}
+
+/// memory container for tail-1 case
+pub struct Tail1Mem {
     pub tail1_skew:Vec<f32>,
-    /// tail-n case: skew values for each `base_vr(s)` of `s in x-data`.  
-    pub tailn_skew:Vec<skewf32::SkewF32>,
-    /// batch corrector for refactoring skews
-    pub bc: btchcorrctr::GBatchCorrector,
-    /// tail-n case: output from `base_vr` to value before y-label
-    pub vr_outputn: Vec<Array1<f32>>,
-    /// tail-1 case: output from `base_vr` to value before y-label
     pub vr_output1: Vec<f32>,
-    /// mis-classification score metric
     pub misclass_mtr: f32,
-    /// skew summation score metric
-    pub skew_mtr: f32,
-    // sequence of adders or multers used in refactoring; these values are used to get the baseline skew of the instance's <vreducer:VRed>.
-    //pub skew_values: Vec<f32>
-
+    pub skew_mtr: f32
 }
 
+impl Tail1Mem {
 
-pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
-    is_tailn: bool, base_vr: vreducer::VRed,k:usize,rs: usize,bs:usize) -> GorillaJudge {
-
-    let mut brx = vcsv::build_BatchReader(fp,bs,false,'_');
-    let mut brx2: Option<vcsv::BatchReader> = if fp2.is_none() {None} else 
-        {Some(vcsv::build_BatchReader(fp2.unwrap(),bs,!is_tailn,'_'))};
-    let mut gbc = btchcorrctr::empty_GBatchCorrector(k);
-
-    GorillaJudge{brx:brx, bry:brx2,is_tailn:is_tailn,data_load:Vec::new(),
-        label_loadn:Some(Vec::new()),label_load1:Some(Vec::new()),
-        base_vr:base_vr, k:k,bs:bs,lbs: 0,tail1_skew:Vec::new(),
-        tailn_skew:Vec::new(),bc:gbc,vr_outputn:Vec::new(),vr_output1:Vec::new(),misclass_mtr: 0.,skew_mtr:0.}
-}
-
-impl GorillaJudge {
-    
-    /// # description
-    /// loads next batch (x-data, ?y-data?) of size <= `bs` into memory
-    /// # return
-    /// size of batch
-    pub fn load_next_batch(&mut self) -> usize {
-        let (_,b1) = self.brx.read_batch_numerical();
-        self.data_load = b1.unwrap();
-
-        // case: supervised
-        if !self.bry.is_none() {
-            let b2 = self.bry.as_mut().unwrap().read_batch_numerical();
-
-            if self.is_tailn {
-                self.label_loadn = Some(b2.1.unwrap());
-            } else {
-                self.label_load1 = Some(b2.0.unwrap());
-            }
-        }
-
-        self.data_load.len()
-    }
-    
-    /// # description
-    pub fn gorilla_on_batch(&mut self) -> usize {
-        let l = self.data_load.len();
-
-        for i in 0..l {
-            let (x1,x2,x3,x4,x5) = self.process_gorilla_at_index(i);
-
-            // 
-            if self.is_tailn {
-                let s = x2.clone().unwrap().skew_size();
-                self.vr_outputn.push(x4.unwrap());
-                self.tailn_skew.push(x2.unwrap());
-                self.skew_mtr += s;
-            } else {
-                self.vr_output1.push(x3.unwrap());
-                self.tail1_skew.push(x1.unwrap());
-                self.skew_mtr += x1.unwrap().abs();
-            }
-            
-            self.misclass_mtr += x5;
-        }
-        l
-
-    }
-
-    /// # description
-    /// runs a <gorillains::GorillaIns> instance on the i'th sample in data
-    ///
-    /// # return
-    /// (f32 skew for tail-1 case, vector skew for tail-n case, `vred` output-1, `vred` output-n,misclassification score)
-    pub fn process_gorilla_at_index(&mut self, i: usize) -> (Option<f32>,Option<skewf32::SkewF32>,Option<f32>,Option<Array1<f32>>,f32) {
-        let mut gi = self.gorilla_at_index(i);
-        let mut giscore:f32 = 0.;
-        
-        if self.is_tailn {
-            giscore = gi.soln.as_ref().unwrap().score.unwrap();
-        } else {
-            //println!("X: ")
-            giscore = if self.label_load1.as_ref().unwrap()[i] as usize != 
-                gi.predict_sequence(self.data_load[i].clone()).0.unwrap() {1.} else {0.};
-        }
-
-        let (x1,x2) = gi.improve_approach__labels(self.is_tailn);
-        println!("ORDERING: {:?}",gi.skewn_ordering);
-
-        if !self.is_tailn {
-            return (x1,None,gi.app_out1,gi.app_outn,giscore);
-        }
-
-        (None,Some(vreducer::sample_vred_addit_skew(x2.unwrap(),self.k)),gi.app_out1,gi.app_outn,giscore)
-
-    }
-
-    pub fn gorilla_at_index(&mut self,i:usize) -> gorillains::GorillaIns {
-        let mut x: Array1<f32> = self.data_load[i].clone();
-        let (mut y1,mut yn): (Option<usize>,Option<Array1<usize>>) = (None,None);
-
-        if !self.is_tailn {
-            y1 = Some(self.label_load1.as_ref().unwrap()[i].clone() as usize);
-        } else {
-            yn = Some(self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect());
-        }
-
-        let mut gi = gorillains::build_GorillaIns(x,self.k,2,self.base_vr.clone(), yn,y1,
-            if !self.is_tailn {0} else {1},2); //self.reducer_szt);
-
-        if self.is_tailn { gi.brute_process_tailn();} else {gi.process_tail1();};
-
-        gi
-    }
-
-    /// # description
-    /// 
-    /// # return
-    /// tail-1 skew if `!is_tailn`
-    pub fn refactor(&mut self) -> Option<f32> {
-        if self.is_tailn {
-            let (_,_,x3,x4) = self.refactor_batch_tailn();
-            let q = if x4 {vreducer::sample_vred_adder_skew(x3.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(x3.unwrap())};
-            self.base_vr.add_s(q);
-            return None;
-        }
-        
-        let (x1,x2,x3) = self.refactor_batch_tail1();
-        
-        // case: no adder
-        if x3 == 0. {
-            return None;
-        }
-
-        self.base_vr.add_tail1_skew(x3);
-        Some(x3)
-    }
-
-    
-
-    /// # description
-    /// 
-    /// # return
-    /// current skew score, skew score after update, skew factor, is adder?
-    pub fn refactor_batch_tailn(&mut self) -> (f32,f32,Option<i32>,bool) {
-
-        // fetch the refactor
-        let (x1,x2,x3) = self.bc.best_refactor.clone();
-
-        // case: no best refactor
-        if x1.is_none() {
-            return (self.skew_mtr.clone(),self.skew_mtr.clone(),None,false);
-        }
-
-        let mut q: Vec<Array1<f32>> = self.vr_outputn.clone();
-        // wanted values
-        let mut x: Vec<Array1<f32>> = q.clone().into_iter().enumerate().map(|(i,x2)| self.tailn_skew[i].skew_value(x2)).collect();
-        
-        if x3 {
-
-            // calibrate adder
-            let x11 = x1.unwrap() as f32 / (i32::pow(10,self.k as u32) as f32);
-
-            // new vr_outputn
-            q = q.into_iter().map(|y| y + x11).collect();
-        } else {
-
-            // get multer
-            let x11 = x1.unwrap() as f32;
-
-            // new vr_outputn
-            q = q.into_iter().map(|y| y * x11).collect();
-        }
-
-        self.vr_outputn = q.clone();
-
-        // new skew
-        self.tailn_skew = x.into_iter().enumerate().map(|(i,y)| vreducer::sample_vred_addit_skew(y - q[i].clone(),self.k)).collect();
-
-        // new score
-        let sm = self.skew_mtr.clone();
-        self.skew_mtr = x2.unwrap(); 
-
-        (sm,self.skew_mtr.clone(),x1,x3)
-    }
-
-    /// # description
-    /// uses min,max,mean as points of interest. Refactorization by tail-1 mode
-    /// only considers adders (no multers).
-    /// 
-    /// # return:
-    /// current score, score after adder, adder
-    pub fn refactor_batch_tail1(&mut self) -> (f32,f32,f32) {
-        let (x1,x2,x3) = self.get_refactor_batch_tail1();
-
-        if x3 == 0. {
-            return (x1,x2,x3);
-        }
-
-        // refactor tail1-skew
-        let q = arr1(&self.tail1_skew);
-        self.tail1_skew = (q - x3).into_iter().collect();
-        self.vr_output1 = (arr1(&self.vr_output1) + x3).into_iter().collect();
-        self.skew_mtr = x2;
-
-        (x1,x2,x3)
-    }
-
-    
-    /// # description
-    /// uses min,max,mean as points of interest. Refactorization by tail-1 mode
-    /// only considers adders (no multers).
-    /// 
-    /// # return:
-    /// current score, score after adder, adder
-    pub fn get_refactor_batch_tail1(&mut self) -> (f32,f32,f32) {
+    pub fn refactor_batch_tail1_(&mut self) -> (f32,f32,f32) {
 
         let q = arr1(&self.tail1_skew);
         let mn_ = q.mean();
@@ -306,7 +47,12 @@ impl GorillaJudge {
         let rs = vec![x1,x2,x3,x4];
 
         // get (index, score) w/ lowest score
-        let rsm = rs.into_iter().enumerate().fold((0,x1), |min, val| if val.1 < min.1 { val } else{ min });
+        let rsm = rs.clone().into_iter().enumerate().fold((0,x1), |min, val| if val.1 < min.1 { val } else{ min });
+
+        // update tail1_skew and vr_output1
+        let q = arr1(&self.tail1_skew);
+        self.tail1_skew = (q - rs[rsm.0].clone()).into_iter().collect();
+        self.vr_output1 = (arr1(&self.vr_output1) + rs[rsm.0].clone()).into_iter().collect();
 
         // fix skew meter before return
         if rsm.0 == 0 {
@@ -321,109 +67,224 @@ impl GorillaJudge {
         self.skew_mtr = x4;
         (x1,x4,maxu)
     }
+}
 
-    /// # description
-    /// method called after refactor modification to `base_vr`. 
-    pub fn reload_batchcorrctr(&mut self) {
-        self.bc = btchcorrctr::empty_GBatchCorrector(self.k);
-        self.bc.load_next_batch(self.tailn_skew.clone(),self.vr_outputn.clone());
-    }
 
-    /// # description
-    /// 
-    pub fn update_batchcorrctr(&mut self) {
-        // add the last batch of size lbs
-        let l = self.vr_outputn.len();
-        println!("L: {} BS: {}",l,self.lbs);
-        self.bc.load_next_batch(self.tailn_skew[l - self.lbs..l].to_vec().clone(),
-            self.vr_outputn[l - self.lbs..l].to_vec().clone());
+pub fn empty_Tail1Mem() -> Tail1Mem {
+    Tail1Mem{tail1_skew:Vec::new(),vr_output1:Vec::new(),misclass_mtr:0.,skew_mtr:0.}
+}
 
-    }
+pub struct GorillaJudge {
+    /// x-data reader
+    pub brx: vcsv::BatchReader,
+    /// y-data reader (for supervised learning)
+    pub bry: Option<vcsv::BatchReader>,
+    /// is output a vector?
+    pub is_tailn: bool,
+    /// batch data from x-data reader
+    pub data_load: Vec<Array1<f32>>,
+    /// batch data from y-data reader (tail-n)
+    pub label_loadn:Option<Vec<Array1<f32>>>,
+    /// batch data from y-data reader (tail-1)
+    pub label_load1:Option<Vec<f32>>,
+    /// base VReducer used to map each x sample into its y label
+    pub base_vr: vreducer::VRed,
+    /// decimal length for skew values; used by <gorillains::GorillaIns>
+    k:usize,
+    
+    /// batch size
+    bs:usize,
+    /// size of last batch read
+    lbs: usize,
+    
+    /// batch corrector for refactoring skews, interval ordering \[0.25,0.75\]
+    pub bc: btchcorrctr::GBatchCorrector,
+    /// batch corrector for refactoring skews, interval ordering \[0.75,0.25\]
+    pub bc2: btchcorrctr::GBatchCorrector,    
 
-    /// # description
-    /// main function. 
+    pub tm: Tail1Mem,
+
+    pub misclass_mtr:f32
+
+
+}
+
+pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
+    is_tailn: bool, base_vr: vreducer::VRed,k:usize,bs:usize) -> GorillaJudge {
+
+    let mut brx = vcsv::build_BatchReader(fp,bs,false,'_');
+    let mut brx2: Option<vcsv::BatchReader> = if fp2.is_none() {None} else 
+        {Some(vcsv::build_BatchReader(fp2.unwrap(),bs,!is_tailn,'_'))};
+    let mut gbc = btchcorrctr::empty_GBatchCorrector(base_vr.clone(),k);
+    let mut gbc2 = btchcorrctr::empty_GBatchCorrector(base_vr.clone(),k);
+
+    let tm = empty_Tail1Mem(); 
+
+    GorillaJudge{brx:brx, bry:brx2,is_tailn:is_tailn,data_load:Vec::new(),
+        label_loadn:Some(Vec::new()),label_load1:Some(Vec::new()),
+        base_vr:base_vr, k:k,bs:bs,lbs: 0,bc:gbc,bc2:gbc2,tm:tm,misclass_mtr:0.}
+}
+
+impl GorillaJudge {
+
+
     pub fn process_next(&mut self,refactor:bool) {
         self.lbs += self.load_next_batch();
         if self.lbs > 0 {
             self.gorilla_on_batch();
             if self.is_tailn {
-                self.update_batchcorrctr();
                 self.bc.process_batch_(true);
+                self.bc2.process_batch_(true);
             }
         }
 
         if refactor {
             self.refactor();
-
-            if self.is_tailn {
-                self.reload_batchcorrctr();
-            }
-
             self.lbs = 0;
         }
     }
 
-    //// # TODO:
-    /*
-    pub fn predict_sequence(&mut self,v: Array1<f32>) -> (Option<usize>,Option<Array1<usize>>)  {
+    /// # description
+    /// loads next batch (x-data, ?y-data?) of size <= `bs` into memory
+    /// # return
+    /// size of batch
+    pub fn load_next_batch(&mut self) -> usize {
+        let (_,b1) = self.brx.read_batch_numerical();
+        self.data_load = b1.unwrap();
+
+        // case: supervised
+        if !self.bry.is_none() {
+            let b2 = self.bry.as_mut().unwrap().read_batch_numerical();
+
+            if self.is_tailn {
+                self.label_loadn = Some(b2.1.unwrap());
+            } else {
+                self.label_load1 = Some(b2.0.unwrap());
+            }
+        }
+
+        self.data_load.len()
     }
-    */
 
-}
+    pub fn gorilla_on_batch(&mut self) {
+        let l = self.data_load.len();
 
-#[cfg(test)]
-mod tests {
+        for i in 0..l {
+            self.process_gorilla_at_index(i);
+        }
+    }
 
-    use super::*;
+    pub fn process_gorilla_at_index(&mut self, i: usize) {// -> (Option<f32>,Option<skewf32::SkewF32>,Option<f32>,Option<Array1<f32>>,f32) {
+        let mut gi = self.gorilla_at_index(i);
+        self.add_sample_to_data(i,&mut gi);
+    }
+
+    pub fn add_sample_to_data(&mut self,i:usize,gi: &mut gorillains::GorillaIns) {
+        
+        let (x1,x2) = (*gi).improve_approach__labels(self.is_tailn);
+
+        // case: add to batch corrector
+        if self.is_tailn {
+            self.misclass_mtr += self.misclass_of_gorillains(gi);
+            self.add_sample_to_batch_corrector(i,(*gi).interval_ordering.clone().unwrap());
+            return;
+        }
+
+        // case: add to Tail1Mem
+        self.tm.vr_output1.push((*gi).app_out1.clone().unwrap());
+        self.tm.tail1_skew.push(x1.clone().unwrap());
+        self.tm.skew_mtr += x1.clone().unwrap();
+
+        let u:usize = basic_binary_function((*gi).app_out1.clone().unwrap());        
+        let mut y = self.label_load1.as_ref().unwrap()[i].clone() as usize;
+        let l:f32 = if u != y {1.} else {0.};
+        self.tm.misclass_mtr += l; 
+    }
+    
+
+    pub fn add_sample_to_batch_corrector(&mut self,i:usize,ordering:Vec<usize>) -> f32 {
+        let mut x = self.data_load[i].clone();
+        let mut y:Array1<usize> = self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect();
+        let mut x2:Array1<f32> = x.clone();
+        if ordering == vec![0,1] {
+            // get the outputn
+            let (_,q) = self.bc.vr.apply(x.clone(),1);
+            x2 = q.unwrap();
+            let (c,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(ordering,x2.clone(),y.clone());
+            let mut sk = vreducer::sample_vred_addit_skew(c.clone(),self.k);
+            self.bc.refn1.push(x2.clone());
+            self.bc.b.push(sk.clone());
+
+
+            return sk.skew_size();
+        } 
+        // get the outputn
+        let (_,q) = self.bc2.vr.apply(x.clone(),1);
+        x2 = q.unwrap();
+        let (c,_) = skewcorrctr::correction_for_bfgrule_approach_tailn__labels(ordering,x2.clone(),y.clone());
+        let mut sk = vreducer::sample_vred_addit_skew(c.clone(),self.k);
+        self.bc2.refn1.push(x2.clone());
+        self.bc2.b.push(sk.clone());
+        sk.skew_size()
+    }
 
     /// # description
-    /// The <vreducer::VRed> function used by this <gorillaj::GorillaJudge> relies
-    /// only on the <vreducer::one_reducer> function.
-    /// Calls `process_next` with argument `refactor=False`. Dataset is 
-    ///             (x -> `f3_x.csv`,y -> `f3_y2.csv`).
-    ///
-    /// Checks for appropriate m-factors and a-factors by <btchcorrctr::BatchCorrector>.
-    #[test]
-    pub fn test__GorillaJudge__process_next___case_1() {
-        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::one_reducer}];
+    /// Constructs a <gorillains::GorillaIns> at index `i` and processes it by tail-n or tail-1 mode.
+    pub fn gorilla_at_index(&mut self,i:usize) -> gorillains::GorillaIns {
+        let mut x: Array1<f32> = self.data_load[i].clone();
+        let (mut y1,mut yn): (Option<usize>,Option<Array1<usize>>) = (None,None);
 
-        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
-        0,None,None);
-        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
-            true, vr21,2,2,20);
-    
-        // second task: add adder_skew vec to VRed and do tail-1
-        gj.process_next(false);
-                
-        let mk:HashSet<i32> = gj.bc.m_candidate_scores.into_keys().collect();
-        
-        let mut mk_sol:HashSet<i32> = HashSet::from_iter([24,74,49]);
-        assert_eq!(mk,mk_sol);
-    
-        let ak:HashSet<i32> = gj.bc.a_candidate_scores.into_keys().collect();
-        let mut ak_sol:HashSet<i32> = HashSet::from_iter([39,74,0]);
-        assert_eq!(ak,ak_sol);
+        if !self.is_tailn {
+
+            if !self.label_load1.is_none() {
+                y1 = Some(self.label_load1.as_ref().unwrap()[i].clone() as usize);
+            }
+        } else {
+            if !self.label_loadn.is_none() {
+                yn = Some(self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect());
+            }
+        }
+
+        let mut gi = gorillains::build_GorillaIns(x,self.k,2,self.base_vr.clone(), yn,y1,
+            if !self.is_tailn {0} else {1},2); //self.reducer_szt);
+
+        if self.is_tailn { gi.brute_process_tailn();} else {gi.process_tail1();};
+        gi
     }
+
+    pub fn misclass_of_gorillains(&mut self,g: &mut gorillains::GorillaIns) -> f32 {
+        // case: no y-data, no misclass
+        if self.bry.is_none() {
+            return 0.;
+        }
+
+        // case: y-data, calculate misclass from FSelect score
+        let l:f32  = (*g).soln.as_ref().unwrap().data.len() as f32;
+        (*g).soln.as_ref().unwrap().score.unwrap() / l
+    }
+
+    pub fn refactor(&mut self) {
+
+        if !self.is_tailn {
+            self.refactor_batch_tail1();
+            return;
+        }
+
+        self.bc.refactor_();
+        self.bc2.refactor_();
+    }
+
 
     /// # description
-    /// tail-1 refactor test
-    #[test]
-    pub fn test__GorillaJudge__process_next___case_2() {
-        let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
-        let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
-                    0,Some(vreducer::FCastF32{f:gorillains::f9,ai:0.}),None);
-        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y.csv".to_string()),
-            false, vr21.clone(),2,2,20);
-    
-        
-        // second task: add adder_skew vec to VRed and do tail-1
-        gj.process_next(false);
- 
-        let mut gj2 = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y.csv".to_string()),
-            false, vr21.clone(),2,2,20);
-        gj2.process_next(true);
+    /// uses min,max,mean as points of interest. Refactorization by tail-1 mode
+    /// only considers adders (no multers).
+    pub fn refactor_batch_tail1(&mut self) {
+        let (_,_,x3) = self.tm.refactor_batch_tail1_();
+        // case: no adder
+        if x3 == 0. {
+            return;
+        }
 
-        assert!(gj2.skew_mtr < gj.skew_mtr, "WRONG REFACTOR!"); 
+        self.base_vr.add_tail1_skew(x3);
     }
-
 }

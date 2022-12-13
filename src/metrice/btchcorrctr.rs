@@ -1,5 +1,5 @@
 //! batch correcting algorithm used for factorization of skews
-use crate::metrice::{btchcorrctrc,btchcorrctr_tc};
+use crate::metrice::{btchcorrctrc,btchcorrctr_tc,vreducer};
 use crate::enci::{skew,skewf32};
 use crate::setti::dessi;
 use ndarray::{arr1,Array1};
@@ -21,11 +21,11 @@ pub struct GBatchCorrector {
     /// all addit skews
     sb: Vec<skewf32::SkewF32>,
     /// addit skews in batch
-    b: Vec<skewf32::SkewF32>,
+    pub b: Vec<skewf32::SkewF32>,
     /// all reference vectors, operand priori
     refn: Vec<Array1<f32>>,
     /// batch reference vectors, operand priori
-    refn1: Vec<Array1<f32>>,
+    pub refn1: Vec<Array1<f32>>,
     /// (best factor, score after, factor is adder?)
     pub best_refactor: (Option<i32>,Option<f32>,bool),
     /// multer candidate scores
@@ -33,12 +33,16 @@ pub struct GBatchCorrector {
     /// adder candidate scores
     pub a_candidate_scores:HashMap<i32,f32>,
     /// decimal places
-    k:usize
+    k:usize,
+    /// vreducer
+    pub vr: vreducer::VRed,
+    pub skew_mtr:f32
 }
 
-pub fn empty_GBatchCorrector(k:usize) -> GBatchCorrector {
+pub fn empty_GBatchCorrector(vr: vreducer::VRed,k:usize) -> GBatchCorrector {
     GBatchCorrector{sb:Vec::new(),b:Vec::new(),refn:Vec::new(),refn1:Vec::new(),
-        best_refactor:(None,None,true),m_candidate_scores:HashMap::new(),a_candidate_scores:HashMap::new(),k:k}
+        best_refactor:(None,None,true),m_candidate_scores:HashMap::new(),
+        a_candidate_scores:HashMap::new(),k:k,vr:vr,skew_mtr:0.}//,misclass_mtr:0.}
 }
 
 impl GBatchCorrector {
@@ -123,6 +127,10 @@ impl GBatchCorrector {
         for i in 0..l {
             self.sb.push(self.b[0].clone());
             self.refn.push(self.refn1[0].clone());
+
+            // update skew_mtr
+            self.skew_mtr += self.b[0].clone().skew_size();
+
             self.b = self.b[1..].to_vec();
             self.refn1 = self.refn1[1..].to_vec();
         }
@@ -132,6 +140,10 @@ impl GBatchCorrector {
     /// calculates the best (m|a)-factor for all batch samples and then calls the
     /// `push_batch` function.
     pub fn process_batch_(&mut self,verbose:bool) {
+        if self.b.len() == 0 {
+            return;
+        }
+        
         self.best_refactor = self.process_batch(verbose);
         self.push_batch();
     }
@@ -275,6 +287,73 @@ impl GBatchCorrector {
     }
 
     /// # description
+    /// refactors using the variable `best_refactor` and outputs
+    pub fn refactor_(&mut self) {
+        // (Option<i32>,Option<f32>,bool)
+        let (mut bf1, mut bf2, mut bf3) = self.best_refactor.clone();  
+
+        // case: no best refactor
+        if bf1.is_none() {
+            return;
+        } 
+
+        // update data
+        self.update_data(bf1.clone().unwrap(),bf3);
+
+        // add skew to VReducer
+        let q = if bf3 {vreducer::sample_vred_adder_skew(bf1.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(bf1.unwrap())};
+        self.vr.add_s(q);
+
+        // update skew_mtr
+        self.skew_mtr = bf2.unwrap();
+
+        // clear
+        self.clear_best_refactor();
+    }
+
+    pub fn clear_best_refactor(&mut self) {
+        if self.best_refactor.0.is_none() {
+            return;
+        }
+
+        // clear from a_candidates or m_candidates
+        let x = self.best_refactor.0.clone().unwrap();
+        if self.best_refactor.2 {
+            self.a_candidate_scores.remove(&x); 
+        } else {
+            self.m_candidate_scores.remove(&x); 
+        }
+
+        // clear best_refactor
+        self.best_refactor = (None,None,true);
+    }
+
+    /// # description
+    /// updates skews `sb` and reference values `refn` with adder|multer x.
+    pub fn update_data(&mut self,x:i32,a:bool) {
+
+        // get the actual value of x
+        // case: adder -> scale x by 10^-5
+        // case: multer -> literal x
+        let x2: f32 = if a {x as f32 / (i32::pow(10,self.k as u32) as f32)} else {x as f32};
+
+        // get the wanted values: `refn` + `sb`
+        let mut wanted_values: Vec<Array1<f32>> = self.refn.clone().into_iter().enumerate().map(|(i,y)| self.sb[i].skew_value(y)).collect();
+
+        // update reference with value x
+        // case: add x
+        if a {
+            self.refn = self.refn.clone().into_iter().map(|y| y + x2).collect();
+        } else {
+        // case: multiply x
+            self.refn = self.refn.clone().into_iter().map(|y| y * x2).collect();
+        }
+
+        // update skews
+        self.sb = wanted_values.into_iter().enumerate().map(|(i,y)| vreducer::sample_vred_addit_skew(y - self.refn[i].clone(),self.k)).collect();
+    }
+
+    /// # description
     /// best a-factor for batch `sb`
     ///
     /// # return
@@ -298,7 +377,7 @@ impl GBatchCorrector {
         }
 
         let (sk1,sk2) = btchcorrctrc::m_refactor_skew_batch_type_a(skv,av,bs);
-        let h1 = skewf32::SkewF32{sk:sk1,s:self.k};
+        let h1 = skewf32::SkewF32{sk:sk1,s:1};
         let sk3 = sk2.into_iter().map(|x| skewf32::SkewF32{sk:x,s:self.k}).collect();
         (Some(h1),sk3,sc1)
     }
@@ -309,6 +388,8 @@ impl GBatchCorrector {
     pub fn scale_data(&mut self,scale:Option<usize>,is_batch:bool) -> (Vec<skew::Skew>,Vec<Array1<i32>>) {//(Vec<skew::Skew>,Vec<Array1<i32>>,usize) {
         (self.bare_skew(is_batch),self.scale_ref(is_batch))
     }
+
+    //-------------------------------------
 }
 
 #[cfg(test)]
@@ -321,7 +402,7 @@ mod tests {
         let (b1,b2) = btchcorrctr_tc::batch_1();
         let sb1:f32 = b1.clone().into_iter().map(|mut x| x.skew_size()).into_iter().sum::<f32>();
 
-        let mut gbc = empty_GBatchCorrector(5);
+        let mut gbc = empty_GBatchCorrector(vreducer::sample_vred_euclids_reducer(),5);
         gbc.load_next_batch(b1,b2);
         gbc.process_batch(false);
         gbc.push_batch();
@@ -340,7 +421,7 @@ mod tests {
     pub fn test__GBatchCorrector__process_batch___case5() {
 
         let (b1,b2) = btchcorrctr_tc::batch_5();
-        let mut gbc = empty_GBatchCorrector(5);
+        let mut gbc = empty_GBatchCorrector(vreducer::sample_vred_euclids_reducer(),5);
         gbc.load_next_batch(b1,b2);
         gbc.process_batch_(true);
 
@@ -360,7 +441,7 @@ mod tests {
     pub fn test__GBatchCorrector__process_batches_4_and_5_equal_soln() {
         // load two batches 5 and 4 into a batch corrector
         let (b1,b2) = btchcorrctr_tc::batch_5();
-        let mut gbc = empty_GBatchCorrector(5);
+        let mut gbc = empty_GBatchCorrector(vreducer::sample_vred_euclids_reducer(),5);
         gbc.load_next_batch(b1,b2);
         gbc.process_batch_(false);
 
@@ -373,7 +454,7 @@ mod tests {
         let (mut b5,mut b6) = btchcorrctr_tc::batch_4();
         b3.extend(b5);
         b4.extend(b6);
-        let mut gbc2 = empty_GBatchCorrector(5);
+        let mut gbc2 = empty_GBatchCorrector(vreducer::sample_vred_euclids_reducer(),5);
         gbc2.load_next_batch(b3,b4);
         gbc2.process_batch_(false);
 

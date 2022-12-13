@@ -250,6 +250,13 @@ impl VRed {
 
 }
 
+pub fn sample_vred_euclids_reducer() -> VRed {
+    let sv1: Vec<FCast> = vec![FCast{f:std_euclids_reducer}];
+    build_VRed(sv1,Vec::new(),vec![0],0,None,None)
+}
+
+
+
 /// constructs addit <skewf32::SkewF32>.
 pub fn sample_vred_addit_skew(a:Array1<f32>,t:usize) -> skewf32::SkewF32 {
     // get size

@@ -28,6 +28,46 @@ pub fn label_intervals(l:usize) -> Array1<f32> {
     sol.into_iter().collect()
 }
 
+pub fn label_intervals_by_ordering(ordering:Vec<usize>) -> Array1<f32> {
+    let l = label_intervals(ordering.len());
+    let mut l2 = Array1::ones(ordering.len());
+    for (i,o) in ordering.into_iter().enumerate() {
+        l2[i] = l[o];
+    }
+    l2
+}
+
+pub fn wanted_normaln_to_interval_values(wanted_normaln:Array1<usize>,ordering:Vec<usize>) -> Array1<f32> {
+    let li = label_intervals_by_ordering(ordering);
+    let mut x:Array1<f32> = Array1::zeros(wanted_normaln.len());
+    for (i,w) in wanted_normaln.into_iter().enumerate() {
+        x[i] = li[w].clone();
+    }
+    x 
+}
+
+/// # description
+/// 
+pub fn binary_interval_ordering(s:Vec<usize>,wanted_normaln:Array1<usize>) -> Vec<usize> {
+    assert!(!(s.len() > 2), "invalid ordering for binary labels");
+
+    
+    if s.len() == 2 { return s;}
+    let h:usize = wanted_normaln[0].clone();
+
+    let q:usize = (s[0] + 1) % 2;
+    // case: append q
+    if h == 0 {
+        let s_:Vec<usize> = vec![s[0].clone(),q];
+        return s_;
+    }
+
+    // case: prepend q
+    let s_:Vec<usize> = vec![q,s[0].clone()];
+    s_
+    
+}
+
 /// # description
 /// updates the selection rule score by performing function on target li using
 /// bfngsrch.sr.choice
@@ -121,48 +161,10 @@ pub fn process_bfgsearcher_tailn__labels(approach_out: Array1<f32>,wanted_normal
 ///
 /// # return
 /// (skew correction vector, wanted f32 vector)
-pub fn correction_for_bfgrule_approach_tailn__labels(b: bfngsrch::BFGSelectionRule,approach_out:Array1<f32>,
-    wanted_normaln:Array1<usize>,l:usize) -> (Array1<f32>,Array1<f32>) {
-
-    pub fn bounded_cheapest_add_target_i32__(v1:Array1<f32>,li:f32) -> Array1<f32> {
-        // convert to i32 form
-        let mut x: Vec<f32> = v1.clone().into_iter().collect();
-        x.push(li);
-        let y:usize = x.into_iter().map(|x1| dessi::f32_decimal_length(x1,Some(5))).into_iter().max().unwrap();
-        let x2: Array1<i32> = v1.clone().into_iter().map(|x1| (x1 * i32::pow(10,y as u32) as f32) as i32).collect();
-        let li_:i32 = (li * f32::powf(10.,y as f32)) as i32;
-        let q = x2.clone() - li_;
-        let sol: Array1<f32> = q.into_iter().map(|x| (x as f32) / f32::powf(10.,y as f32)).collect();
-
-        -sol
-    }
-
-    // re-call function
-    let mut hm = matrixf::label_to_iset_map(wanted_normaln.clone().into_iter().collect());
-    assert!(hm.len() <= l,"invalid label size `l`");
-
-    let li = label_intervals(l);
-    let mut soln: Array1<f32> = Array1::zeros(approach_out.len());
-    let mut wanted: Array1<f32> = Array1::zeros(approach_out.len());
-
-    // iterate through interval points
-    for (i,l) in li.into_iter().enumerate() {
-        if !hm.contains_key(&i) {
-            continue;
-        }
-        // get iset for t=i
-        let ist = hm.get_mut(&i).unwrap().clone();
-        let sv:Array1<f32> = ist.clone().into_iter().map(|i2| approach_out[i2].clone()).collect();
-
-        // calculate the cheapest
-        let v2 = bounded_cheapest_add_target_i32__(sv,l);
-        for (i_,i2) in ist.into_iter().enumerate() {
-            soln[i2] = v2[i_].clone();
-            wanted[i2] = l.clone();
-        }
-    }
-
-    (soln,wanted) 
+pub fn correction_for_bfgrule_approach_tailn__labels(ordering:Vec<usize>,approach_out:Array1<f32>,
+    wanted_normaln:Array1<usize>) -> (Array1<f32>,Array1<f32>) {
+    let wanted = wanted_normaln_to_interval_values(wanted_normaln.clone(),ordering);
+    (wanted.clone() - approach_out,wanted.clone())
 }
 
 /// # description
@@ -183,14 +185,16 @@ mod tests {
     pub fn test_correction_for_bfgrule_approach_tailn__labels() {
         let ao:Array1<f32> = arr1(&[0.05,0.2,0.3,0.32,0.4,0.5,0.7,0.8]);
         let l:Array1<usize> = arr1(&[0,1,0,1,0,1,0,1]);
-        let bfgsr = gorilla_improve_approach_tailn__labels(ao.clone(),l.clone(),2);
-        let (corr,_) = correction_for_bfgrule_approach_tailn__labels(bfgsr,ao.clone(),l.clone(),2);
+        let mut bfgsr = gorilla_improve_approach_tailn__labels(ao.clone(),l.clone(),2);
+        
+        bfgsr.sr.choice = binary_interval_ordering(bfgsr.sr.choice.clone(),l.clone());
+        let (corr,_) = correction_for_bfgrule_approach_tailn__labels(bfgsr.sr.choice.clone(),ao.clone(),l.clone());
 
         let sol1:Array1<f32> = arr1(&[0.2, 0.55, -0.05, 0.43, -0.15, 0.25, -0.45, -0.05]);
-        assert_eq!(corr,sol1);
+        
+        assert!((corr.clone() - sol1).sum() < 8. * f32::powf(10.,-6.));
 
         let mut x = ao + corr;
-        //let mut x2:Array1<f32> = x.into_iter().map(|y| bmeas::calibrate_in_bounds((0.,1.),y)).collect();
         let sol2:Array1<f32> = arr1(&[0.25, 0.75, 0.25, 0.75, 0.25, 0.75, 0.25, 0.75]);
         assert_eq!(x,sol2);
     }
