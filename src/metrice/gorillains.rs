@@ -10,13 +10,6 @@ use crate::enci::skewf32;
 #[doc(hidden)]
 use ndarray::{arr1,Array1};
 
-/// # description
-/// standard reducer for tail-1; mean of array `x`.
-pub fn f9(x:Array1<f32>) -> f32 {
-    let l = x.len() as f32;
-    x.into_iter().sum::<f32>() / l
-}
-
 /// # return
 /// index of element in `label_intervals` with smallest absolute distance to `f`.
 pub fn label_of_f32(f:f32,label_intervals: Array1<f32>) -> usize {
@@ -40,7 +33,7 @@ pub fn label_of_f32(f:f32,label_intervals: Array1<f32>) -> usize {
 /// GorillaIns can calculate a correction vector (if tail-n) or correction float (if tail-1).
 pub struct GorillaIns {
     /// target of "normal"-analysis
-    sequence: Array1<f32>,
+    pub sequence: Array1<f32>,
     /// number of decimal places considered
     k:usize,
     /// number of labels
@@ -52,9 +45,9 @@ pub struct GorillaIns {
     /// tail-n case output 
     pub app_outn: Option<Array1<f32>>,
     /// tail-n case wanted normal 
-    wanted_normaln:Option<Array1<usize>>,
+    pub wanted_normaln:Option<Array1<usize>>,
     /// tail-1 case wanted normal 
-    wanted_normal1:Option<usize>,
+    pub wanted_normal1:Option<usize>,
     /// solution for manual approach (provided "wanted")
     pub man_sol: Option<brp::RangePartitionGF2>,
     /// solution for automatic approach (not provided "wanted") 
@@ -287,7 +280,7 @@ mod tests {
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
 
         let vr21 = vreducer::build_VRed(sv1.clone(),Vec::new(),vec![0,1],
-                    0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
+                    0,Some(vreducer::FCastF32{f:vreducer::f9,ai:0.}),None);
 
         let mut gi = build_GorillaIns(t0.clone(),5,2,vr21.clone(),None,Some(t1),0,3);
 
@@ -333,7 +326,7 @@ mod tests {
 
         let sv1: Vec<vreducer::FCast> = vec![vreducer::FCast{f:vreducer::std_euclids_reducer}];
         let vr21 = vreducer::build_VRed(sv1,Vec::new(),vec![0],
-                    0,Some(vreducer::FCastF32{f:f9,ai:0.}),None);
+                    0,Some(vreducer::FCastF32{f:vreducer::f9,ai:0.}),None);
 
         let mut gi = build_GorillaIns(t0.clone(),5,2,vr21,None,Some(t1),0,5);
 

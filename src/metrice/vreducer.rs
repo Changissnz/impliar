@@ -255,6 +255,10 @@ pub fn sample_vred_euclids_reducer() -> VRed {
     build_VRed(sv1,Vec::new(),vec![0],0,None,None)
 }
 
+pub fn sample_vred_euclids_reducer_tail1() -> VRed {
+    let sv1: Vec<FCast> = vec![FCast{f:std_euclids_reducer}];
+    build_VRed(sv1,Vec::new(),vec![0],0,Some(FCastF32{f:f9,ai:0.}),None)
+}
 
 
 /// constructs addit <skewf32::SkewF32>.
@@ -344,7 +348,12 @@ pub fn identity_reducer(s: Array1<f32>) -> Array1<f32> {
     s
 }
 
-
+/// # description
+/// standard reducer for tail-1; mean of array `x`.
+pub fn f9(x:Array1<f32>) -> f32 {
+    let l = x.len() as f32;
+    x.into_iter().sum::<f32>() / l
+}
 
 #[cfg(test)]
 mod tests {

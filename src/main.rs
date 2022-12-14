@@ -57,4 +57,8 @@ use savefile::prelude::*;
 
 fn main() {
 
+    let vr = metrice::vreducer::sample_vred_euclids_reducer_tail1();
+    let mut gj = metrice::gorillaj::build_GorillaJudge("src/data/f3_x.csv".to_string(),None,
+        false,vr.clone(),2,20); 
+    gj.process_next(false);    
 }

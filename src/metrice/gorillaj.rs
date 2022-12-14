@@ -1,6 +1,7 @@
 use crate::metrice::gorillains;
 use crate::metrice::vreducer;
 use crate::metrice::vcsv;
+use crate::metrice::gorillajh;
 use crate::metrice::{skewcorrctr,btchcorrctr};
 
 use crate::enci::skew;
@@ -16,6 +17,7 @@ pub fn basic_binary_function(f:f32) -> usize {
 }
 
 /// memory container for tail-1 case
+#[derive(Clone)]
 pub struct Tail1Mem {
     pub tail1_skew:Vec<f32>,
     pub vr_output1: Vec<f32>,
@@ -96,17 +98,16 @@ pub struct GorillaJudge {
     bs:usize,
     /// size of last batch read
     lbs: usize,
-    
-    /// batch corrector for refactoring skews, interval ordering \[0.25,0.75\]
+    /// tail-n case, batch corrector for refactoring skews, interval ordering \[0.25,0.75\]
     pub bc: btchcorrctr::GBatchCorrector,
-    /// batch corrector for refactoring skews, interval ordering \[0.75,0.25\]
+    /// tail-n case, batch corrector for refactoring skews, interval ordering \[0.75,0.25\]
     pub bc2: btchcorrctr::GBatchCorrector,    
-
+    /// tail-1 case corrector
     pub tm: Tail1Mem,
-
+    /// memory container for label-less
+    pub gh: gorillajh::GorillaHyp,
+    /// misclassification score
     pub misclass_mtr:f32
-
-
 }
 
 pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
@@ -121,8 +122,8 @@ pub fn build_GorillaJudge(fp:String,fp2:Option<String>,
     let tm = empty_Tail1Mem(); 
 
     GorillaJudge{brx:brx, bry:brx2,is_tailn:is_tailn,data_load:Vec::new(),
-        label_loadn:Some(Vec::new()),label_load1:Some(Vec::new()),
-        base_vr:base_vr, k:k,bs:bs,lbs: 0,bc:gbc,bc2:gbc2,tm:tm,misclass_mtr:0.}
+        label_loadn:None,label_load1:None,base_vr:base_vr, k:k,bs:bs,lbs: 0,
+        bc:gbc,bc2:gbc2,tm:tm,gh:gorillajh::empty_GorillaHyp(),misclass_mtr:0.}
 }
 
 impl GorillaJudge {
@@ -180,7 +181,12 @@ impl GorillaJudge {
     }
 
     pub fn add_sample_to_data(&mut self,i:usize,gi: &mut gorillains::GorillaIns) {
-        
+        // case: no labels
+        if self.bry.is_none() {
+            self.add_sample_to_ghmem(gi);
+            return;
+        }
+
         let (x1,x2) = (*gi).improve_approach__labels(self.is_tailn);
 
         // case: add to batch corrector
@@ -193,15 +199,19 @@ impl GorillaJudge {
         // case: add to Tail1Mem
         self.tm.vr_output1.push((*gi).app_out1.clone().unwrap());
         self.tm.tail1_skew.push(x1.clone().unwrap());
-        self.tm.skew_mtr += x1.clone().unwrap();
+        self.tm.skew_mtr += x1.clone().unwrap().abs();
 
         let u:usize = basic_binary_function((*gi).app_out1.clone().unwrap());        
         let mut y = self.label_load1.as_ref().unwrap()[i].clone() as usize;
         let l:f32 = if u != y {1.} else {0.};
         self.tm.misclass_mtr += l; 
     }
-    
 
+    pub fn add_sample_to_ghmem(&mut self,gi:&mut gorillains::GorillaIns) {
+        let (x1,x2) = (*gi).predict_sequence((*gi).sequence.clone());
+        self.gh.add_sample(x2,x1);
+    }
+    
     pub fn add_sample_to_batch_corrector(&mut self,i:usize,ordering:Vec<usize>) -> f32 {
         let mut x = self.data_load[i].clone();
         let mut y:Array1<usize> = self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect();
@@ -214,10 +224,9 @@ impl GorillaJudge {
             let mut sk = vreducer::sample_vred_addit_skew(c.clone(),self.k);
             self.bc.refn1.push(x2.clone());
             self.bc.b.push(sk.clone());
-
-
             return sk.skew_size();
         } 
+        
         // get the outputn
         let (_,q) = self.bc2.vr.apply(x.clone(),1);
         x2 = q.unwrap();
@@ -235,7 +244,7 @@ impl GorillaJudge {
         let (mut y1,mut yn): (Option<usize>,Option<Array1<usize>>) = (None,None);
 
         if !self.is_tailn {
-
+            
             if !self.label_load1.is_none() {
                 y1 = Some(self.label_load1.as_ref().unwrap()[i].clone() as usize);
             }
@@ -265,6 +274,10 @@ impl GorillaJudge {
 
     pub fn refactor(&mut self) {
 
+        if self.bry.is_none() {
+            return;
+        }
+
         if !self.is_tailn {
             self.refactor_batch_tail1();
             return;
@@ -286,5 +299,67 @@ impl GorillaJudge {
         }
 
         self.base_vr.add_tail1_skew(x3);
+    }
+
+    pub fn predict_sequence(&mut self,x:Array1<f32>) {
+
+    }
+
+    pub fn skew_meter(&mut self) {
+        if self.is_tailn {
+            println!("corrector #1");
+            self.bc.info();
+            println!("corrector #2");
+            self.bc2.info();
+        } else {
+            println!("corrector: {}",self.tm.skew_mtr);
+        }
+    }
+
+
+
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    /// # description
+    /// The <vreducer::VRed> function used by this <gorillaj::GorillaJudge> relies
+    /// only on the <vreducer::one_reducer> function.
+    /// Calls `process_next` with argument `refactor=False`. Dataset is 
+    ///             (x -> `f3_x.csv`,y -> `f3_y2.csv`).
+    /// 
+    /// Checks that refactors result in lower skew values
+    #[test]
+    pub fn test__GorillaJudge__process_next___case_1() {
+        let vr = vreducer::sample_vred_euclids_reducer();
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
+            true,vr.clone(),2,20); 
+    
+        let mut gj2 = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
+            true,vr,2,20); 
+    
+        gj.process_next(false);
+        let sm:f32 = gj.bc.skew_mtr + gj.bc2.skew_mtr;
+    
+        gj.refactor();
+        let sm2:f32 = gj.bc.skew_mtr + gj.bc2.skew_mtr;
+        assert!(sm2 < sm, "refactor results in >= skew metric");
+    }
+
+    #[test]
+    pub fn test__GorillaJudge__process_next___case_2() {
+
+        let vr = vreducer::sample_vred_euclids_reducer_tail1();
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y.csv".to_string()),
+            false,vr.clone(),2,20); 
+        gj.process_next(false);
+        let sm:f32 = gj.tm.skew_mtr.clone(); 
+        gj.refactor();
+        let sm2:f32 = gj.tm.skew_mtr.clone();     
+        assert!(sm2 < sm, "refactor results in >= skew metric");
     }
 }

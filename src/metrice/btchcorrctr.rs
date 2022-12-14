@@ -389,6 +389,12 @@ impl GBatchCorrector {
         (self.bare_skew(is_batch),self.scale_ref(is_batch))
     }
 
+    pub fn info(&mut self) {
+        println!("# of samples: {}",self.sb.len());
+        println!("skew meter: {}",self.skew_mtr);
+        println!("best refactor: {:?}",self.best_refactor);
+    }
+
     //-------------------------------------
 }
 
