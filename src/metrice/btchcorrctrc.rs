@@ -216,7 +216,6 @@ pub fn refactor_skew_batch_type_a(head: skew::Skew, sb: Vec<skew::Skew>) -> (Vec
 /// # return
 /// (scaled <skew::Skew> batch,`d`) 
 pub fn scale_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Vec<skew::Skew>,usize) {
-
     let l = sb.len();
     let mut sol: Vec<skew::Skew> = Vec::new();
     if l == 0 { return (sol,0);}
@@ -241,7 +240,7 @@ pub fn scale_skewf32_batch_type_a(sb: Vec<skewf32::SkewF32>) -> (Vec<skew::Skew>
 /// # return 
 /// (min,max,mean) of `sb`
 pub fn min_max_mean_of_skew_batch_type_a(sb: Vec<skew::Skew>) -> (i32,i32,i32) {
-    assert!(sb.len() > 0);
+    assert!(sb.len() > 0, "LEN OF {} invalid",sb.len());
 
     // iterate through and collect all addit values
     let mut coll: Vec<i32> = Vec::new();

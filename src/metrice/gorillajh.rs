@@ -1,5 +1,6 @@
 //! GorillaJudge hypothesis container
 use ndarray::{Array1,arr1};
+use std::fmt;
 
 pub struct GorillaHyp {
     pub yn:Vec<Array1<usize>>,
@@ -26,10 +27,10 @@ impl GorillaHyp {
 }
 
 pub struct GorillaPred {
-    pub hyp_n1: Option<(Array1<usize>,f32)>,
-    pub hyp_n2: Option<(Array1<usize>,f32)>,
-    pub hyp_1: Option<usize>,
-    pub hyp_n: Option<Array1<usize>>
+    hyp_n1: Option<(Array1<usize>,f32)>,
+    hyp_n2: Option<(Array1<usize>,f32)>,
+    hyp_1: Option<usize>,
+    hyp_n: Option<Array1<usize>>
 }
 
 pub fn build_GorillaPred(hyp_n1:Option<(Array1<usize>,f32)>, hyp_n2:Option<(Array1<usize>,f32)>,
@@ -41,4 +42,23 @@ pub fn build_GorillaPred(hyp_n1:Option<(Array1<usize>,f32)>, hyp_n2:Option<(Arra
 
     assert!(x, "invalid arguments");
     GorillaPred{hyp_n1:hyp_n1,hyp_n2:hyp_n2,hyp_1:hyp_1,hyp_n:hyp_n}
+}
+
+impl fmt::Display for GorillaPred {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = "* gorilla prediction\n".to_string();
+        if !self.hyp_n1.is_none() {
+            let q = &format!("  * corrector #1: {:?}\n * corrector #2: {:?}\n",self.hyp_n1.as_ref().unwrap(),self.hyp_n2.as_ref().unwrap());
+            s.push_str(&q);
+        } else if !self.hyp_1.is_none() {
+            let q = &format!("  * 1-hyp: {:?}\n",self.hyp_1.as_ref().unwrap());
+            s.push_str(&q);
+        } else {
+            let q = &format!("  * n-hyp: {:?}\n",self.hyp_n.as_ref().unwrap());
+            s.push_str(&q);
+        }
+        write!(f, "{}", s)
+    }
+
 }

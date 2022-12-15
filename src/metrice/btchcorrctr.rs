@@ -11,7 +11,7 @@ use std::collections::{HashMap,HashSet};
 /// scores into its memory, and updates its memory of existing candidates and new candidates
 /// for every next batch.
 ///
-/// - To load a new batch, call `.load_next_batch()`.
+/// - To load a new batch, call `.load_next_batch(...)`.
 /// 
 /// - To find the best factor candidate from the beginning, call `.refactor(...)`.
 ///
@@ -23,7 +23,7 @@ pub struct GBatchCorrector {
     /// addit skews in batch
     pub b: Vec<skewf32::SkewF32>,
     /// all reference vectors, operand priori
-    refn: Vec<Array1<f32>>,
+    pub refn: Vec<Array1<f32>>,
     /// batch reference vectors, operand priori
     pub refn1: Vec<Array1<f32>>,
     /// (best factor, score after, factor is adder?)
@@ -36,13 +36,15 @@ pub struct GBatchCorrector {
     k:usize,
     /// vreducer
     pub vr: vreducer::VRed,
-    pub skew_mtr:f32
+    pub skew_mtr:f32,
+    /// stat on if refactor has been updated; used for case of `.load_next_batch(...)`.
+    pub refactor_update:bool
 }
 
 pub fn empty_GBatchCorrector(vr: vreducer::VRed,k:usize) -> GBatchCorrector {
     GBatchCorrector{sb:Vec::new(),b:Vec::new(),refn:Vec::new(),refn1:Vec::new(),
         best_refactor:(None,None,true),m_candidate_scores:HashMap::new(),
-        a_candidate_scores:HashMap::new(),k:k,vr:vr,skew_mtr:0.}//,misclass_mtr:0.}
+        a_candidate_scores:HashMap::new(),k:k,vr:vr,skew_mtr:0.,refactor_update:false}
 }
 
 impl GBatchCorrector {
@@ -114,9 +116,17 @@ impl GBatchCorrector {
 
     /// # return
     /// ((best factor),(candidate score),candidate is adder)
-    pub fn process_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>,bool) {
-        let (x1,x2) = self.afactor_on_batch(verbose);
-        let (y1,y2) = self.mfactor_on_batch(verbose);
+    pub fn process_batch(&mut self,b:bool,verbose:bool) -> (Option<i32>,Option<f32>,bool) {
+        if b && self.b.len() == 0 {
+            return (None,None,true);
+        }
+
+        if !b && self.sb.len() == 0 {
+            return (None,None,true);
+        }
+        
+        let (x1,x2) = self.afactor_on_batch(b,verbose);
+        let (y1,y2) = self.mfactor_on_batch(b,verbose);
         if x2.unwrap() < y2.unwrap() {(x1,x2,true)} else {(y1,y2,false)}
     }
 
@@ -144,7 +154,8 @@ impl GBatchCorrector {
             return;
         }
         
-        self.best_refactor = self.process_batch(verbose);
+        self.best_refactor = self.process_batch(true,verbose);
+        self.refactor_update = true;
         self.push_batch();
     }
 
@@ -210,7 +221,7 @@ impl GBatchCorrector {
     /// 
     /// # return
     /// (best m-factor, m-factor score)
-    pub fn mfactor_on_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>) {
+    pub fn mfactor_on_batch(&mut self,b:bool,verbose:bool) -> (Option<i32>,Option<f32>) {
         let (mut y,mut y2): (Option<i32>,Option<f32>) = (None,Some(f32::MAX));
         if verbose {println!("\tm-factor on batch")};
 
@@ -247,14 +258,19 @@ impl GBatchCorrector {
     /// 
     /// # return
     /// (best a-factor, a-factor score)
-    pub fn afactor_on_batch(&mut self,verbose:bool) -> (Option<i32>,Option<f32>) {
+    pub fn afactor_on_batch(&mut self,r:bool,verbose:bool) -> (Option<i32>,Option<f32>) {
         let (mut y,mut y2): (Option<i32>,Option<f32>) = (None,Some(f32::MAX));
 
         // collect all candidates
         let mut candidates:HashSet<i32> = self.a_candidate_scores.clone().into_keys().collect();
         if verbose {println!("\ta-factor on batch")};
 
-        let v1: HashMap<i32,f32> = HashMap::from_iter(btchcorrctrc::adder_score_pair_vec_on_skew_batch_type_a(self.b.clone()).0.into_iter());
+        let mut v1: HashMap<i32,f32> = HashMap::new();        
+        if r {
+            v1 = HashMap::from_iter(btchcorrctrc::adder_score_pair_vec_on_skew_batch_type_a(self.b.clone()).0.into_iter());
+        } else {
+            v1 = HashMap::from_iter(btchcorrctrc::adder_score_pair_vec_on_skew_batch_type_a(self.sb.clone()).0.into_iter());
+        }
         let v2:HashSet<i32> = v1.clone().into_keys().collect();
         candidates.extend(&v2);
         
@@ -289,7 +305,10 @@ impl GBatchCorrector {
     /// # description
     /// refactors using the variable `best_refactor` and outputs
     pub fn refactor_(&mut self) {
-        // (Option<i32>,Option<f32>,bool)
+        if !self.refactor_update {
+            self.best_refactor = self.process_batch(false,false);
+        }
+
         let (mut bf1, mut bf2, mut bf3) = self.best_refactor.clone();  
 
         // case: no best refactor
@@ -311,21 +330,27 @@ impl GBatchCorrector {
         self.clear_best_refactor();
     }
 
+    pub fn best_candidate_for_refactor(&mut self) -> (i32,f32,bool) {
+        
+        // best multer
+        let a1:(i32,f32) = self.a_candidate_scores.clone().into_iter().fold((0,f32::MAX),|x,x2| if x.1 < x2.1 {x} else {x2});
+
+        // best adder        
+        let m1:(i32,f32) = self.m_candidate_scores.clone().into_iter().fold((0,f32::MAX),|x,x2| if x.1 < x2.1 {x} else {x2});
+
+        if a1.1 < m1.1 { return (a1.0,a1.1,true);}
+        (m1.0,m1.1,false)
+
+    }
+
     pub fn clear_best_refactor(&mut self) {
         if self.best_refactor.0.is_none() {
             return;
         }
 
-        // clear from a_candidates or m_candidates
-        let x = self.best_refactor.0.clone().unwrap();
-        if self.best_refactor.2 {
-            self.a_candidate_scores.remove(&x); 
-        } else {
-            self.m_candidate_scores.remove(&x); 
-        }
-
-        // clear best_refactor
-        self.best_refactor = (None,None,true);
+        self.a_candidate_scores = HashMap::new();
+        self.m_candidate_scores = HashMap::new();
+        self.refactor_update = false;
     }
 
     /// # description
@@ -410,12 +435,12 @@ mod tests {
 
         let mut gbc = empty_GBatchCorrector(vreducer::sample_vred_euclids_reducer(),5);
         gbc.load_next_batch(b1,b2);
-        gbc.process_batch(false);
+        gbc.process_batch(true,false);
         gbc.push_batch();
 
         let (b21,b22) = btchcorrctr_tc::batch_2();
         gbc.load_next_batch(b21,b22);
-        let (c,s,bo) = gbc.process_batch(false);
+        let (c,s,bo) = gbc.process_batch(true,false);
         gbc.push_batch();
 
         let (s11,s12,s13) = gbc.refactor();//best_a();
