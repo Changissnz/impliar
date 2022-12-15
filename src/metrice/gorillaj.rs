@@ -301,11 +301,61 @@ impl GorillaJudge {
         self.base_vr.add_tail1_skew(x3);
     }
 
-    pub fn predict_sequence(&mut self,x:Array1<f32>) {
+    /// # description
+    /// 
+    pub fn predict_sequence(&mut self,x:Array1<f32>) -> gorillajh::GorillaPred {
+        // case: unlabelled
+        if self.bry.is_none() {
+            let mut gi = gorillains::build_GorillaIns(x.clone(),self.k,2,self.base_vr.clone(), None,None,
+            if !self.is_tailn {0} else {1},2);
+            if self.is_tailn { gi.brute_process_tailn();} else {gi.process_tail1();};
+            let (x1,x2) = gi.predict_sequence(x.clone());
+            return gorillajh::build_GorillaPred(None,None,x1,x2);
+        }
 
+        if self.is_tailn {
+            let (x11,x12) = self.predictn_(x.clone());
+            return gorillajh::build_GorillaPred(Some(x11),Some(x12),None,None)
+        }
+
+        let x13 = self.predict1_(x.clone());
+        return gorillajh::build_GorillaPred(None,None,Some(x13),None)
     }
 
+    pub fn predictn_(&mut self,x:Array1<f32>) -> ((Array1<usize>,f32),(Array1<usize>,f32)) {
+        // predict by corrector #1
+        let (_,q) = self.bc.vr.apply(x.clone(),1);
+        let mut q_ = q.unwrap();
+        let li = skewcorrctr::label_intervals_by_ordering(vec![0,1]);
+        let p1:Array1<usize> = q_.clone().into_iter().map(|y| gorillains::label_of_f32(y,li.clone())).collect();
+        let w1 = skewcorrctr::wanted_normaln_to_interval_values(p1.clone(),vec![0,1]);
+        let s1:Array1<f32> = (w1 -q_.clone()).into_iter().map(|y| y.abs()).collect();
+
+        // predict by corrector #2
+        let (_,q2) = self.bc2.vr.apply(x.clone(),1);
+        let mut q2_ = q2.unwrap();
+        let li2 = skewcorrctr::label_intervals_by_ordering(vec![1,0]);
+        let p2:Array1<usize> = q2_.clone().into_iter().map(|y| gorillains::label_of_f32(y,li2.clone())).collect();
+        let w2 = skewcorrctr::wanted_normaln_to_interval_values(p2.clone(),vec![1,0]);
+        let s2:Array1<f32> = (w2 -q2_.clone()).into_iter().map(|y| y.abs()).collect();
+
+
+        ((p1,s1.sum()),(p2,s2.sum()))
+    }
+
+    pub fn predict1_(&mut self,x:Array1<f32>) -> usize {
+        let(q,_) = self.base_vr.apply(x.clone(),0);
+        basic_binary_function(q.unwrap())
+    }
+
+    /// # description
     pub fn skew_meter(&mut self) {
+
+        if self.bry.is_none() {
+            println!("no skew metric for unlabelled data");
+            return;
+        }
+
         if self.is_tailn {
             println!("corrector #1");
             self.bc.info();
