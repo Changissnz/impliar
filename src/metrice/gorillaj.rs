@@ -28,7 +28,7 @@ pub struct Tail1Mem {
 impl Tail1Mem {
 
     pub fn refactor_batch_tail1_(&mut self) -> (f32,f32,f32) {
-
+        
         let q = arr1(&self.tail1_skew);
         let mn_ = q.mean();
 
@@ -45,29 +45,23 @@ impl Tail1Mem {
         let x2 = mat2sort::abs_sum_arr1_f32(q.clone() - mn);
         let x3 = mat2sort::abs_sum_arr1_f32(q.clone() - minu);
         let x4 = mat2sort::abs_sum_arr1_f32(q.clone() - maxu);
-
-        let rs = vec![x1,x2,x3,x4];
+        let rs = vec![(x1,0.),(x2,mn),(x3,minu),(x4,maxu)];
 
         // get (index, score) w/ lowest score
-        let rsm = rs.clone().into_iter().enumerate().fold((0,x1), |min, val| if val.1 < min.1 { val } else{ min });
+        let rsm = rs.clone().into_iter().fold((x1,0.), |min, val| if val.0 < min.0 { val } else{ min });
 
         // update tail1_skew and vr_output1
         let q = arr1(&self.tail1_skew);
-        self.tail1_skew = (q - rs[rsm.0].clone()).into_iter().collect();
-        self.vr_output1 = (arr1(&self.vr_output1) + rs[rsm.0].clone()).into_iter().collect();
+        self.tail1_skew = (q - rsm.1).into_iter().collect();
+        self.vr_output1 = (arr1(&self.vr_output1) + rsm.1).into_iter().collect();
+        self.skew_mtr = rsm.0.clone();
+        (x1,rsm.0,rsm.1)       
+    }
 
-        // fix skew meter before return
-        if rsm.0 == 0 {
-            return (x1,x1,0.);
-        } else if rsm.0 == 1 {
-            self.skew_mtr = x2;
-            return (x1,x2,mn);
-        } else if rsm.0 == 2 {
-            self.skew_mtr = x3;
-            return (x1,x3,minu);
-        }
-        self.skew_mtr = x4;
-        (x1,x4,maxu)
+    pub fn closest_value_index(&mut self,f:f32) -> usize {
+        assert!(self.vr_output1.len() > 0);
+        let x = self.vr_output1.iter().enumerate().fold((0,&f32::MAX),|x1,x2| if (*x1.1 - f).abs() < (*x2.1 - f).abs() {x1} else {x2});
+        x.0
     }
 }
 
@@ -349,7 +343,10 @@ impl GorillaJudge {
 
     pub fn predict1_(&mut self,x:Array1<f32>) -> usize {
         let(q,_) = self.base_vr.apply(x.clone(),0);
-        basic_binary_function(q.unwrap())
+
+        let u = self.tm.closest_value_index(q.clone().unwrap());
+
+        basic_binary_function(self.tm.tail1_skew[u].clone() + q.unwrap())
     }
 
     /// # description
@@ -426,7 +423,6 @@ mod tests {
     #[test]
     pub fn test__GorillaJudge__predict_sequence__case_1() {
 
-
         let vr = vreducer::sample_vred_euclids_reducer();
         let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
             true,vr.clone(),2,20); 
@@ -446,5 +442,36 @@ mod tests {
         }
         
         assert!(c >= 7); 
+    }
+
+ /// # description
+    /// tests accuracy of predicting samples that a GorillaJudge
+    /// instance has already trained on.
+    /// 
+    /// * test description:
+    /// - tail-1, labelled, 11 samples, tests for accuracy of all. 
+    #[test]
+    pub fn test__GorillaJudge__predict_sequence__case_2() {
+
+        let vr = vreducer::sample_vred_euclids_reducer_tail1();
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y5.csv".to_string()),
+            false,vr.clone(),2,20); 
+        gj.process_next(true);
+    
+        let x = vcsv::csv_to_arr1_seq("src/data/f3_x.csv").unwrap();
+        let y = vcsv::csv_to_arr1("src/data/f3_y5.csv").unwrap();
+    
+        let l = x.len();
+        let mut c = 0;
+        for i in 0..l {
+            let mut p = gj.predict_sequence(x[i].clone());
+            
+            let y2:usize = y[i].clone() as usize;    
+            if p.best().0.unwrap() == y2 {
+                c += 1;
+            }
+            
+        }
+        assert_eq!(c,11);
     }
 }

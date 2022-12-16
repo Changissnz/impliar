@@ -57,3 +57,4 @@ use savefile::prelude::*;
 
 fn main() {
 }
+
