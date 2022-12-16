@@ -1,9 +1,34 @@
 //! batch correcting algorithm used for factorization of skews
 use crate::metrice::{btchcorrctrc,btchcorrctr_tc,vreducer};
-use crate::enci::{skew,skewf32};
+use crate::enci::{skew,skewf32,mat2sort};
 use crate::setti::dessi;
 use ndarray::{arr1,Array1};
 use std::collections::{HashMap,HashSet};
+
+/// # return
+/// 
+pub fn apply_skewf32_type_a_variable_size(mut s: skewf32::SkewF32,v:Array1<f32>) -> Array1<f32> {
+    let l1 = s.sk.addit.clone().unwrap().len();
+    let l2 = v.len();
+    let q:Array1<f32> = Array1::zeros(l1);
+    let s2:Array1<f32> = s.skew_value(q);
+    if l1 < l2 {
+        // first chunk
+        let mut v2:Array1<f32> = (0..l1).into_iter().map(|x| v[x].clone()).collect();
+        let mut v3:Vec<f32> = (s2.clone() + v2.clone()).into_iter().collect(); 
+        
+        // remainder
+        for i in (l1..l2) {
+            v3.push(v[i].clone());
+        }
+        return v3.into_iter().collect();
+    } else if l2 < l1 {
+        let mut v2:Array1<f32> = (0..l2).into_iter().map(|x| s2[x].clone()).collect();
+        return v + v2;
+    }
+
+    s.skew_value(v)
+}
 
 /// <btchcorrctr::GBatchCorrector> is a data structure used
 /// to refactor batches of skew data given their corresponding references.
@@ -321,7 +346,8 @@ impl GBatchCorrector {
 
         // add skew to VReducer
         let q = if bf3 {vreducer::sample_vred_adder_skew(bf1.unwrap(),self.k)} else {vreducer::sample_vred_multer_skew(bf1.unwrap())};
-        self.vr.add_s(q);
+        self.vr.mod_tailn_(q);
+        //self.vr.add_s(q);
 
         // update skew_mtr
         self.skew_mtr = bf2.unwrap();
@@ -418,6 +444,28 @@ impl GBatchCorrector {
         println!("# of samples: {}",self.sb.len());
         println!("skew meter: {}",self.skew_mtr);
         println!("best refactor: {:?}",self.best_refactor);
+    }
+
+    /// # description
+    /// iterates through all references and chooses the reference
+    /// `r` with the minimum distance to `vr(s)`. Then applies the skew of
+    /// `r` to `vr(s)`, and 
+    pub fn map_sample(&mut self,s:Array1<f32>) -> Array1<f32> {
+        let (_,yn) = self.vr.apply(s.clone(),1);
+        let l = self.refn.len();
+        if l == 0 {
+            return yn.unwrap();
+        }
+
+        let mut default:(usize,&Array1<f32>) = (0,&self.refn[0].clone()); 
+        let (x,x2):(usize,&Array1<f32>) = self.refn.iter().enumerate().fold(default,
+            |z1:(usize,&Array1<f32>),zn| 
+            if mat2sort::euclidean_distance_variable_size(yn.clone().unwrap(),(*zn.1).clone(),1.) < 
+                mat2sort::euclidean_distance_variable_size(yn.clone().unwrap(),(*z1.1).clone(),1.)
+            {zn} else {z1});
+
+        let r = apply_skewf32_type_a_variable_size(self.sb[x].clone(),yn.clone().unwrap());
+        r
     }
 
     //-------------------------------------

@@ -56,41 +56,4 @@ extern crate savefile;
 use savefile::prelude::*;
 
 fn main() {
-    //// demo 1: prediction
-    /*
-    let vr = metrice::vreducer::sample_vred_euclids_reducer_tail1();
-    let mut gj = metrice::gorillaj::build_GorillaJudge("src/data/f3_x.csv".to_string(),None,
-        false,vr.clone(),2,20); 
-    gj.process_next(false);
-    
-    let x = metrice::vcsv::csv_to_arr1_seq("src/data/f3_x.csv").unwrap();
-    let y = metrice::vcsv::csv_to_arr1_seq("src/data/f3_y.csv").unwrap();
-
-    let l = x.len();
-
-    for i in 0..l {
-        let p = gj.predict_sequence(x[i].clone());
-        println!("{}",p);
-        println!("actual: {:?}\n",y[i].clone());
-    }
-    */
-
-    //// demo 2: repeatedly refactor until no longer able to.
-    let vr = metrice::vreducer::sample_vred_euclids_reducer();
-    let mut gj = metrice::gorillaj::build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y3.csv".to_string()),
-        true,vr.clone(),2,20); 
-
-    gj.process_next(false);
-    gj.skew_meter();
-    println!("---");
-    
-    println!("bc1: {}",gj.bc.refn.len());
-    println!("bc2: {}",gj.bc2.refn.len());
-    
-    gj.refactor();
-    gj.skew_meter();
-    println!("---");
-
-    gj.refactor();
-    gj.skew_meter();
 }

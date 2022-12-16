@@ -214,7 +214,8 @@ pub fn active_indices(v:Array1<f32>) -> Array1<usize> {
 }
 
 /// # return 
-/// difference of active size of v1 and v2
+/// difference of active size of v1 and v2.
+/// active size of vector is number of non-zero elements.
 pub fn active_size_distance(v:Array1<f32>,v2:Array1<f32>) -> usize {
     (active_size_of_vec(v) as i32 - active_size_of_vec(v2) as i32).abs() as usize
 }
@@ -279,6 +280,36 @@ pub fn abs_sum_arr1_f32(v:Array1<f32>) -> f32 {
     let v2:Array1<f32> = v.into_iter().map(|x| x.abs()).collect();
     v2.sum()
 }
+
+pub fn euclidean_distance(v:Array1<f32>,v2:Array1<f32>) -> f32 {
+    let mut v3 = v - v2.clone();
+    let v4 = (v3.clone() * v3.clone()).sum();
+    v4.sqrt()
+}
+
+pub fn euclidean_distance_variable_size(v:Array1<f32>,v2:Array1<f32>,f:f32) -> f32 {
+    let l1 = v.len();
+    let l2 = v2.len();
+    let mut d:usize = 0;
+    if l1 < l2 {
+        let v3 = extend_arr1_w_filler(v,l2 - l1,f);
+        return euclidean_distance(v3,v2);
+    } else if l2 < l1 {
+        let v3 = extend_arr1_w_filler(v2,l1 - l2,f);
+        return euclidean_distance(v,v3);        
+    }
+    euclidean_distance(v,v2)
+}
+
+pub fn extend_arr1_w_filler(v:Array1<f32>,s:usize,f:f32) -> Array1<f32> {
+    let mut q:Vec<f32> = v.into_iter().collect();
+    for i in 0..s {
+        q.push(f);
+    }
+    q.into_iter().collect()
+
+}
+
 
 pub fn sample_arr2_sort1() -> Array2<f32> {
     arr2(&[[0.,1.,1.,1.,1.],

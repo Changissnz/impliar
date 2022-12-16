@@ -134,8 +134,8 @@ impl GorillaJudge {
         if self.lbs > 0 {
             self.gorilla_on_batch();
             if self.is_tailn {
-                self.bc.process_batch_(true);
-                self.bc2.process_batch_(true);
+                self.bc.process_batch_(false);
+                self.bc2.process_batch_(false);
             }
         }
 
@@ -217,6 +217,7 @@ impl GorillaJudge {
         let mut y:Array1<usize> = self.label_loadn.as_ref().unwrap()[i].clone().into_iter().map(|x| x as usize).collect();
         let mut x2:Array1<f32> = x.clone();
         if ordering == vec![0,1] {
+            ////println!("adding sample {} to bc#1",i);
             // get the outputn
             let (_,q) = self.bc.vr.apply(x.clone(),1);
             x2 = q.unwrap();
@@ -226,7 +227,8 @@ impl GorillaJudge {
             self.bc.b.push(sk.clone());
             return sk.skew_size();
         } 
-        
+
+        ////println!("adding sample {} to bc#2",i);
         // get the outputn
         let (_,q) = self.bc2.vr.apply(x.clone(),1);
         x2 = q.unwrap();
@@ -282,7 +284,7 @@ impl GorillaJudge {
             self.refactor_batch_tail1();
             return;
         }
-
+        println!("** corrector refactor");
         self.bc.refactor_();
         self.bc2.refactor_();
     }
@@ -324,21 +326,23 @@ impl GorillaJudge {
 
     pub fn predictn_(&mut self,x:Array1<f32>) -> ((Array1<usize>,f32),(Array1<usize>,f32)) {
         // predict by corrector #1
-        let (_,q) = self.bc.vr.apply(x.clone(),1);
-        let mut q_ = q.unwrap();
+            //let (_,q) = self.bc.vr.apply(x.clone(),1);
+            //let mut q_ = q.unwrap();
+        let mut q_ = self.bc.map_sample(x.clone());
+    
         let li = skewcorrctr::label_intervals_by_ordering(vec![0,1]);
         let p1:Array1<usize> = q_.clone().into_iter().map(|y| gorillains::label_of_f32(y,li.clone())).collect();
         let w1 = skewcorrctr::wanted_normaln_to_interval_values(p1.clone(),vec![0,1]);
-        let s1:Array1<f32> = (w1 -q_.clone()).into_iter().map(|y| y.abs()).collect();
+        let s1:Array1<f32> = (w1.clone() -q_.clone()).into_iter().map(|y| y.abs()).collect();
 
         // predict by corrector #2
-        let (_,q2) = self.bc2.vr.apply(x.clone(),1);
-        let mut q2_ = q2.unwrap();
+            //let (_,q2) = self.bc2.vr.apply(x.clone(),1);
+            //let mut q2_ = q2.unwrap();
+        let mut q2_ = self.bc2.map_sample(x.clone());    
         let li2 = skewcorrctr::label_intervals_by_ordering(vec![1,0]);
         let p2:Array1<usize> = q2_.clone().into_iter().map(|y| gorillains::label_of_f32(y,li2.clone())).collect();
         let w2 = skewcorrctr::wanted_normaln_to_interval_values(p2.clone(),vec![1,0]);
-        let s2:Array1<f32> = (w2 -q2_.clone()).into_iter().map(|y| y.abs()).collect();
-
+        let s2:Array1<f32> = (w2.clone() -q2_.clone()).into_iter().map(|y| y.abs()).collect();
 
         ((p1,s1.sum()),(p2,s2.sum()))
     }
@@ -411,5 +415,36 @@ mod tests {
         gj.refactor();
         let sm2:f32 = gj.tm.skew_mtr.clone();     
         assert!(sm2 < sm, "refactor results in >= skew metric");
+    }
+
+    /// # description
+    /// tests accuracy of predicting samples that a GorillaJudge
+    /// instance has already trained on.
+    /// 
+    /// * test description:
+    /// - tail-n, labelled, 11 samples, tests for accuracy at least 7. 
+    #[test]
+    pub fn test__GorillaJudge__predict_sequence__case_1() {
+
+
+        let vr = vreducer::sample_vred_euclids_reducer();
+        let mut gj = build_GorillaJudge("src/data/f3_x.csv".to_string(),Some("src/data/f3_y2.csv".to_string()),
+            true,vr.clone(),2,20); 
+        gj.process_next(true);
+        
+        let x = vcsv::csv_to_arr1_seq("src/data/f3_x.csv").unwrap();
+        let y = vcsv::csv_to_arr1_seq("src/data/f3_y2.csv").unwrap();
+    
+        let l = x.len();
+        let mut c = 0;
+        for i in 0..l {
+            let mut p = gj.predict_sequence(x[i].clone());
+            let y2:Array1<usize> = y[i].clone().into_iter().map(|y_| y_ as usize).collect();    
+            if p.best().1.unwrap() == y2 {
+                c += 1;
+            }
+        }
+        
+        assert!(c >= 7); 
     }
 }

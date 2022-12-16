@@ -60,5 +60,28 @@ impl fmt::Display for GorillaPred {
         }
         write!(f, "{}", s)
     }
+}
+
+impl GorillaPred {
+
+    pub fn best(&mut self) -> (Option<usize>,Option<Array1<usize>>) {
+        if !self.hyp_n1.is_none() {
+            if self.hyp_n1.as_ref().unwrap().1 < self.hyp_n2.as_ref().unwrap().1 {
+                return (None,Some(self.hyp_n1.clone().unwrap().0));
+            }  else {
+                return (None,Some(self.hyp_n2.clone().unwrap().0));
+            }
+        }
+
+        if !self.hyp_n.is_none() {
+            return (None,self.hyp_n.clone());
+        }
+
+        (self.hyp_1.clone(),None) 
+
+
+
+    }
+
 
 }

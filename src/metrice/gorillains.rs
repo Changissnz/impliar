@@ -16,7 +16,7 @@ pub fn label_of_f32(f:f32,label_intervals: Array1<f32>) -> usize {
     assert!(label_intervals.len() > 0);
     
     let mut sol: (usize,f32) = (0,(label_intervals[0].clone()).abs());
-    label_intervals.into_iter().enumerate().fold(sol, |x,x2| if (x.1 - f).clone() < (x2.1 - f).clone() {x} else {x2}).0
+    label_intervals.into_iter().enumerate().fold(sol, |x,x2| if (x.1 - f).abs() < (x2.1 - f).abs() {x} else {x2}).0
 }
 
 /// Gorilla instructor GorillaIns is a "normal"-detection algorithm that determines
