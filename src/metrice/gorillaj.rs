@@ -70,6 +70,25 @@ pub fn empty_Tail1Mem() -> Tail1Mem {
     Tail1Mem{tail1_skew:Vec::new(),vr_output1:Vec::new(),misclass_mtr:0.,skew_mtr:0.}
 }
 
+/// <gorillaj::GorillaJudge> uses <gorillains::GorillaIns> to
+/// learn each sample it processes. Samples are loaded into this
+/// data structure by its x-data <vcsv::BatchReader> and ?y-data?
+/// <vcsv::BatchReader>. 
+///
+/// Two metrics are used to gauge the "goodness-of-fit" of the 
+/// mapping function `base_vr`:
+///         - summation of skew
+///         - summation of mis-classification
+///
+/// Each sample `s` goes through the function `base_vr` and its skew is the vector
+///             `I - base_vr(s)`, 
+/// `I` is the vector of `f32's in [0,1]` such that each i'th value of `base_vr(s)` should
+/// equal the i'th value in `I` for a labelling of `s` with no mis-classification error.
+/// 
+/// Summation of mis-classification is calculated by adding the score of
+/// each <gorillains::GorillaIns> solution (a <fs::FSelect> instance). The
+/// `.score` attribute of the <fs::FSelect> instance is its misclassification
+/// for the sample.
 pub struct GorillaJudge {
     /// x-data reader
     pub brx: vcsv::BatchReader,

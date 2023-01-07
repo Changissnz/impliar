@@ -78,10 +78,5 @@ impl GorillaPred {
         }
 
         (self.hyp_1.clone(),None) 
-
-
-
     }
-
-
 }
